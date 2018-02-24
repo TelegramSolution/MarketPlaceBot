@@ -1,0 +1,25 @@
+﻿@model IEnumerable<MyTelegramBot.PickupPoint>
+
+@{
+    ViewData["Title"] = "Пункты самовывоза";
+    Layout = "_Layout";
+}
+
+<!DOCTYPE html>
+<h3>Список пунктов самовывоза | <a href="~/PickupPoint/Create/">Добавить</a></h3>
+<table class="table">
+    <tr>
+        <td>Название</td>
+        <td>Активно</td>
+        <td>Изменить</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Enable</td>
+            <td><a href="~/PickupPoint/Editor/@item.Id">Изменить</a></td>
+
+        </tr>
+    }
+</table>

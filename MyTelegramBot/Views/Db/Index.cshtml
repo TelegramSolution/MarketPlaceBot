@@ -1,0 +1,59 @@
+﻿@model MyTelegramBot.Model.SettingsDbConnection
+@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+
+<h1>@ViewBag.Error</h1>
+
+<div>
+    <h3>Настройка подключения к базе данных</h3>
+    <p>
+        @Html.Label("Ip адрес сервера" ) <br />
+        @Html.TextBoxFor(m => m.Host, new { @class = "form-control" })
+    </p>
+
+    @*<p>
+        @Html.Label("Порт") <br />
+        @Html.TextBoxFor(m => m.Port, new { @class = "form-control" })
+    </p>*@
+
+    @*<p>
+        @Html.Label("Логин") <br />
+        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+    </p>
+    <p>
+        @Html.Label("Пароль") <br />
+        @Html.TextBoxFor(m => m.Password, new { @class = "form-control" })
+    </p>*@
+
+    <p>
+        @Html.Label("Название базы данных") <br />
+        @Html.TextBoxFor(m => m.DbName, new { @class = "form-control" })
+    </p>
+    <input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxSave();" />
+</div>
+
+<script type="text/javascript">
+    function ajaxSave() {
+        var Config = {
+            'DbName': $("#DbName").val(),
+            'Port': $("#Port").val(),
+            'Host': $("#Host").val()
+        }
+        $.ajax({
+            type: "POST",
+            url: '/db/Update',
+            data: JSON.stringify(Config),
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            dataType: "json"
+        }).done(function (data) {
+            alert(data);
+
+        })
+    }
+</script>

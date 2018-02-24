@@ -1,0 +1,47 @@
+﻿@model MyTelegramBot.Product
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+
+@using (Html.BeginForm("Add", "Stock", FormMethod.Get))
+{
+    @Html.HiddenFor(m=>m.Id)
+<p>
+    <label>
+        Добавить /Убавить
+    </label><br />
+    @Html.TextBox("Quantity")
+</p>
+
+<p>
+    <label>
+        Комментарий
+    </label><br />
+    @Html.TextBox("Comment")
+</p>
+
+    <p>
+        <input type="submit" value="Сохранить" class="btn btn-success" />
+    </p>
+
+}
+<!DOCTYPE html>
+<h3>История изменений</h3> 
+<table class="table">
+    <tr>
+        <td>Дата</td>
+        <td>Добавлено / Убавлено</td>
+        <td>Остаток</td>
+        <td>Комментарий</td>
+
+    </tr>
+    @foreach (var stock in Model.Stock)
+    {
+        <tr><td>@stock.DateAdd</td>
+            <td>@stock.Quantity</td>
+            <td>@stock.Balance</td>
+            <td>@stock.Text</td> 
+        </tr>
+    }
+</table>

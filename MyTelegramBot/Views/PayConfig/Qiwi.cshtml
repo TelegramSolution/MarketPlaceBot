@@ -1,0 +1,141 @@
+﻿@model Tuple<List<MyTelegramBot.PaymentTypeConfig>, MyTelegramBot.PaymentType>
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+    int counter = 1;
+}
+<!DOCTYPE html>
+<h3>Настройка Qiwi. Что бы получить токен доступа пройдите по ссылке <a href="https://qiwi.com/api">https://qiwi.com/api</a></h3> 
+
+@Html.HiddenFor(m => m.Item2.Id)
+<p>
+    <label>
+        Способ оплаты доступен для пользователей
+    </label><br />
+    @Html.CheckBoxFor(m => m.Item2.Enable, new { @class = "form-control" })
+</p>
+<br /><input type="submit" value="Сохранить" class="btn btn-success" onclick="ajaxEnable();" />
+
+
+<div class="form-group row">
+@using (Html.BeginForm("AddQiwi", "PayConfig", FormMethod.Get))
+{
+
+    <br />
+    <div class="col-xs-3">
+        <label for="ex1">Номер телефона</label>
+        <input class="form-control" id="telephone" type="text" name="telephone">
+    </div>
+    <div class="col-xs-4">
+        <label for="ex2">Токен доступа</label>
+        <input class="form-control" id="token" type="text" name="token">
+    </div>
+    <div class="col-xs-2">
+        <br /><input type="submit" value="Добавить" class="btn btn-success" />
+    </div>
+}
+</div>
+
+
+
+
+@foreach (MyTelegramBot.PaymentTypeConfig cgf in Model.Item1)
+{
+    <br />
+
+         @Html.HiddenFor(m => cgf.Id, new { @id = "Id" + counter })
+        @Html.HiddenFor(m => cgf.PaymentId)
+
+    <div class="form-group row">
+        <div class="col-xs-4">
+            <label for="ex1">Номер телефона</label>
+            @Html.TextBoxFor(m => cgf.Login, new { @class = "form-control", @id = "Login" + counter })
+        </div>
+        <div class="col-xs-4">
+            <label for="ex2">Токен доступа</label>
+            @Html.TextBoxFor(m => cgf.Pass, new { @class = "form-control", @id = "Pass" + counter })
+        </div>
+
+    </div>
+
+        <input type="button" value="Тест QIWI" class="btn btn-success" onclick="ajaxTest($('#Login'+@counter).val(),$('#Pass'+@counter).val());"  />
+
+        <input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxSave($('#Login'+@counter).val(),$('#Pass'+@counter).val(),$('#Id'+@counter).val());"  />
+
+        <a href="~/PayConfig/Delete?Id=@cgf.Id" class="btn btn-danger" role="button">Удалить</a>
+
+    counter++;
+}
+
+<script type="text/javascript">
+        function ajaxTest(Login, Pass)
+        {
+            var Config = {
+                'Host': 'https://qiwi.com/api',
+                'Login': Login,
+                'Pass': Pass,
+                'Port' : '80',
+                Enable: 'true',
+                PaymentId:'2'
+            }
+        $.ajax({
+            type: "POST",
+            url: 'TestConnection',
+            data: JSON.stringify(Config),
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+            },
+            dataType: "json"
+        }).done(function (data) {
+            alert(data);
+
+        })
+        }
+</script>
+
+<script type="text/javascript">
+        function ajaxSave(Login, Pass,Id) {
+            var Config = {
+                'Id': Id,
+                'Host': 'https://qiwi.com/api',
+                'Login': Login,
+                'Pass': Pass,
+                'Port': '80',
+                Enable: 'true',
+                PaymentId: '2'
+            }
+            $.ajax({
+                type: "POST",
+                url: 'Save',
+                data: JSON.stringify(Config),
+                contentType: "application/json; charset=utf-8",
+                beforeSend: function (xhr) {
+                },
+                dataType: "json"
+            }).done(function (data) {
+                alert(data);
+
+            })
+        }
+</script>
+
+<script type="text/javascript">
+        function ajaxEnable() {
+            var Config = {
+                'Id': $('#Item2_Id').val(),
+                Enable: $('#Item2_Enable').prop('checked'),
+            }
+            $.ajax({
+                type: "POST",
+                url: 'EnableQiwi',
+                data: JSON.stringify(Config),
+                contentType: "application/json; charset=utf-8",
+                beforeSend: function (xhr) {
+                },
+                dataType: "json"
+            }).done(function (data) {
+                alert(data);
+
+            })
+        }
+</script>

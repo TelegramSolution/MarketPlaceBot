@@ -1,0 +1,212 @@
+﻿@model Tuple<MyTelegramBot.BotInfo, MyTelegramBot.Company>
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+
+<h1>@ViewBag.Error</h1>
+
+@if (Model.Item1.Id == 0)
+{
+    @Html.ActionLink("Добавить", "Add", "Home");
+
+}
+
+@if (Model.Item1.Id > 0)
+{
+
+    if (Model.Item1.OwnerChatId == null)
+    {
+        var key = "Владелец бота не подтвержден! Отправьте боту команду /owner" + @Model.Item1.Token.Split(':').ElementAt(1).Substring(0, 15);
+       <h1><p class="text-danger">@key</p></h1>
+
+    }
+
+<h2>Бот</h2>
+<table class="table">
+    <tr>
+        <td>Название</td>
+        <td>Токен</td>
+        <td>Дата добавления</td>
+        <td></td>
+    </tr>
+  
+    <tr>
+        <td>@Model.Item1.Name</td>
+        <td>@Model.Item1.Token</td>
+        <td>@Model.Item1.Timestamp.ToString()</td>
+        <td><a href="~/Home/Editor/">Изменить</a></td>
+    </tr>
+    
+</table>
+
+@using (Html.BeginForm("Save", "Home", FormMethod.Post))
+{
+    @Html.HiddenFor(m => m.Item1.Configuration.Id)
+    <h2>Основные настройки</h2> <br />
+
+    <p>
+        <label>Валюта</label><br />
+        @Html.DropDownListFor(Model => Model.Item1.Configuration.CurrencyId, ViewBag.Currency as SelectList, new { @class = "form-control" })
+    </p>
+
+
+    <p>
+        <h4>Режим обработки заказов. </h4>
+        <h5>Если бот обрабатывает заказы круглосуточно, то оставьте эти поля пустыми</h5>
+        <label>Начало</label>
+        @Html.TextBoxFor(m=>m.Item1.Configuration.StartTime, new { @class = "form-control" })
+
+        <label>Конец</label>
+        @Html.TextBoxFor(m => m.Item1.Configuration.EndTime, new { @class = "form-control" })
+
+    </p>
+<hr />
+<p>
+        <label>
+            Требовать от пользователя номер телефона при офрмлении заказа
+        </label>
+        @Html.CheckBoxFor(m => m.Item1.Configuration.VerifyTelephone, new { @class = "form-control" })
+    </p>
+
+    <p>
+        <label>
+            Получать уведомления в ЛС от бота при добавлении новых заказов/ заявок и т.д
+        </label>
+        @Html.CheckBoxFor(m => m.Item1.Configuration.OwnerPrivateNotify, new { @class = "form-control" })
+    </p>
+
+    <h4>Способы получения заказа:</h4>
+    <p>
+        <label>
+            Доставка
+        </label>
+        @Html.CheckBoxFor(m => m.Item1.Configuration.Delivery, new { @class = "form-control" })
+    </p>
+
+    <p>
+        <label>
+            Самовывоз
+        </label>
+        @Html.CheckBoxFor(m => m.Item1.Configuration.Pickup, new { @class = "form-control" })
+    </p>
+
+    <p>
+        <h4>Стоимость доставки</h4>
+        <label>Стоимость</label>
+        @Html.TextBoxFor(m => m.Item1.Configuration.ShipPrice, new { @class = "form-control" })
+        <label>Бесплатная доставка от</label><br />
+        @Html.TextBoxFor(m => m.Item1.Configuration.FreeShipPrice, new { @class = "form-control" })
+    </p>
+}
+
+
+
+<input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxSave();" />
+
+@using (Html.BeginForm("ContactUpdate", "Home", FormMethod.Post))
+{
+    <h2>О нас</h2>
+    <p>
+        @Html.HiddenFor(m => m.Item2.Id)
+        <label>
+            Instagram
+        </label><br />
+        @Html.TextBoxFor(m => m.Item2.Instagram, new { @class = "form-control" })
+    </p>
+
+    <p>
+        <label>
+            Vk
+        </label><br />
+        @Html.TextBoxFor(m => m.Item2.Vk, new { @class = "form-control" })
+    </p>
+
+
+    <p>
+        <label>
+            Канал в телеграм
+        </label><br />
+        @Html.TextBoxFor(m => m.Item2.Chanel, new { @class = "form-control" })
+    </p>
+
+    <p>
+        <label>
+            Чат в телеграм
+        </label><br />
+        @Html.TextBoxFor(m => m.Item2.Chat, new { @class = "form-control" })
+    </p>
+
+    <p>
+        <label>
+            Информация
+        </label><br />
+        @Html.TextAreaFor(m => m.Item2.Text, new { @class = "form-control" })
+
+    </p>
+}
+
+<input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxContact();" />
+
+}
+
+<script type="text/javascript">
+    function ajaxSave() {
+
+            var Config = {
+                'VerifyTelephone': $("#Item1_Configuration_VerifyTelephone").prop("checked"),
+                'OwnerPrivateNotify': $("#Item1_Configuration_OwnerPrivateNotify").prop("checked"),
+                'Delivery': $("#Item1_Configuration_Delivery").prop("checked"),
+                'Pickup': $("#Item1_Configuration_Pickup").prop("checked"),
+                'StartTime': $("#Item1_Configuration_StartTime").val(),
+                'EndTime': $("#Item1_Configuration_EndTime").val(),
+                'ShipPrice': $("#Item1_Configuration_ShipPrice").val(),
+                'FreeShipPrice': $("#Item1_Configuration_FreeShipPrice").val(),
+                'CurrencyId': $("#Item1_Configuration_CurrencyId").val(),
+                'Id': $("#Item1_Configuration_Id").val()
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/Home/save',
+                data: JSON.stringify(Config),
+                contentType: "application/json; charset=utf-8",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("XSRF-TOKEN",
+                        $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                dataType: "json"
+            }).done(function (data) {
+                alert(data);
+            })
+
+    }
+</script>
+
+<script type="text/javascript">
+        function ajaxContact() {
+            var Config = {
+                'Instagram': $("#Item2_Instagram").val(),
+                'Chanel': $("#Item2_Chanel").val(),
+                'Chat': $("#Item2_Chat").val(),
+                'Vk': $("#Item2_Vk").val(),
+                'Id': $("#Item2_Id").val(),
+                'Text': $("#Item2_Text").val()
+            }
+            $.ajax({
+                type: "POST",
+                url: 'Home/ContactUpdate',
+                data: JSON.stringify(Config),
+                contentType: "application/json; charset=utf-8",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("XSRF-TOKEN",
+                        $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                dataType: "json"
+            }).done(function (data) {
+                alert(data);
+
+            })
+        }
+</script>

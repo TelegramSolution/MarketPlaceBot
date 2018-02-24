@@ -1,0 +1,13 @@
+﻿@model String
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h1>Отправьте вашему боту это сообщение</h1>
+<h2><code>@Model</code></h2>
+
+@using (Html.BeginForm("Index", "Home", FormMethod.Get))
+{
+    <input type="submit" value="Продолжить" class="btn btn-success" />
+}

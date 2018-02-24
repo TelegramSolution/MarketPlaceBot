@@ -1,0 +1,22 @@
+﻿@model IEnumerable<MyTelegramBot.Category>
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Список товаров | <a href="~/Category/Creator/">Добавить</a></h3> 
+<table class="table">
+    <tr>
+        <td>Название</td>
+        <td>Активно</td>
+        <td>Изменить</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr><td>@item.Name</td>
+            <td>@item.Enable</td>
+            <td><a href="~/Category/Editor/@item.Id">Изменить</a></td>
+
+        </tr>
+    }
+</table>

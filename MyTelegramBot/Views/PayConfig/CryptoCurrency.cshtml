@@ -1,0 +1,113 @@
+﻿@model MyTelegramBot.PaymentTypeConfig
+@{
+    ViewData["Title"] = ViewBag.Title;
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+
+<h3>@ViewBag.Text</h3>
+<h4><code>@ViewBag.Bat</code></h4>
+
+@using (Html.BeginForm("Save", "PayConfig", FormMethod.Post))
+    {
+
+        @Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.PaymentId)
+        <p>
+        <label>
+        Логин для подключения к RPC
+        </label><br />
+        @Html.TextBoxFor(m => m.Login, new { @class = "form-control" })
+        </p>
+        <p>
+        <label>
+        Пароль для подключения к RPC
+        </label><br />
+        @Html.TextBoxFor(m => m.Pass, new { @class = "form-control" })
+        </p>
+
+        <p>
+            <label>
+                Адрес RPC сервера
+            </label>
+            @Html.TextBoxFor(m=>m.Host, new { @class = "form-control" })
+        </p>
+
+        <p>
+            <label>
+                Порт RPC сервера
+            </label>
+            @Html.TextBoxFor(m => m.Port, new { @class = "form-control" })
+        </p>
+
+        <p>
+            <label>
+                Метод оплаты доступен для пользователей
+            </label><br />
+            @Html.CheckBoxFor(m=>Model.Enable, new { @class = "form-control" })
+        </p>
+
+}
+    <input type="button" value="Тест" class="btn btn-success" onclick="ajaxTest();" />
+
+<input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxSave();" />
+
+    <script type="text/javascript">
+        function ajaxTest()
+        {
+            var Config = {
+                'Host': $("#Host").val(),
+                'Login': $("#Login").val(),
+                'Pass': $("#Pass").val(),
+                'Port' : $("#Port").val(),
+                Enable: $("#Enable").val(),
+                PaymentId:@Model.PaymentId
+            }
+        $.ajax({
+            type: "POST",
+            url: 'TestConnection',
+            data: JSON.stringify(Config),
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            dataType: "json"
+        }).done(function (data) {
+            alert(data);
+
+        })
+        }
+    </script>
+
+<script type="text/javascript">
+        function ajaxSave()
+        {
+            var Cgf = {
+                'Id': $("#Id").val(),
+                'Host': $("#Host").val(),
+                'Login': $("#Login").val(),
+                'Pass': $("#Pass").val(),
+                'Port' : $("#Port").val(),
+                Enable: $("#Enable").prop("checked"),
+                PaymentId:@Model.PaymentId
+            }
+            $.ajax({
+                type: "POST",
+                url: 'Save',
+                data: JSON.stringify(Cgf),
+                contentType: "application/json; charset=utf-8",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("XSRF-TOKEN",
+                        $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                dataType: "json"
+            }).done(function (data) {
+                alert(data);
+
+            })
+        }
+</script>
+
+
+

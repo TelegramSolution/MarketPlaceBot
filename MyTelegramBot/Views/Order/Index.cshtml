@@ -1,0 +1,45 @@
+﻿@model IEnumerable<MyTelegramBot.Orders>
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+
+@using (Html.BeginForm("Get", "Order", FormMethod.Get))
+{
+    <label>Введите номер заказа</label>
+    @Html.TextBox("Number")
+    <input type="submit" value="Открыть" class="btn btn-success" />
+}
+
+
+
+
+<table class="table tb_order__width">
+    <tr > 
+        <td>Номер заказа</td>
+        <td class="tb_order__comment">Комментарий</td>
+        <td>Дата</td>
+        <td>Бот</td>
+        <td>Выполнен</td>
+    </tr>
+    @foreach (var order in Model)
+    {
+        <tr>
+            <td><a href="~/Order/Get/Get?Number=@order.Number">@("Заказ №"+@order.Number)</a></td>
+            <td class="tb_order__comment">@order.Text</td>
+            <td>@order.DateAdd</td>
+            <td><a href=@("https://t.me/" + order.BotInfo.Name)>@order.BotInfo.Name</a></td>
+            @if (order.DoneId ==0)
+            {
+                <td>Нет</td>
+
+            }
+            @if (order.DoneId >0)
+            {
+                <td>Да</td>
+
+            }
+        </tr>
+    }
+</table>

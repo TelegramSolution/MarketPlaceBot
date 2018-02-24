@@ -1,0 +1,49 @@
+﻿@model MyTelegramBot.PaymentType
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Оплата при получении</h3> 
+
+@using (Html.BeginForm("SavePaymentOnReceipt", "PayConfig", FormMethod.Post))
+    {
+
+        @Html.HiddenFor(m => m.Id)
+        <p>
+        <label>
+        Способ оплаты доступен для пользователей
+        </label><br />
+        @Html.CheckBoxFor(m => m.Enable, new { @class = "form-control" })
+        </p>
+
+}
+
+<input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxSave();" />
+
+<script type="text/javascript">
+        function ajaxSave()
+        {
+            var Cgf = {
+                Enable: $("#Enable").prop("checked"),
+                Id:@Model.Id
+            }
+        $.ajax({
+            type: "POST",
+            url: 'SavePaymentOnReceipt',
+            data: JSON.stringify(Cgf),
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            dataType: "json"
+        }).done(function (data) {
+            alert(data);
+
+        })
+        }
+</script>
+
+
+

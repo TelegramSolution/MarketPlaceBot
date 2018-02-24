@@ -1,0 +1,20 @@
+﻿@model IEnumerable<MyTelegramBot.Orders>
+
+<div id="searchresults">
+    <table class="table">
+        <tr>
+            <td>Название</td>
+            <td>Описание</td>
+            <td>Категория</td>
+        </tr>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <td>@order.Number</td>
+                <td>@order.Text</td>
+                <td><a href="~/Order/Editor/@order.Number">Открыть</a></td>
+
+            </tr>
+        }
+    </table>
+</div>

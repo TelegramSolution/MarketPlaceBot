@@ -1,0 +1,28 @@
+﻿@model IEnumerable<MyTelegramBot.AvailableСities>
+@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Список доступных городов от куда можно оформлять заказ</h3>
+
+@using (Html.BeginForm("Add", "AvailableСities", FormMethod.Get))
+{
+    <label>Введите название города</label>
+    @Html.TextBox("name")
+    <input type="submit" value="Добавить" class="btn btn-success" />
+}
+
+<table class="table">
+    <tr>
+        <td>Название</td>
+        <td>Дата добавления</td>
+        <td>Удалить</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr><td>@item.CityName</td>
+            <td>@item.Timestamp</td>
+            <td><a href="~/AvailableСities/Delete/@item.Id">Удалить</a></td>
+        </tr>
+    }
+</table>

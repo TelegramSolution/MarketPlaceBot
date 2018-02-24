@@ -1,0 +1,51 @@
+﻿@model MyTelegramBot.AttachmentFs
+@{
+    //ViewData["Title"] = "Список смартфонов";
+}
+
+@{
+    string imageBase64Data = Convert.ToBase64String(Model.Fs);
+
+    string imageDataURL = string.Format("data:image/png;base64,{0}", imageBase64Data);
+    <img src="@imageDataURL" class="img-thumbnail" alt="Responsive image"> <br />
+    //@Html.HiddenFor(m => Model.Id)
+    <label>
+        Описание (не более 200 символом)
+    </label><br />
+        @Html.DisplayFor(m => Model.Id)<br />
+
+        @Html.TextBoxFor(m => Model.Caption, new { @class = "form-control" })<br />
+        <input type="submit" value="Сохранить" class="btn btn-success" onclick="SaveCaption($('#Id').val(),$('#Caption').val());" />
+
+
+        <hr />
+}
+
+<script type="text/javascript">
+
+    function SaveCaption(Id, Caption) {
+
+        var Config = {
+            'Id': Id,
+            'Caption': Caption
+        }
+
+        $.ajax({
+            type: "POST",
+            url: '/Product/SaveCaption',
+            data: JSON.stringify(Config),
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            dataType: "json"
+        }).done(function (data) {
+            console.info(data);
+            alert(data);
+
+        }).error(function (data) {
+            // если с ответом сервера чтото пошло не так...
+        })
+    }
+</script>

@@ -1,0 +1,28 @@
+﻿
+@{
+    Layout = "_Layout";
+}
+
+<!DOCTYPE html>
+
+<div>
+    <p>
+        <a href="~/Product/Template/">Шаблон</a>
+    </p>
+
+    <p>
+        <a href="~/Product/Example/">Пример</a>
+    </p>
+
+    <text>Еденицы измерения: шт.; г.; кг.; л.; м.; см.;</text>
+
+@using (Html.BeginForm("Import", "Product", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <p>Загрузите CSV файл</p>
+    <p><input type="file" name="import" /></p>
+    
+    <p>
+        <input type="submit" value="Импортировать" class="btn btn-success" />
+    </p>
+    }
+</div>

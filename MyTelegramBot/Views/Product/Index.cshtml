@@ -1,0 +1,29 @@
+﻿@model IEnumerable<MyTelegramBot.Product>
+@{
+    //ViewData["Title"] = "Список смартфонов";
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Список товаров| <a href="~/Product/Creator/">Добавить</a></h3> 
+
+<h3><a href="~/Product/ImportFaq/">Импортировать из CSV</a></h3> 
+
+<table class="table">
+    <tr>
+        <td>Название</td>
+        <td>Описание</td>
+        <td>Категория</td>
+        <td>Цена</td>
+        <td>Изменить</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr><td>@item.Name</td>
+            <td>@item.Text</td>
+            <td>@item.Category.Name</td>
+            <td>@item.ProductPrice.FirstOrDefault().Value @item.ProductPrice.FirstOrDefault().Currency.ShortName</td>
+            <td><a href="~/Product/Editor/@item.Id">Изменить</a></td>
+
+        </tr>
+    }
+</table>

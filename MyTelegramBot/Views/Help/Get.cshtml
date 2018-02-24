@@ -1,0 +1,159 @@
+﻿@model MyTelegramBot.HelpDesk
+
+@{
+    ViewData["Title"] = "Get";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <input type="hidden" name="Id" id="Id" value="@Model.Id" />
+        <h4>Заявка № @Model.Number</h4>
+        <p>
+            <label>Время:</label>
+            @Html.DisplayFor(m=>m.Timestamp)
+        </p>
+        <p>
+            <label>
+                Комментарий к заказу:
+            </label>
+            @Html.DisplayFor(m=>m.Text)
+        </p>
+        <p>
+            <label>
+                Пользователь:
+            </label>
+            <a href=@("https://t.me/"+ Model.Follower.UserName)>@(@Model.Follower.FirstName+" "+ @Model.Follower.LastName)</a>
+        </p>
+
+        <p>
+            <label>
+                Выполнен:
+                @Html.CheckBoxFor(m=>m.Closed)
+            </label>
+        </p>
+
+        <p>
+            <label>Влоежения</label>
+            <a href="" target="_blank" onclick="ViewAttach();return false">
+               Посмотреть вложения
+            </a>
+
+        </p>
+    </div>
+</div>
+
+
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#work" data-toggle="tab">Заявка взята в обработку</a></li>
+    <li><a href="#done" data-toggle="tab">Комментарии тех. поддержки</a></li>
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+    <div class="tab-pane active" id="work">
+        @if (Model.HelpDeskInWork != null)
+        {
+            <table class="table">
+                <tr>
+                    <td>Пользователь</td>
+                    <td>Время</td>
+                </tr>
+                @foreach (var confirm in Model.HelpDeskInWork)
+                {
+                    <tr>
+                        <td><a href=@("https://t.me/"+ confirm.Follower.UserName)>@(@confirm.Follower.FirstName + " " + @confirm.Follower.LastName)</a></td>
+                        <td>@confirm.Timestamp</td>
+                    </tr>
+                }
+            </table>
+        }
+    </div>
+    <div class="tab-pane" id="done">
+        @if (Model.HelpDeskAnswer != null)
+        {
+            <h3>Добавить комментарий</h3>
+
+            <p>
+                <label>Комментарий:</label> <br />
+                @Html.TextArea("Comment", new { style = "min-width: 100%" })
+            </p>
+           <p>
+               <label>
+                   Выполнено:
+               </label>
+               @Html.CheckBox("Closed", false)
+           </p>
+           <p>
+               <button type="button" id="AddComment" class="btn btn-success btn-block" onclick="AddComment();">Добавить</button>
+           </p>
+
+            <table class="table">
+                <tr>
+                    <td>Пользователь</td>
+                    <td>Время</td>
+                    <td>Комментарий</td>
+                </tr>
+                @foreach (var answer in Model.HelpDeskAnswer)
+                {
+                    <tr>
+                        <td><a href=@("https://t.me/"+ answer.Follower.UserName)>@(@answer.Follower.FirstName + " " + @answer.Follower.LastName)</a></td>
+                        <td>@answer.Timestamp</td>
+                        <td>@answer.Text</td>
+                    </tr>
+                }
+            </table>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+
+
+    function ViewAttach() {
+        $.ajax({
+            type: "Get",
+            url: '/Help/ViewAttach?id=' + $("#Id").val(), //
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            dataType: "json"
+        }).done(function (data) {
+            alert(data);
+            
+
+        }).error(function (data) {
+            // если с ответом сервера чтото пошло не так...
+        })
+
+
+    }
+
+    function AddComment() {
+
+        var Config = {
+            'HelpDeskId': $("#Id").val(),
+            'Closed': $('#Closed').prop("checked"),
+            'Text':$('#Comment').val()
+        }
+
+        $.ajax({
+            type: "POST",
+            url: '/Help/AddComment',
+            data: JSON.stringify(Config),
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            },
+            dataType: "json"
+        }).done(function (data) {
+            alert(data);
+        })
+
+    }
+</script>

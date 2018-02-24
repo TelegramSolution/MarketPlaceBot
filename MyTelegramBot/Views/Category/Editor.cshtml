@@ -1,0 +1,23 @@
+﻿@model MyTelegramBot.Category
+<!DOCTYPE html>
+
+@using (Html.BeginForm("Save", "Category", FormMethod.Post)) { 
+
+@Html.HiddenFor(m => m.Id)
+
+<p>
+    <label>Название категории</label><br />
+    @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+
+</p>
+
+<p>
+    <label>Активно</label>
+    @Html.CheckBoxFor(m => m.Enable)
+</p>
+
+<p>
+    <input type="submit" value="Сохранить" class="btn btn-success" />
+</p>
+
+}

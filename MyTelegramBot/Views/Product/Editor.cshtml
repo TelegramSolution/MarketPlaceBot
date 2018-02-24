@@ -1,0 +1,113 @@
+﻿@model MyTelegramBot.Product
+<!DOCTYPE html>
+
+<img src="@ViewBag.ImageData" class="img-responsive" alt="Responsive image">
+<h3>Выберите фотографию</h3>
+
+
+@{
+    Layout = "_Layout";
+    MyTelegramBot.ProductPrice price = new MyTelegramBot.ProductPrice();
+    price = Model.ProductPrice.FirstOrDefault();
+}
+
+
+    @using (Html.BeginForm("Save", "Product", FormMethod.Post, new { enctype = "multipart/form-data" })) {
+
+        @Html.HiddenFor(m => m.Id)
+
+        <div>
+            <p>Загрузите главную фотогрфию для товара:</p>
+            <input type="file" name="image" />
+        </div>
+        <p>
+    
+            @if (Model.Id > 0)
+            {
+                <p>
+                    <a href="~/Product/Photos/@Model.Id">Другие фотографии</a>
+                </p>
+               
+
+            }
+
+            <label>Название товара</label><br />
+            @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+
+        </p>
+    
+
+                <p>
+    
+                    <label>Описание</label><br />
+                    @Html.TextBoxFor(m => m.Text, new { @class = "form-control" })
+                </p>
+    
+
+                <p>
+    
+                    <label>Стоимость</label><br />
+    
+                    <input type="text" name=ProductPrice[0].Value value=@Model.ProductPrice.FirstOrDefault().Value class="form-control" />
+
+            </p>
+
+            <p>
+                <label>Валюта</label><br />
+                @*@Html.DropDownListFor(Model => Model.ProductPrice.FirstOrDefault().CurrencyId, ViewBag.Currency as SelectList, new { @class = "form-control" , @name= "ProductPrice[0].CurrencyId" })*@
+
+                @if (@Model.ProductPrice.FirstOrDefault().CurrencyId == 1)
+                {
+                    <select class="form-control" id="ProductPrice[0].CurrencyId" name="ProductPrice[0].CurrencyId" disabled="disabled">
+                        <option selected="selected" value="1">&#x420;&#x443;&#x431;&#x43B;&#x44C;</option>
+                        <option value="2">&#x413;&#x440;&#x438;&#x432;&#x43D;&#x430;</option> 
+                    </select>
+                }
+
+                @if (@Model.ProductPrice.FirstOrDefault().CurrencyId == 2)
+                {
+                    <select class="form-control" id="ProductPrice[0].CurrencyId" name="ProductPrice[0].CurrencyId" disabled="disabled">
+                        <option selected="selected" value="2">&#x413;&#x440;&#x438;&#x432;&#x43D;&#x430;</option>
+                        <option value="1">&#x420;&#x443;&#x431;&#x43B;&#x44C;</option>
+                    </select>
+                }
+
+            </p>
+
+            <p>
+                <label>Единица измерения</label><br />
+                @Html.DropDownListFor(Model => Model.UnitId, ViewBag.Unit as SelectList, new { @class = "form-control" })
+            </p>
+
+            <p>
+                <label>Категория</label><br />
+                @Html.DropDownListFor(Model => Model.CategoryId, ViewBag.Category as SelectList, new { @class = "form-control" })
+            </p>
+
+            <p>
+                <label>Ссылка на фотографию для Inline режима</label><br />
+                @Html.TextBoxFor(m => m.PhotoUrl, new { @class = "form-control" })
+            </p>
+
+            <p>
+                <label>Ссылка на заметку</label><br />
+                @Html.TextBoxFor(m => m.TelegraphUrl, new { @class = "form-control" })
+            </p>
+
+            <p>
+                <label>Активно</label>
+                @Html.CheckBoxFor(m => m.Enable)
+            </p>
+
+            @if (Model.Id == 0)
+            {
+                <p>
+                    <label>Остаток</label>
+                    <input type="text" name=Stock[0].Balance value=0 class="form-control" />
+                </p>
+            }
+
+            <p>
+                <input type="submit" value="Сохранить" class="btn btn-success" />
+            </p>
+            }
