@@ -13,15 +13,85 @@ namespace MyTelegramBot.Bot
 {
     public partial class OrderBot
     {
+        /// <summary>
+        /// Сохранить отзыв и отправить его все операторам и владельцу 
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> SaveFeedback()
         {
-            return OkResult;
+            using (MarketBotDbContext db=new MarketBotDbContext())
+            {
+                var feedback = db.FeedBack.Find(Argumetns[1]);
+
+                if (feedback != null)
+                {
+                    feedback.DateAdd = DateTime.Now;
+                    feedback.Enable = true;
+                    db.SaveChanges();
+
+                    FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedback.Id);
+
+                    await EditMessage(FeedBackToProductEditorMsg.BuildMsg());
+
+                    await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Добавлен новый отзыв к заказу " + Order.Number.ToString() + " /order" + Order.Number.ToString() });
+                }
+
+                    return OkResult;
+            }
         }
 
+        /// <summary>
+        /// Сохранить комментарий к отзыву
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SaveFeedBackComment()
+        {
+            int id;
+
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                id = Convert.ToInt32(OriginalMessage.Substring(AddCommentFeedBackForce.Length));
+
+                var feedback = db.FeedBack.Find(id);
+
+                this.Order = db.Orders.Where(o => o.Id == feedback.OrderId).Include(o => o.Follower).FirstOrDefault();
+
+                if (feedback != null && this.Order.Follower.ChatId==base.ChatId)
+                {
+                    feedback.Text = ReplyToMessageText;
+                    db.SaveChanges();
+
+                    FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedback.Id);
+                    var mess = FeedBackToProductEditorMsg.BuildMsg();
+                    await SendMessage(mess);
+                   
+                }
+
+                return OkResult;
+            }
+
+            catch
+            {
+                return OkResult;
+            }
+
+            finally
+            {
+                db.Dispose();
+             
+            }
+        }
+
+        /// <summary>
+        /// ПОльзотватель нажал на кнопку добавить комм. к отзыву.В ответ ему приходит forcereply сообщение
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> AddCommentFeedback()
         {
             if (Argumetns.Count == 2)
-                return await ForceReplyBuilder("Комментарий к отзыву:" + Argumetns[1]);
+                return await ForceReplyBuilder(AddCommentFeedBackForce + Argumetns[1].ToString());
 
             else
                 return NotFoundResult;
@@ -70,6 +140,10 @@ namespace MyTelegramBot.Bot
             return OkResult;
         }
 
+        /// <summary>
+        /// назад к сообещнию с отзывом к заказу
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> BackToFeedBackView()
         {
             //у пользователя было сообщение с добавлением отзыва к товару,

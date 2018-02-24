@@ -57,7 +57,7 @@ namespace MyTelegramBot.Messages
                 Order.OrderProduct = db.OrderProduct.Where(o => o.OrderId == Order.Id).Include(o => o.Product).ToList();
 
 
-            FeedBackList = db.FeedBack.Where(f => f.OrderId == Order.Id).Include(f=>f.Product).ToList();
+            FeedBackList = db.FeedBack.Where(f => f.OrderId == Order.Id && f.Enable).Include(f=>f.Product).ToList();
 
             ProductGroup = Order.OrderProduct.GroupBy(o => o.ProductId).ToList();
 
@@ -65,7 +65,9 @@ namespace MyTelegramBot.Messages
 
             //проверяем для какие товаров уже есть отзыв. Если отзыв есть то кнопку не рисуем
             foreach (var group in ProductGroup)
-                if (FeedBackList.Where(f => f.ProductId == group.FirstOrDefault().ProductId).FirstOrDefault() == null)
+                if (FeedBackList.Where(f => f.ProductId == group.FirstOrDefault().ProductId).FirstOrDefault() == null 
+                        || FeedBackList.Where(f => f.ProductId == group.FirstOrDefault().ProductId).FirstOrDefault()!=null &&
+                        FeedBackList.Where(f => f.ProductId == group.FirstOrDefault().ProductId).FirstOrDefault().Enable==false)
                     ProductNoFeedback.Add(group.FirstOrDefault().Product);
 
 
@@ -74,7 +76,7 @@ namespace MyTelegramBot.Messages
             foreach(var product in ProductNoFeedback)
             {
                 FeedBackProductsBtn[counter] = new InlineKeyboardCallbackButton[1];
-                FeedBackProductsBtn[counter][0]= BuildInlineBtn(product.Name, BuildCallData(Bot.OrderBot.CmdAddFeedBackProduct, Bot.OrderBot.ModuleName, product.Id, Order.Id));
+                FeedBackProductsBtn[counter][0]= BuildInlineBtn(product.Name, BuildCallData(Bot.OrderBot.CmdAddFeedBackProduct, Bot.OrderBot.ModuleName, Order.Id, product.Id));
                 counter++;
             }
 

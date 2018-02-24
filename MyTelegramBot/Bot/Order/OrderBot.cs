@@ -173,7 +173,8 @@ namespace MyTelegramBot.Bot
 
         public const string AddCommentFeedBackForce = "Добавить комментарий к отзыву:";
 
-        public const string CmdSaveCommentFeedBack = "SaveFeedBack";
+        public const string CmdSaveFeedBack = "SaveFeedBack";
+
 
         int AddressId { get; set; }
 
@@ -298,7 +299,14 @@ namespace MyTelegramBot.Bot
                     return await InsertFeedBack();
 
                 case CmdAddCommentFeedBack:
-                    return await ForceReplyBuilder(AddCommentFeedBackForce + Argumetns[1]);
+                    return await AddCommentFeedback();
+
+                case CmdSaveFeedBack:
+                    return await SaveFeedback();
+
+                case CmdBackFeedBackView:
+                    return await BackToFeedBackView();
+
 
                 default:
                     break;
@@ -320,6 +328,9 @@ namespace MyTelegramBot.Bot
             //Пользователь нажал на кнопку "Я оплатил"
             if (base.CommandName == CheckPayCmd)
                 return OkResult;
+
+            if (base.OriginalMessage.Contains(AddCommentFeedBackForce))
+                return await SaveFeedBackComment();
 
             else
                 return null;
