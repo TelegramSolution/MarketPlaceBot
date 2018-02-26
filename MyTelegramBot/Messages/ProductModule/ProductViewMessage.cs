@@ -340,10 +340,11 @@ namespace MyTelegramBot.Messages
                 {
                     base.MediaFile = new MediaFile
                     {
-                        AttachmentFsId=Convert.ToInt32(attach.AttachmentFsId),
+                        AttachmentFsId = Convert.ToInt32(attach.AttachmentFsId),
                         Caption = Caption,
                         FileTo = new Telegram.Bot.Types.FileToSend { FileId = attach.FileId },
-                        TypeFileTo = MediaFile.HowMediaType(db.AttachmentFs.Where(a=>a.Id==attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
+                        
+                        FileTypeId =Convert.ToInt32(db.AttachmentFs.Where(a => a.Id == attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
                     };
                 }
 
@@ -358,8 +359,9 @@ namespace MyTelegramBot.Messages
                         {
                             Caption = Caption,
                             FileTo = new Telegram.Bot.Types.FileToSend { Content = new System.IO.MemoryStream(attach_fs.Fs), Filename = "Photo.jpg" },
-                            TypeFileTo = EnumMediaFile.Photo,
-                            AttachmentFsId=attach_fs.Id
+                            
+                            AttachmentFsId=attach_fs.Id,
+                            FileTypeId=Bot.Core.ConstantVariable.MediaTypeVariable.Photo
                         };
                     }
 

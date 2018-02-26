@@ -20,10 +20,10 @@ namespace MyTelegramBot.Bot
     {
         public FileToSend FileTo { get; set; }
 
-        public EnumMediaFile TypeFileTo { get; set; }
+        public int FileTypeId { get; set; }
 
         /// <summary>
-        /// Id файла в таблице AttachmentFs (таблица в которой храняться сами файлы)
+        /// Id файла в таблице AttachmentFs (таблица в которой хранятся сами файлы)
         /// </summary>
         public int AttachmentFsId { get; set; }
 
@@ -32,28 +32,5 @@ namespace MyTelegramBot.Bot
         /// </summary>
         public string Caption { get; set; }
 
-        public static EnumMediaFile HowMediaType(int? TypeId)
-        {
-            if (TypeId == 1)
-                return EnumMediaFile.Photo;
-
-            if (TypeId == 2)
-                return EnumMediaFile.Video;
-
-            if (TypeId == 3)
-                return EnumMediaFile.Audio;
-
-            if (TypeId == 4)
-                return EnumMediaFile.Voice;
-
-            if (TypeId == 5)
-                return EnumMediaFile.VideoNote;
-
-            if (TypeId == 6)
-                return EnumMediaFile.Document;
-
-            else
-                return EnumMediaFile.Document;
-        }
     }
 }

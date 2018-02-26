@@ -97,7 +97,7 @@ namespace MyTelegramBot.Messages.Admin
                     {
                         Caption = "Статистика сообщений в разрезе по дням",
                         FileTo = BuildCsv<TelegramMessage>(list, column_name, "MessageStat.csv"),
-                        TypeFileTo= EnumMediaFile.Document
+                        FileTypeId=Bot.Core.ConstantVariable.MediaTypeVariable.Document
                     };
                     
                     
@@ -127,7 +127,7 @@ namespace MyTelegramBot.Messages.Admin
                     {
                         Caption = "Количество зарегестрированных пользователей в разрезе по дням",
                         FileTo = BuildCsv<Follower>(list, column_name, "FollowerRegisterStat.csv"),
-                        TypeFileTo = EnumMediaFile.Document
+                        FileTypeId = Bot.Core.ConstantVariable.MediaTypeVariable.Document
                     };
 
                     return message;

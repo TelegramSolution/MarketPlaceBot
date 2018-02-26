@@ -138,10 +138,8 @@ namespace MyTelegramBot.Bot
         /// </summary>
         protected Configuration ConfigurationBot { get; set; }
 
-        /// <summary>
-        /// Узнаем какой тип файла пришел. Док, фото, аудио и тд
-        /// </summary>
-        protected EnumMediaFile EnumMediaFile { get; set; }
+
+        protected int MediaFileTypeId { get; set; }
 
         public BotCore(Update update)
         {
@@ -367,7 +365,8 @@ namespace MyTelegramBot.Bot
                 this.CommandName = this.CommandName.Substring(0, this.CommandName.IndexOf('@'));
 
             //пользователь процитировал сообщение от бота
-            if (message.ReplyToMessage != null && message.ReplyToMessage.From != null && message.ReplyToMessage.From.Username == GeneralFunction.GetBotName())
+            if (message.ReplyToMessage != null && message.ReplyToMessage.From != null 
+                && message.ReplyToMessage.From.Username == GeneralFunction.GetBotName())
             {
                 OriginalMessage = message.ReplyToMessage.Text;
                 ReplyToMessageText = message.Text;
@@ -395,37 +394,38 @@ namespace MyTelegramBot.Bot
             if (message.Photo != null)
             {
                 this.PhotoId = message.Photo[message.Photo.Length - 1].FileId;
-                EnumMediaFile = EnumMediaFile.Photo;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Photo;
             }
 
             if (message.Video != null)
             {
                 this.VideoId = message.Video.FileId;
-                EnumMediaFile = EnumMediaFile.Video;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Video;
             }
 
             if (message.Audio != null)
             {
                 this.AudioId = message.Audio.FileId;
-                EnumMediaFile = EnumMediaFile.Audio;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Audio;
             }
 
             if (message.Document != null)
             {
                 this.FileId = message.Document.FileId;
-                EnumMediaFile = EnumMediaFile.Document;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Document;
             }
 
             if (message.VideoNote != null)
             {
                 this.VideoNoteId = message.VideoNote.FileId;
-                EnumMediaFile = EnumMediaFile.VideoNote;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.VideoNote;
+                
             }
 
             if (message.Voice != null)
             {
                 this.VoiceId = message.Voice.FileId;
-                EnumMediaFile = EnumMediaFile.Voice;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Voice;
             }
             
         }
@@ -451,10 +451,10 @@ namespace MyTelegramBot.Bot
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && EditMessageId != 0)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, false, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, ReplyToMessageId, replyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, true, false, ReplyToMessageId, replyMarkup);
 
                 else
                     return null;
@@ -520,7 +520,7 @@ namespace MyTelegramBot.Bot
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && botMessage.TextMessage!=null)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, false, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
 
 
 
@@ -785,7 +785,7 @@ namespace MyTelegramBot.Bot
                     Fs = memoryStream.ToArray(),
                     GuId=Guid.NewGuid(),
                     Caption= Caption,
-                    AttachmentTypeId=HowMediaType(EnumMediaFile)
+                    AttachmentTypeId=MediaFileTypeId
 
                 };
 
@@ -857,43 +857,19 @@ namespace MyTelegramBot.Bot
         {
 
             if (message.Photo != null)
-                return 1;
+                return Core.ConstantVariable.MediaTypeVariable.Photo; 
 
             if (message.Video != null)
-                return 2;
+                return Core.ConstantVariable.MediaTypeVariable.Video;
 
             if (message.Audio != null)
-                return 3;
+                return Core.ConstantVariable.MediaTypeVariable.Audio;
 
             if (message.Voice != null)
-                return 4;
+                return Core.ConstantVariable.MediaTypeVariable.Voice;
 
             if (message.VideoNote != null)
-                return 5;
-
-            else return -1;
-
-        }
-
-        private int HowMediaType(EnumMediaFile mediaFile)
-        {
-            if (mediaFile== EnumMediaFile.Photo)
-                return 1;
-
-            if (mediaFile == EnumMediaFile.Video)
-                return 2;
-
-            if (mediaFile == EnumMediaFile.Audio)
-                return 3;
-
-            if (mediaFile == EnumMediaFile.Voice)
-                return 4;
-
-            if (mediaFile == EnumMediaFile.VideoNote)
-                return 5;
-
-            if (mediaFile == EnumMediaFile.Document)
-                return 6;
+                return Core.ConstantVariable.MediaTypeVariable.VideoNote;
 
             else return -1;
 
@@ -969,19 +945,19 @@ namespace MyTelegramBot.Bot
             try
             {
 
-                if (message.MediaFile.TypeFileTo== EnumMediaFile.Audio)
+                if (message.MediaFile.FileTypeId== Core.ConstantVariable.MediaTypeVariable.Audio)
                     return await SendAudio(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Video)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Video)
                     return await SendVideo(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Voice)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Voice)
                     return await SendVoice(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Video)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.VideoNote)
                     return await SendVideoNote(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Photo)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Photo)
                     return await SendPhoto(message);
 
                 else

@@ -81,7 +81,7 @@ namespace MyTelegramBot.Messages
 
                     string paid = "";
 
-                    double total = 0.0; // общая строисоить заказа
+                    double total = Order.TotalPrice(); // общая строисоить заказа
 
                     if(Order.OrderAddress!=null) // способо получения - Доставка
                         Address = db.Address.Where(a => a.Id == Order.OrderAddress.AdressId).
@@ -108,7 +108,7 @@ namespace MyTelegramBot.Messages
                             base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
                                     + Order.PositionToString() + NewLine()
                                     + Bold("Стоимость доставки:") + Order.OrderAddress.ShipPriceValue.ToString() + NewLine()
-                                    + Bold("Общая стоимость: ") + total.ToString() + Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
+                                    + Bold("Общая стоимость: ") + total.ToString() +" "+ Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
                                     + Bold("Комментарий: ") + Order.Text + NewLine()
                                     + Bold("Способо получения закза: ") + " Доставка" + NewLine()
                                     + Bold("Адрес доставки: ") + Address.House.Street.City.Name + ", " + Address.House.Street.Name + ",д. " + Address.House.Number + "," + Address.House.Apartment + NewLine()
@@ -148,6 +148,7 @@ namespace MyTelegramBot.Messages
 
         private void SetButton()
         {
+            if(this.Order!=null && this.Order.CurrentStatus==Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice!=null)               
                 base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
                     new[]{
                                 new[]
@@ -160,6 +161,26 @@ namespace MyTelegramBot.Messages
                                     },
                     });
 
+            if (this.Order != null && this.Order.CurrentStatus == Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice == null)
+                base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                new[]{
+                                new[]
+                                    {
+                                            AddFeedBack()
+                                    },
+
+                });
+
+
+            if (this.Order != null && this.Order.CurrentStatus != Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice != null)
+                base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                new[]{
+                                new[]
+                                    {
+                                           ViewInvoice()
+                                    },
+
+                });
 
 
         }

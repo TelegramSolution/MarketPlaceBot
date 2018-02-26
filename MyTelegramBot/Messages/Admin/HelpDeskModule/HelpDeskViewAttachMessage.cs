@@ -76,14 +76,14 @@ namespace MyTelegramBot.Messages.Admin
         {
             try
             {
-                if (telegram_attach != null & telegram_attach.FileId != null)
+                if (telegram_attach != null & telegram_attach.FileId != null) // файл уже загруже на сервер телеграм 
                 {
                      MediaFile = new Bot.MediaFile
                     {
                         FileTo = new Telegram.Bot.Types.FileToSend { FileId = telegram_attach.FileId, Filename = "File" },
                         Caption = db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault().Caption,
-                        TypeFileTo = Bot.MediaFile.HowMediaType(db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
-                    };
+                        FileTypeId=Convert.ToInt32(db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
+                     };
 
                     return MediaFile;
                 }
@@ -99,8 +99,9 @@ namespace MyTelegramBot.Messages.Admin
                             Filename = "File"
                         },
                         Caption = fs.Name,
-                        TypeFileTo = Bot.MediaFile.HowMediaType(fs.AttachmentTypeId),
-                        AttachmentFsId=Convert.ToInt32(fs.Id)
+                        
+                        AttachmentFsId=Convert.ToInt32(fs.Id),
+                        FileTypeId=Convert.ToInt32(fs.AttachmentTypeId)
                     };
 
                     return MediaFile;
