@@ -612,7 +612,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
 
                     if (conf != null && type.Enable == true 
-                        || PaymentType.GetPaymentTypeEnum(Argumetns[0]) == Services.PaymentTypeEnum.PaymentOnReceipt &&
+                        || Argumetns[0] == Core.ConstantVariable.PaymentTypeVariable.PaymentOnReceipt &&
                         type.Enable == true) // пользователь хочет отключить метод оплаты. 
                                              //Проверям настроен ли он вообще.Если пользователь хочет отключить
                                              //метод оплаты "при получении" то conf может быть пустым т.к этот метод оплаты не требует настроек
@@ -623,7 +623,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     }
 
                     if (conf != null && type.Enable == false 
-                        || PaymentType.GetPaymentTypeEnum(Argumetns[0]) == Services.PaymentTypeEnum.PaymentOnReceipt &&
+                        || Argumetns[0] == Core.ConstantVariable.PaymentTypeVariable.PaymentOnReceipt &&
                         type.Enable == false)
                     {
                         type.Enable = true;
@@ -631,7 +631,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await SendPaymentMethods(base.MessageId);
                     }
 
-                    if (conf == null && PaymentType.GetPaymentTypeEnum(Argumetns[0])!= Services.PaymentTypeEnum.PaymentOnReceipt) 
+                    if (conf == null && Argumetns[0] != Core.ConstantVariable.PaymentTypeVariable.PaymentOnReceipt) 
                         // метод оплаты не настроен, кроме метода оплаты "При получении"
                     {
                         await AnswerCallback("Ошибка. Данный способ оплаты не настроен", true);

@@ -22,7 +22,7 @@ namespace MyTelegramBot.Messages.Admin
 
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var api = db.PaymentType.Where(q => q.Id == PaymentType.GetTypeId(Services.PaymentTypeEnum.Qiwi)).Include(q => q.PaymentTypeConfig).FirstOrDefault();
+                var api = db.PaymentType.Where(q => q.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI).Include(q => q.PaymentTypeConfig).FirstOrDefault();
 
                 if (api != null)
                 {

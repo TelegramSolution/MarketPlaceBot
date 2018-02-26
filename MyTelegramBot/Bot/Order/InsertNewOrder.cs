@@ -18,7 +18,6 @@ namespace MyTelegramBot.Bot.Order
 
         private OrderTemp OrderTmp { get; set; }
 
-        private Services.PaymentTypeEnum PaymentTypeEnum { get; set; }
 
         private Services.ICryptoCurrency CryptoCurrency { get; set; }
 
@@ -45,7 +44,6 @@ namespace MyTelegramBot.Bot.Order
 
             Basket = db.Basket.Where(b => b.FollowerId == FollowerId && b.Enable && b.BotInfoId == BotInfo.Id).Include(b=>b.Product).GroupBy(b => b.ProductId).ToList();
             OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotInfo.Id).FirstOrDefault();
-            PaymentTypeEnum = PaymentType.GetPaymentTypeEnum(OrderTmp.PaymentTypeId);
             var LastOrder = db.Orders.OrderByDescending(o => o.Id).FirstOrDefault();
 
             //Общая строимость корзины
@@ -81,12 +79,13 @@ namespace MyTelegramBot.Bot.Order
                 }
 
                 // создаем инвойс для оплаты в через КИВИ
-                if (PaymentTypeEnum == Services.PaymentTypeEnum.Qiwi)
+                if (OrderTmp.PaymentTypeId == Core.ConstantVariable.PaymentTypeVariable.QIWI)
                     Invoice= AddQiwiInvoice(NewOrder, total);
 
                 // создаем инвойс для оплаты в криптовалюте
-                if (PaymentTypeEnum != Services.PaymentTypeEnum.PaymentOnReceipt && PaymentTypeEnum != Services.PaymentTypeEnum.Qiwi) 
-                    Invoice= AddCryptoCurrencyInvoice(NewOrder, PaymentTypeEnum, total);
+                if (OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.PaymentOnReceipt 
+                    && OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.QIWI) 
+                    Invoice= AddCryptoCurrencyInvoice(NewOrder,Convert.ToInt32(OrderTmp.PaymentTypeId), total);
 
                 if(Invoice!=null)
                     NewOrder.InvoiceId = Invoice.Id;
@@ -197,7 +196,7 @@ namespace MyTelegramBot.Bot.Order
         /// <returns></returns>
         private Invoice AddQiwiInvoice(Orders order,double Total, int LifeTimeDuration=60)
         {
-            var ListQiwi = db.PaymentTypeConfig.Where(q => q.PaymentId == PaymentType.GetTypeId(Services.PaymentTypeEnum.Qiwi) && q.Enable == true).
+            var ListQiwi = db.PaymentTypeConfig.Where(q => q.PaymentId == Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true).
                 OrderByDescending(q => q.Id).ToList();
 
             Random random = new Random();
@@ -213,7 +212,7 @@ namespace MyTelegramBot.Bot.Order
                     Comment = GeneralFunction.BuildPaymentComment(BotInfo.Name, order.Number.ToString()),
                     InvoiceNumber = GenerateInvoiceNumber(),
                     LifeTimeDuration = System.TimeSpan.FromMinutes(LifeTimeDuration),
-                    PaymentTypeId = PaymentType.GetTypeId(Services.PaymentTypeEnum.Qiwi),
+                    PaymentTypeId = Core.ConstantVariable.PaymentTypeVariable.QIWI,
                     Value = Total,
                     Paid=false
 
@@ -237,17 +236,18 @@ namespace MyTelegramBot.Bot.Order
         /// Создать счет на оплату в Криптовалюте
         /// </summary>
         /// <param name="order">Заказ</param>
-        /// <param name="paymentTypeEnum">Тип платежа. Лайткоин, БиткоинКэш и т.д</param>
+        /// <param name="paymentTypeId">Тип платежа. Лайткоин, БиткоинКэш и т.д</param>
         /// <param name="Total">Сумма в фиате.</param>
         /// <param name="LifeTimeDuration">Время жизни счета в минутах</param>
         /// <returns></returns>
-        private Invoice AddCryptoCurrencyInvoice (Orders order, Services.PaymentTypeEnum paymentTypeEnum, double Total, int LifeTimeDuration = 60)
+        private Invoice AddCryptoCurrencyInvoice (Orders order,int paymentTypeId, double Total, int LifeTimeDuration = 30)
         {
             double Summa = 0.0;
 
-            var type = db.PaymentType.Where(p => p.Id == PaymentType.GetTypeId(paymentTypeEnum)).FirstOrDefault();
+         
+            var type = db.PaymentType.Where(p => p.Id == paymentTypeId).FirstOrDefault();
 
-            PaymentConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == PaymentType.GetTypeId(paymentTypeEnum) && p.Enable==true).OrderByDescending(p => p.Id).FirstOrDefault();
+            PaymentConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == paymentTypeId && p.Enable==true).OrderByDescending(p => p.Id).FirstOrDefault();
 
             if (PaymentConfig != null)
                     CryptoCurrency = new Services.BitCoinCore.BitCoin(PaymentConfig.Login, PaymentConfig.Pass, PaymentConfig.Host, PaymentConfig.Port);                                          
@@ -347,7 +347,7 @@ namespace MyTelegramBot.Bot.Order
         /// <returns></returns>
         private string GetTelephoneQiwi()
         {
-            var qiwi = db.PaymentTypeConfig.Where(q=>q.PaymentId==PaymentType.GetTypeId(Services.PaymentTypeEnum.Qiwi) && q.Enable == true).OrderByDescending(q=>q.Id).FirstOrDefault();
+            var qiwi = db.PaymentTypeConfig.Where(q=>q.PaymentId==Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true).OrderByDescending(q=>q.Id).FirstOrDefault();
 
             if (qiwi != null)
                 return qiwi.Login;

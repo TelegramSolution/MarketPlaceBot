@@ -59,18 +59,18 @@ namespace MyTelegramBot.Messages
                                  "Вы должны оплатить этот счет не позднее " + Invoice.CreateTimestamp.Value.Add(Invoice.LifeTimeDuration.Value).ToString() + NewLine() +
                                  NewLine() + "После оплаты нажмите кнопку \"Я оплатил\" (Если вы оплачивали с помощью криптовалюты нажмите эту кнопку через 5-10 минут после оплаты)";
 
-                if (Invoice.PaymentType != null && PaymentType.GetPaymentTypeEnum(Invoice.PaymentType.Id) == Services.PaymentTypeEnum.Litecoin ||
-                    Invoice.PaymentType != null && PaymentType.GetPaymentTypeEnum(Invoice.PaymentType.Id) == Services.PaymentTypeEnum.Bitcoin ||
-                    Invoice.PaymentType != null && PaymentType.GetPaymentTypeEnum(Invoice.PaymentType.Id) == Services.PaymentTypeEnum.Doge)
+                if (Invoice.PaymentType != null &&Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin ||
+                    Invoice.PaymentType != null && Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Bitcoin ||
+                    Invoice.PaymentType != null && Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Doge)
                     base.TextMessage += NewLine() + NewLine() +
                         HrefUrl("https://live.blockcypher.com/"+Invoice.PaymentType.Code+"/address/" + Invoice.AccountNumber, "Посмотреть платеж");
 
 
-                if (Invoice.PaymentType != null && PaymentType.GetPaymentTypeEnum(Invoice.PaymentType.Id) == Services.PaymentTypeEnum.BitcoinCash)
+                if (Invoice.PaymentType != null && Invoice.PaymentType .Id== Bot.Core.ConstantVariable.PaymentTypeVariable.BitcoinCash)
                     base.TextMessage += NewLine() + NewLine() +
                         HrefUrl("https://blockchair.com/bitcoin-cash/address/" + Invoice.AccountNumber, "Посмотреть платеж");
 
-                if (PaymentType.GetPaymentTypeEnum(Invoice.PaymentTypeId) == Services.PaymentTypeEnum.Qiwi && !Invoice.Paid)
+                if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI && !Invoice.Paid)
                     base.TextMessage += NewLine() +  HrefUrl(QiwiForm(Invoice.AccountNumber,Convert.ToInt32(Invoice.Value),Invoice.Comment),"Открыть платежную форму")+
                         NewLine()+"Обязательно указывайте комментарий" + base.WarningEmodji;
 

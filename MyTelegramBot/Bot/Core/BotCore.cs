@@ -362,7 +362,11 @@ namespace MyTelegramBot.Bot
             if (message.Text != null)
                 this.CommandName = message.Text;
 
-            //Протицированное сообщение
+            //если пришла команда вида /cmd@Botname
+            if (this.CommandName!=null && this.CommandName.Contains('@'))
+                this.CommandName = this.CommandName.Substring(0, this.CommandName.IndexOf('@'));
+
+            //пользователь процитировал сообщение от бота
             if (message.ReplyToMessage != null && message.ReplyToMessage.From != null && message.ReplyToMessage.From.Username == GeneralFunction.GetBotName())
             {
                 OriginalMessage = message.ReplyToMessage.Text;

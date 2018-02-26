@@ -42,10 +42,10 @@ namespace MyTelegramBot.Messages
             if(this.Order==null)
                 this.Order = GetOrder(this.OrderId);
 
-            if (Order.Paid==false && Order.Invoice.PaymentTypeId == PaymentType.GetTypeId(Services.PaymentTypeEnum.Qiwi))
+            if (Order.Paid==false && Order.Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
                base.TextMessage= await CheckQiwi(Order.Invoice);
 
-            if (Order.Paid == false && Order.Invoice.PaymentTypeId != PaymentType.GetTypeId(Services.PaymentTypeEnum.Qiwi))
+            if (Order.Paid == false && Order.Invoice.PaymentTypeId != Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
                 base.TextMessage = CheckCryptoCurrency(Order.Invoice);
 
             if (Order.Paid == true)
