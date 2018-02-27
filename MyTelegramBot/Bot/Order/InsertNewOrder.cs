@@ -194,7 +194,7 @@ namespace MyTelegramBot.Bot.Order
         /// <param name="Total">Сумма в рублях</param>
         /// <param name="LifeTimeDuration">Время жизни счета</param>
         /// <returns></returns>
-        private Invoice AddQiwiInvoice(Orders order,double Total, int LifeTimeDuration=60)
+        private Invoice AddQiwiInvoice(Orders order,double Total, int LifeTimeDuration=30)
         {
             var ListQiwi = db.PaymentTypeConfig.Where(q => q.PaymentId == Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true).
                 OrderByDescending(q => q.Id).ToList();
@@ -257,7 +257,7 @@ namespace MyTelegramBot.Bot.Order
 
             string AccountNumber = CryptoCurrency.GetNewAddress(); // Генерируем адрес куда необходимо перевести деньги
 
-            if (type!=null && CryptoCurrency != null && AccountNumber!=null && AccountNumber!="" && Summa>0)
+            if (type!=null && CryptoCurrency != null && AccountNumber!=null && AccountNumber!=null && Summa>0)
             {
                 Invoice invoice = new Invoice
                 {
@@ -309,18 +309,7 @@ namespace MyTelegramBot.Bot.Order
 
 
         /// <summary>
-        /// Удалить заказ из временной таблицы OrderTemp
-        /// </summary>
-        /// <param name="orderTemp"></param>
-        /// <returns></returns>
-        private int DeleteTempOrder(OrderTemp orderTemp)
-        {
-            db.OrderTemp.Remove(orderTemp);
-            return db.SaveChanges();
-        }
-
-        /// <summary>
-        /// Создаем номер счета на опталу
+        /// Создаем номер счета на опталу. Берем последний номер и прибавляем один
         /// </summary>
         /// <returns></returns>
         private int GenerateInvoiceNumber()
@@ -341,22 +330,9 @@ namespace MyTelegramBot.Bot.Order
             }
                     
         }
-        /// <summary>
-        /// номер телефона киви для платежа
-        /// </summary>
-        /// <returns></returns>
-        private string GetTelephoneQiwi()
-        {
-            var qiwi = db.PaymentTypeConfig.Where(q=>q.PaymentId==Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true).OrderByDescending(q=>q.Id).FirstOrDefault();
 
-            if (qiwi != null)
-                return qiwi.Login;
 
-            else
-                return null;
-        }
-
-        private OrderStatus InsertOrderStatus(int OrderId,int StatusId = 1)
+        private OrderStatus InsertOrderStatus(int OrderId,int StatusId = Bot.Core.ConstantVariable.OrderStatusVariable.PendingProcessing)
         {
             OrderStatus orderStatus = new OrderStatus
             {

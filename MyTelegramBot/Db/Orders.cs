@@ -202,5 +202,59 @@ namespace MyTelegramBot
                 db.Dispose();
             }
         }
+
+        /// <summary>
+        /// После того как заказ выполнен, обновяем данные на складе
+        /// </summary>
+        /// <returns>возвращает ассоциативный массив Ид продукта - > массив вставленных в таблицу Stock значений</returns>
+        public List<IGrouping<Product, Stock>> UpdateStock()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            List<Stock> list = new List<Stock>();
+
+            List<IGrouping<Product, Stock>> result=new List<IGrouping<Product, Stock>>();
+
+
+                if (OrderProduct == null || OrderProduct != null && OrderProduct.Count == 0)
+                    OrderProduct = db.OrderProduct.Where(op => op.OrderId == Id).ToList();
+
+                if(OrderProduct!=null && OrderProduct.Count > 0)
+                {
+                    
+                    foreach(OrderProduct op in OrderProduct)
+                    {
+                        var last = db.Stock.Where(s => s.ProductId == op.ProductId).LastOrDefault().Balance;
+
+                        if (op.Product == null)
+                            op.Product = db.Product.Where(p=>p.Id==op.ProductId).Include(o=>o.Unit).FirstOrDefault();
+
+                        Stock stock = new Stock
+                        {
+                            Balance = last - op.Count,
+                            Quantity = -op.Count,
+                            DateAdd = DateTime.Now,
+                            Text = "Заказ " + Number.ToString(),
+                            ProductId=op.ProductId
+
+                        };
+
+                        db.Stock.Add(stock);
+
+                        db.SaveChanges();
+
+                        list.Add(stock);
+                    }
+
+                    result = list.GroupBy(s => s.Product).ToList();
+                
+
+                db.Dispose();
+                return result;
+            }
+
+            else
+                return null;
+        }
     }
 }

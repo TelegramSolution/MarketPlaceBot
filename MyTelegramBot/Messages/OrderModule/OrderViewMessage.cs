@@ -121,7 +121,7 @@ namespace MyTelegramBot.Messages
                         if (Order.PickupPoint != null)
                             base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
                                     + Order.PositionToString() + NewLine()
-                                    + Bold("Общая стоимость: ") + total.ToString() + Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
+                                    + Bold("Общая стоимость: ") + total.ToString() + " " + Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
                                     + Bold("Комментарий: ") + Order.Text + NewLine()
                                     + Bold("Способо получения закза: ") + " Самовывоз" + NewLine()
                                     + Bold("Пункт самовывоза: ") + Order.PickupPoint.Name + NewLine()

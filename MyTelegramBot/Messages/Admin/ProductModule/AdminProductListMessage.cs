@@ -90,6 +90,9 @@ namespace MyTelegramBot.Messages.Admin
 
                 }
 
+                else
+                    ProductListBtn = new InlineKeyboardCallbackButton[page.Count+1][];
+
                 ProductListBtn[ProductListBtn.Length - 1] = new InlineKeyboardCallbackButton[1];
 
                 ProductListBtn[ProductListBtn.Length - 1][0] = BackBtn;

@@ -64,7 +64,7 @@ namespace MyTelegramBot.Services.BitCoinCore
                 return address.result;
 
             else
-                return String.Empty;
+                return null;
 
         }
 

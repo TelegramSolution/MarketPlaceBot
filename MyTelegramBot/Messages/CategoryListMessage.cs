@@ -212,6 +212,11 @@ namespace MyTelegramBot.Messages
                 CategoryListBtn[page.Count][1] = NextPageBtn;
             }
 
+            else
+            {
+                CategoryListBtn = new InlineKeyboardCallbackButton[page.Count+1][];
+            }
+
             CategoryListBtn[CategoryListBtn.Length - 1] = new InlineKeyboardCallbackButton[1];
 
             CategoryListBtn[CategoryListBtn.Length - 1][0] = BackBtn;

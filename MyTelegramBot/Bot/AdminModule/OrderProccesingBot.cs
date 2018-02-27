@@ -370,6 +370,19 @@ namespace MyTelegramBot.Bot.AdminModule
                 //уведомляем всех о новом статусе заказа
                 await base.SendMessageAllBotEmployeess(statusConfirmMsg.BuildNotyfiMessage());
 
+                if (OrderStatus.StatusId == Core.ConstantVariable.OrderStatusVariable.Completed)
+                {
+                    var stock = this.Order.UpdateStock();
+
+                    FeedBackOfferMsg = new FeedBackOfferMessage(this.Order); // предлагаем пользователю оставить отзыв
+
+                    await SendMessage(this.Order.Follower.ChatId, FeedBackOfferMsg.BuildMsg());
+
+                    StockChangesMessage stockChangesMessage = new StockChangesMessage(stock, this.Order.Id);
+
+                    SendMessageAllBotEmployeess(stockChangesMessage.BuildMsg());
+                }
+
                 return OkResult;
             }
 
@@ -439,11 +452,17 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 db.SaveChanges();
 
+
                 db.Dispose();
 
                 OrderStatusConfirmMessage statusConfirmMsg = new OrderStatusConfirmMessage(this.Order, orderStatus);
 
                 await EditMessage(statusConfirmMsg.BuildMsg());
+
+                if (NewStatusId == Core.ConstantVariable.OrderStatusVariable.Completed)
+                {
+
+                }
 
                 return OkResult;
             }
@@ -745,52 +764,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-
-        /// <summary>
-        /// После того как заказ выполнен, обновяем данные на складе
-        /// </summary>
-        /// <param name="order"></param>
-        /// <returns></returns>
-        private List<Stock> UpdateStock(Orders order)
-        {
-            List<Stock> list = new List<Stock>();
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                foreach (OrderProduct p in order.OrderProduct)
-                {
-                    var stock = db.Stock.Where(s => s.ProductId == p.ProductId).Include(s=>s.Product).OrderByDescending(s => s.Id).FirstOrDefault();
-
-                    if (stock != null)
-                    {
-                        int Count = 0;
-
-                        if (stock.Balance - p.Count < 0)
-                            Count = Convert.ToInt32(stock.Balance);
-
-                        else
-                            Count = p.Count;
-
-                        Stock newstock = new Stock
-                        {
-                            DateAdd = DateTime.Now,
-                            ProductId = stock.ProductId,
-                            Quantity = -1 * Count,
-                            Balance = stock.Balance - Count,
-                            Text = "Заказ:" + order.Number
-                        };
-
-                        db.Stock.Add(newstock);
-                        db.SaveChanges();
-                        list.Add(newstock);
-
-                    }
-                }
-
-                return list;
-                
-            }
-        }
 
 
     }
