@@ -22,13 +22,23 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton EditCategoryBtn { get; set; }
 
-        private InlineKeyboardCallbackButton NoConfirmOrdersBtn { get; set; }
-
-        private InlineKeyboardCallbackButton ContactEditPanelBtn { get; set; }
-
-        private InlineKeyboardCallbackButton PaymentsEnableListBtn { get; set; }
-
         private InlineKeyboardCallbackButton StockViewBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ViewFollowerBtn { get; set; }
+
+
+        private InlineKeyboardCallbackButton ViewOrdersBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ViewPaymentsBtn { get; set; }
+
+        private InlineKeyboardCallbackButton AddProuctBtn { get; set; }
+
+        private InlineKeyboardCallbackButton AddCategoryBtn { get; set; }
+
+        private InlineKeyboardCallbackButton CitiesBtn { get; set; }
+
+        private InlineKeyboardCallbackButton OperatorsBtn { get; set; }
+
         private MyTelegramBot.Admin Admin { get; set; }
 
         private int FollowerId { get; set; }
@@ -43,21 +53,29 @@ namespace MyTelegramBot.Messages.Admin
         {
 
 
-                EditProductBtn = new InlineKeyboardCallbackButton("Изменить товар"+ " \ud83d\udd8a", BuildCallData(ProductEditBot.ProductEditorCmd, ProductEditBot.ModuleName));
-                EditCategoryBtn = new InlineKeyboardCallbackButton("Изменить категорию"+ " \ud83d\udd8a", BuildCallData(CategoryEditBot.CategoryEditorCmd, CategoryEditBot.ModuleName));
-                ContactEditPanelBtn= new InlineKeyboardCallbackButton("Изменить контактные данные"+ " \ud83d\udd8a", BuildCallData(AdminBot.ContactEditCmd, AdminBot.ModuleName));
-                NoConfirmOrdersBtn = new InlineKeyboardCallbackButton("Показать необработанные заказы" + " \ud83d\udcd2", BuildCallData(AdminBot.NoConfirmOrderCmd, AdminBot.ModuleName));
-                PaymentsEnableListBtn = new InlineKeyboardCallbackButton("Выбрать доступные методы оплаты" + " \ud83d\udcb0", BuildCallData(AdminBot.PayMethodsListCmd, AdminBot.ModuleName));
-                StockViewBtn = new InlineKeyboardCallbackButton("Посмотреть остатки", BuildCallData("ViewStock", AdminBot.ModuleName));
+                EditProductBtn = new InlineKeyboardCallbackButton("Изм. товар"+ " \ud83d\udd8a", BuildCallData(ProductEditBot.ProductEditorCmd, ProductEditBot.ModuleName));
+                EditCategoryBtn = new InlineKeyboardCallbackButton("Изм. категорию"+ " \ud83d\udd8a", BuildCallData(CategoryEditBot.CategoryEditorCmd, CategoryEditBot.ModuleName));
+                //ContactEditPanelBtn= new InlineKeyboardCallbackButton("Изменить контактные данные"+ " \ud83d\udd8a", BuildCallData(AdminBot.ContactEditCmd, AdminBot.ModuleName));
+                //NoConfirmOrdersBtn = new InlineKeyboardCallbackButton("Показать необработанные заказы" + " \ud83d\udcd2", BuildCallData(AdminBot.NoConfirmOrderCmd, AdminBot.ModuleName));
+                //PaymentsEnableListBtn = new InlineKeyboardCallbackButton("Выбрать доступные методы оплаты" + " \ud83d\udcb0", BuildCallData(AdminBot.PayMethodsListCmd, AdminBot.ModuleName));
+                StockViewBtn = BuildInlineBtn("Остатки", BuildCallData("ViewStock", AdminBot.ModuleName),base.Depth2Emodji);
+                
+
+            ViewFollowerBtn = BuildInlineBtn("Пользователи", BuildCallData(AdminBot.ViewFollowerListCmd, AdminBot.ModuleName), base.ManEmodji2);
+
+            ViewOrdersBtn = BuildInlineBtn("Заказы", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.PackageEmodji);
+
+            ViewPaymentsBtn = BuildInlineBtn("Платежи", BuildCallData(AdminBot.ViewPaymentsListCmd, AdminBot.ModuleName), base.CreditCardEmodji);
+
+            CitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
+
+            OperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(AdminBot.ViewOperatosCmd, AdminBot.ModuleName), base.ManAndComputerEmodji);
+
+
             base.TextMessage = Bold("Панель администратора") + NewLine() +
-                               "1) Экспорт всех заказов в CSV файл /export" + NewLine() +
-                               "2) Экспорт истории изменения остатков /stockexport" + NewLine() +
-                               "3) Добавить новый товар /newprod" + NewLine() +
-                               "4) Создать новую категорию /newcategory" + NewLine() +
-                               "5) Выбрать доступные способы оплаты /paymethods" + NewLine() +
-                               "6) Список операторов / Добавить нового / Удалить /operators" + NewLine() +
-                               "7) Список доступных городов /cities" + NewLine()+
-                               "8) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on";
+                               "1) Добавить новый товар /newprod" + NewLine() +
+                               "2) Создать новую категорию /newcategory" + NewLine() +
+                               "3) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on";
 
                 SetInlineKeyBoard();
                 return this;
@@ -69,26 +87,22 @@ namespace MyTelegramBot.Messages.Admin
             
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                     new[]{
-                        new[]
+                new[]
                         {
-                            StockViewBtn
+                            EditProductBtn,EditCategoryBtn
                         },
                 new[]
                         {
-                            EditProductBtn
-                        },
-                new[]
-                        {
-                            EditCategoryBtn,
+                            ViewFollowerBtn,OperatorsBtn,CitiesBtn
                         },
 
                 new[]
                         {
-                            NoConfirmOrdersBtn
+                            ViewPaymentsBtn,ViewOrdersBtn
                         },
                 new[]
                         {
-                            ContactEditPanelBtn
+                            StockViewBtn
                         },
 
                      });

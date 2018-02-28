@@ -30,15 +30,6 @@ namespace MyTelegramBot.Messages
 
         public const string PreviuousPageCmd = "PrvProdPage";
 
-        /// <summary>
-        /// Номер стр.
-        /// </summary>
-        private int PageNumber { get; set; }
-
-        /// <summary>
-        /// кол-во товаров на стр
-        /// </summary>
-        private const int PageSize = 5;
 
         /// <summary>
         /// Сформированные страницы с товарами
@@ -68,7 +59,7 @@ namespace MyTelegramBot.Messages
         {
             BackBtn = new InlineKeyboardCallbackButton("Назад", BuildCallData("BackCategoryList",Bot.CategoryBot.ModuleName));
             this.CategoryId = CategoryId;
-            this.PageNumber = PageNumber;
+            this.SelectPageNumber = PageNumber;
         }
 
         public override Bot.BotMessage BuildMsg()
@@ -103,13 +94,13 @@ namespace MyTelegramBot.Messages
 
             string message = base.GoldRhobmus + Bold(Category.Name) + base.GoldRhobmus +
                    NewLine() + "Всего товаров в категории: " + ProductList.Count.ToString() +
-                   NewLine() + "Страница " + PageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+                   NewLine() + "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
 
           
 
-            if (Pages.Count > 0 && Pages.Count >= PageNumber)
+            if (Pages.Count > 0 && Pages.Count >= SelectPageNumber)
             {
-                var Page = Pages[PageNumber];
+                var Page = Pages[SelectPageNumber];
 
                 foreach (Product product in Page)
                 {
@@ -145,12 +136,12 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton SetNextPage()
         {
-            if (Pages.Keys.Last() != PageNumber && Pages[PageNumber + 1] != null) // Находим следующую страницу 
-                return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, PageNumber + 1,CategoryId), base.Next2Emodji);
+            if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
+                return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, SelectPageNumber + 1,CategoryId), base.Next2Emodji);
 
-            if (Pages.Keys.Last() == PageNumber && PageNumber != 1 && Pages[1] != null)
-                // Если текущая страница является последней, то делаем кнопку с сылкой на первую,
-                //но при это проверяем не является ли текущая страница первой
+            if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
+                // Если выбранная пользователем страница является последней, то делаем кнопку с сылкой на первую,
+                //но при это проверяем не является ли выбранная пользователем  страница первой
                 return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, 1,CategoryId), base.Next2Emodji);
 
             else
@@ -158,13 +149,17 @@ namespace MyTelegramBot.Messages
                 
         }
 
+        /// <summary>
+        /// создать кнопку назад, для навигации по страницам
+        /// </summary>
+        /// <returns></returns>
         private InlineKeyboardCallbackButton SetPreviousPage()
         {
             //находим предыдующую стр.
-            if (PageNumber > 1 && Pages[PageNumber - 1] != null)
-                return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, PageNumber - 1, CategoryId), base.Previuos2Emodji, false);
+            if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null)
+                return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, SelectPageNumber - 1, CategoryId), base.Previuos2Emodji, false);
 
-            if (PageNumber == 1 && Pages.Keys.Last() != 1)
+            if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
                 return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, Pages.Keys.Last(), CategoryId), base.Previuos2Emodji, false);
 
             else

@@ -26,7 +26,6 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton PreviusPageBtn { get; set; }
 
-        private const int PageSize = 4;
 
         /// <summary>
         /// Сформированные страницы 
@@ -37,7 +36,6 @@ namespace MyTelegramBot.Messages.Admin
 
         private MarketBotDbContext db;
 
-        private int PageNumber { get; set; }
 
         public const string NextPageCmd = "NxtProdPage";
 
@@ -45,7 +43,7 @@ namespace MyTelegramBot.Messages.Admin
 
         public AdminProductListMessage(int CategoryId,int PageNumber=1)
         {
-            this.PageNumber = PageNumber;
+            this.SelectPageNumber = PageNumber;
             this.CategoryId = CategoryId;
             base.BackBtn = BuildInlineBtn("Панель администратора", BuildCallData(Bot.AdminModule.AdminBot.BackToAdminPanelCmd, Bot.AdminModule.AdminBot.ModuleName));
         }
@@ -56,26 +54,26 @@ namespace MyTelegramBot.Messages.Admin
 
             if (Pages.Count > 0)
             {
-                base.TextMessage = "Страница " + PageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine()
+                base.TextMessage = "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine()
                     + "Выберите товар который хотите изменить:";
 
-                var page = Pages[PageNumber];
+                var page = Pages[SelectPageNumber];
 
                 int count = 0;
 
-                if (Pages.Keys.Last() != PageNumber && Pages[PageNumber + 1] != null) // Находим следующую страницу 
-                    NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.ProductEditBot.ModuleName, CategoryId, PageNumber + 1), base.Next2Emodji);
+                if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
+                    NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.ProductEditBot.ModuleName, CategoryId, SelectPageNumber + 1), base.Next2Emodji);
 
-                if (Pages.Keys.Last() == PageNumber && PageNumber != 1 && Pages[1] != null)
+                if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
                     // Если текущая страница является последней, то делаем кнопку с сылкой на первую,
                     //но при это проверяем не является ли текущая страница первой
                     NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.ProductEditBot.ModuleName, CategoryId, 1), base.Next2Emodji);
 
                 //находим предыдующую стр.
-                if (PageNumber > 1 && Pages[PageNumber - 1] != null)
-                    PreviusPageBtn = BuildInlineBtn("Предыдущая. стр", BuildCallData(PreviuousPageCmd, Bot.ProductEditBot.ModuleName, CategoryId, PageNumber - 1), base.Previuos2Emodji, false);
+                if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null)
+                    PreviusPageBtn = BuildInlineBtn("Предыдущая. стр", BuildCallData(PreviuousPageCmd, Bot.ProductEditBot.ModuleName, CategoryId, SelectPageNumber - 1), base.Previuos2Emodji, false);
 
-                if (PageNumber == 1 && Pages.Keys.Last() != 1)
+                if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
                     PreviusPageBtn = BuildInlineBtn("Предыдущая. стр", BuildCallData(PreviuousPageCmd, Bot.ProductEditBot.ModuleName, CategoryId, Pages.Keys.Last()), base.Previuos2Emodji, false);
 
                 if (NextPageBtn != null && PreviusPageBtn != null)

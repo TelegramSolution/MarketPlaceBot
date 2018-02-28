@@ -20,6 +20,9 @@ namespace MyTelegramBot.Bot
     {
         public FileToSend FileTo { get; set; }
 
+        /// <summary>
+        /// тип файла 1- фото, 2 - , 3- и т.д
+        /// </summary>
         public int FileTypeId { get; set; }
 
         /// <summary>
@@ -28,7 +31,7 @@ namespace MyTelegramBot.Bot
         public int AttachmentFsId { get; set; }
 
         /// <summary>
-        /// текстовое сообщние под файлом
+        /// текстовое сообщние под файлом (фотографией или видео)
         /// </summary>
         public string Caption { get; set; }
 

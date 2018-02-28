@@ -85,7 +85,6 @@ namespace MyTelegramBot.Messages.Admin
             double total = 0.0;
             double ShipPrice = 0;
             string Position = "";
-            int counter = 0;
             string Paid = "";
 
             using (MarketBotDbContext db = new MarketBotDbContext())
@@ -178,28 +177,6 @@ namespace MyTelegramBot.Messages.Admin
                             + Bold("Оформлено через: ") + "@" + Order.BotInfo.Name + NewLine()
                             + Bold("Статус платежа: ") + Paid;
 
-                //Детали согласования заказа
-                if (Order != null && Order.Confirm != null && Order.Delete==null)
-                    base.TextMessage += NewLine() + NewLine() + Bold("Заказ согласован:") + NewLine() + Italic("Комментарий: " + Order.Confirm.Text
-                        + " |Время: " + Order.Confirm.Timestamp.ToString() 
-                        + " |Пользователь: " + Bot.GeneralFunction.FollowerFullName(Order.Confirm.FollowerId));
-
-                ///Детали удаления заказа
-                if (Order != null && Order.Delete != null)
-                    base.TextMessage += NewLine() + NewLine() + Bold("Заказ удален:") + NewLine() + Italic("Комментарий: " + Order.Delete.Text
-                        + " |Время: " + Order.Delete.Timestamp.ToString()
-                        + " |Пользователь: " + Bot.GeneralFunction.FollowerFullName(Order.Delete.FollowerId));
-
-                ///Детали выполнения заказа
-                if (Order != null && Order.Done != null)
-                    base.TextMessage += NewLine() + NewLine() + Bold("Заказ выполнен:") + Italic(Order.Done.Timestamp.ToString())
-                        + " |Пользователь: " + Bot.GeneralFunction.FollowerFullName(Order.Done.FollowerId);
-
-                //Детали Отзыва к заказу
-                if (Order != null && Order.FeedBack != null && Order.FeedBack.Text != null && Order.FeedBack.Text != "")
-                    base.TextMessage += NewLine() + 
-                        NewLine() + Bold("Отзыв к заказу:") + 
-                        NewLine() + Italic(Order.FeedBack.Text +" | Оценка: " +Order.FeedBack.RaitingValue.ToString()+ " из 5 | Время: " + Order.FeedBack.DateAdd.ToString());
 
                 InWorkFollowerId = WhoInWork(Order);
 
@@ -264,7 +241,7 @@ namespace MyTelegramBot.Messages.Admin
                 });
 
             ///Заявка взята в обработку пользователем. Рисуем основные кнопки
-            if (Order.Delete==null&& Order.Confirm==null && FollowerId==InWorkFollowerId && InWorkFollowerId!=0)
+            if (FollowerId==InWorkFollowerId && InWorkFollowerId!=0)
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]

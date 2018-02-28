@@ -40,6 +40,10 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private AvailableCitiesMessage AvailableCitiesMsg { get; set; }
 
+        private FollowerListMessage FollowerListMsg { get; set; }
+
+        private OrdersListMessage OrdersListMsg { get; set; }
+
 
         public const string ProductCreateCmd = "ProductCreate";
 
@@ -113,6 +117,15 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private const string OwnerReg = "/owner";
 
+        public const string ViewFollowerListCmd = "ViewFollowerList";
+
+        public const string ViewOrdersListCmd = "ViewOrderList";
+
+        public const string ViewPaymentsListCmd = "ViewPaymentsList";
+
+        public const string ViewCitiesCmd = "ViewCities";
+
+        public const string ViewOperatosCmd = "ViewOperatos";
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -164,8 +177,6 @@ namespace MyTelegramBot.Bot.AdminModule
                         case BackToAdminPanelCmd:
                             return await BackToAdminPanel();
 
-                        case NoConfirmOrderCmd:
-                            return await NoConfirmOrder();
 
                         case "/stockexport":
                             return await StockExport();
@@ -181,6 +192,12 @@ namespace MyTelegramBot.Bot.AdminModule
 
                         case "/off":
                             return await OnOffPrivateMessage(false);
+
+                        case ViewFollowerListCmd:
+                            return await SendFollowerList();
+
+                        case ViewOrdersListCmd:
+                            return await SendOrderList();
 
                         default:
                             break;
@@ -220,8 +237,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     case ChannelEditCmd:
                         return await ForceReplyBuilder(ForceReplyChannel);
 
-                    case "/export":
-                        return await OrderExport();
 
                     case PayMethodsListCmd:
                         return await SendPaymentMethods();
@@ -293,6 +308,52 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Отправить список всех заказов
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendOrderList()
+        {
+            if (Argumetns != null && Argumetns.Count > 0)
+                OrdersListMsg = new OrdersListMessage(Argumetns[0]);
+
+            else
+                OrdersListMsg = new OrdersListMessage();
+
+            var mess = OrdersListMsg.BuildMsg();
+
+            if (mess != null)
+                await EditMessage(mess);
+
+            else
+                await AnswerCallback("Данные отсутствуют", true);
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Отправить список всех пользователей
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendFollowerList()
+        {
+            if (Argumetns != null && Argumetns.Count>0)
+                FollowerListMsg = new FollowerListMessage(Argumetns[0]);
+
+            else
+                FollowerListMsg = new FollowerListMessage();
+
+            var mess = FollowerListMsg.BuildMsg();
+
+            if (mess != null)
+                await EditMessage(mess);
+
+            else
+                await AnswerCallback("Данные отсутствуют", true);
+
+            return OkResult;
         }
 
         /// <summary>
@@ -650,41 +711,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        /// <summary>
-        /// Сообщение с не согласоваными заказми
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> NoConfirmOrder()
-        {
-            NoConfirmOrdersMessage no = new NoConfirmOrdersMessage();
-            await EditMessage(no.BuildMsg());
-            return OkResult;
-        }
 
-        /// <summary>
-        /// Экспорт всех заказов
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> OrderExport()
-        {
 
-            TimeSpan diff = DateTime.Now - LastReportsRequest();
 
-            if (diff.Minutes > 1)
-            {
-                InsertReportsRequest();
-                OrderExport export = new OrderExport();
-
-                await SendDocument(new FileToSend { Content = export.Export(), Filename = "Orders.csv" }, "Все заказы в БД");
-                return OkResult;
-            }
-
-            else
-            {
-                await SendMessage(new BotMessage { TextMessage = "Не более одного запроса в минуту" });
-                return base.OkResult;
-            }
-        }
 
         /// <summary>
         /// Экспорт всех данных из таблицы с остатками

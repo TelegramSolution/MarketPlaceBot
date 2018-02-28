@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// сообщение со статусом платежа найден / не найден 
+    /// </summary>
     public class CheckPayMessage:Bot.BotMessage
     {
         public Orders Order { get; set; }
