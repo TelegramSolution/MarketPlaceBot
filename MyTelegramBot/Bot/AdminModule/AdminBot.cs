@@ -46,6 +46,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private PickUpPointListMessage PickUpPointListMsg { get; set; }
 
+        private ProductStockHistoryMessage ProductStockHistoryMsg { get; set; }
+
         public const string ProductCreateCmd = "ProductCreate";
 
         public const string ProductEditCmd = "ProductEdit";
@@ -138,6 +140,11 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string DisablePickUpPointCmd = "/pickupdisable";
 
+        public const string ViewStockProdCmd = "ViewStockProd";
+
+        public const string StockHistoryProudctCmd="/stockhistory";
+
+     
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -209,10 +216,17 @@ namespace MyTelegramBot.Bot.AdminModule
                         case ViewOrdersListCmd:
                             return await SendOrderList();
 
+                    case ViewStockProdCmd:
+                        return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
+
                         default:
                             break;
                     }
-                
+
+                if (base.CommandName.Contains(StockHistoryProudctCmd))
+                    await SendProductStockHistory(Convert.ToInt32(base.CommandName.Substring(StockHistoryProudctCmd.Length)));
+
+
             }
 
             if (IsOwner())
@@ -265,7 +279,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     case StatCmd:
                         return await SendStat();
 
-                    case "/operators":
+                    case ViewOperatosCmd:
                         return await SendOperatorList();
 
                     case "GenerateKey":
@@ -335,6 +349,19 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
+
+        private async Task<IActionResult> SendProductStockHistory(int ProductId,int PageNumber=1,int MessageId=0)
+        {
+            if (ProductId>0)
+                ProductStockHistoryMsg = new ProductStockHistoryMessage(ProductId, PageNumber);
+
+            var mess = ProductStockHistoryMsg.BuildMsg();
+
+            if (mess != null)
+                await SendMessage(mess, MessageId);
+
+            return OkResult;
+        }
 
         private async Task<IActionResult> EnablePickUpPoint(string Command)
         {

@@ -32,8 +32,8 @@ namespace MyTelegramBot.Messages.Admin
 
                     foreach(var op in operators)
                     {
-                        OperatorsList+=NewLine()+ counter.ToString() + ") " + op.Follower.FirstName + " | телефон: " + op.Follower.Telephone+
-                            NewLine()+ "Отстранить: /removeoperator"+op.Id.ToString()+NewLine();
+                        OperatorsList+=NewLine()+ counter.ToString() + ") " +base.ManAndComputerEmodji + " " + op.Follower.FirstName + " | телефон: " + op.Follower.Telephone+
+                            NewLine()+ "забрать права оператора: /removeoperator"+op.Id.ToString()+NewLine();
                         counter++;
                     }
                 }
@@ -43,6 +43,10 @@ namespace MyTelegramBot.Messages.Admin
             NewOperatorBtn = new InlineKeyboardCallbackButton("Создать оператора",BuildCallData("GenerateKey", Bot.AdminModule.AdminBot.ModuleName));
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
+                new[]
+                        {
+                            BackToAdminPanelBtn()
+                        },
                 new[]
                         {
                             NewOperatorBtn

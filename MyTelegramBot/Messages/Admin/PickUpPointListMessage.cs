@@ -19,6 +19,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private MarketBotDbContext db { get; set; }
 
+
         public PickUpPointListMessage (int PageNumber = 1)
         {
             base.SelectPageNumber = PageNumber;
