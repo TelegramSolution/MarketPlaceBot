@@ -13,8 +13,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Newtonsoft.Json;
 using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
-
-
+using MyTelegramBot.Bot.AdminModule;
 
 namespace MyTelegramBot.Bot
 {
@@ -227,7 +226,6 @@ namespace MyTelegramBot.Bot
         public MediaFile MediaFile { get; set; }
 
 
-
         public virtual BotMessage BuildMsg()
         {
             return this;
@@ -307,15 +305,15 @@ namespace MyTelegramBot.Bot
         /// <param name="BtnText">Текст на кнопке</param>
         /// <param name="Arg">Аргументы</param>
         /// <returns></returns>
-        protected InlineKeyboardCallbackButton BuildPreviousPageBtn<T>(Dictionary<int,List<T>> Pages,int SelectPageNumber,string CmdName,string CmdModuleName,string BtnText= "", params int [] Argument)
+        protected InlineKeyboardCallbackButton BuildPreviousPageBtn<T>(Dictionary<int,List<T>> Pages,int SelectPageNumber,string CmdName,string CmdModuleName, params int [] Argument)
         {
             //проверяемя не является ли выбранная пользователем стр. первой по счету из всех страниц
             if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null) //
-                return BuildInlineBtn(BtnText, BuildCallData(CmdName, CmdModuleName,InsertFirstItemToArray(SelectPageNumber-1, Argument)), Previuos2Emodji, false);
+                return BuildInlineBtn(Previuos2Emodji, BuildCallData(CmdName, CmdModuleName,InsertFirstItemToArray(SelectPageNumber-1, Argument)));
 
             //если пользователь выбрал первую стр. то предыдущей стриницей станет послденяя страница из всех существующих
             if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
-                return BuildInlineBtn(BtnText, BuildCallData(CmdName, CmdModuleName, InsertFirstItemToArray(Pages.Keys.Last(), Argument)), Previuos2Emodji, false);
+                return BuildInlineBtn(Previuos2Emodji, BuildCallData(CmdName, CmdModuleName, InsertFirstItemToArray(Pages.Keys.Last(), Argument)));
 
             else
                 return null;
@@ -334,20 +332,38 @@ namespace MyTelegramBot.Bot
         /// <param name="BtnText">Текст на кнопке</param>
         /// <param name="Argument">Аргументы</param>
         /// <returns></returns>
-        protected InlineKeyboardCallbackButton BuildNextPageBtn<T>(Dictionary<int, List<T>> Pages, int SelectPageNumber, string CmdName, string CmdModuleName, string BtnText = "", params int[] Argument)
+        protected InlineKeyboardCallbackButton BuildNextPageBtn<T>(Dictionary<int, List<T>> Pages, int SelectPageNumber, string CmdName, string CmdModuleName, params int[] Argument)
         {
             //Проверяем не является ли выбранная пользователем стр. последеней по счету 
             if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null)
-                return BuildInlineBtn(BtnText, BuildCallData(CmdName, CmdModuleName, InsertFirstItemToArray(SelectPageNumber + 1,Argument)), Next2Emodji);
+                return BuildInlineBtn(Next2Emodji, BuildCallData(CmdName, CmdModuleName, InsertFirstItemToArray(SelectPageNumber + 1,Argument)));
 
             if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
                 // Если выбранная пользователем страница является последней, то делаем кнопку с сылкой на первую,
                 //но при это проверяем не является ли выбранная пользователем  страница первой
-                return BuildInlineBtn(BtnText, BuildCallData(CmdName, CmdModuleName, InsertFirstItemToArray(1, Argument)), Next2Emodji);
+                return BuildInlineBtn(Next2Emodji, BuildCallData(CmdName, CmdModuleName, InsertFirstItemToArray(1, Argument)), Next2Emodji);
 
             else
                 return null;
 
+        }
+
+        protected IReplyMarkup PageNavigatorKeyboard<T>(Dictionary<int, List<T>> Pages, string CmdName, string CmdModuleName, InlineKeyboardCallbackButton BackBtn , params int[] Argument)
+        {
+            if (Pages != null && Pages.Count > 0 && Pages[SelectPageNumber] != null && BackBtn != null)
+            {
+                var page = Pages[SelectPageNumber];
+
+                this.NextPageBtn = this.BuildNextPageBtn<T>(Pages, this.SelectPageNumber, CmdName, CmdModuleName, Argument);
+
+                this.PreviousPageBtn = this.BuildPreviousPageBtn<T>(Pages, this.SelectPageNumber, CmdName, CmdModuleName, Argument);
+
+                return PageNavigatorKeyboard(this.NextPageBtn, this.PreviousPageBtn, BackBtn);
+            }
+
+            else
+                return null;
+            
         }
 
         /// <summary>
@@ -390,9 +406,11 @@ namespace MyTelegramBot.Bot
                 });
             }
 
+
             else
                 return null;
         }
+
 
         private int [] InsertFirstItemToArray (int FirstItem, params int [] Argument)
         {
@@ -418,6 +436,24 @@ namespace MyTelegramBot.Bot
             }
         }
 
+        protected InlineKeyboardCallbackButton BackToAdminPanelBtn()
+        {
+                return BuildInlineBtn("Панель администратора", BuildCallData(AdminBot.BackToAdminPanelCmd, AdminBot.ModuleName));
+        }
+
+        protected IReplyMarkup BackToAdminPanelKeyboard()
+        {
+            return new InlineKeyboardMarkup(
+            new[]{
+            new[]
+                        {
+                            BackToAdminPanelBtn()
+                        },
+
+                });
+        }
+
+
         /// <summary>
         /// json объект который будет находится внутри Inline кнопки в поле CallBackData
         /// </summary>
@@ -439,6 +475,7 @@ namespace MyTelegramBot.Bot
 
             return JsonConvert.SerializeObject(command);
         }
+
 
         public static string Bold(string value)
         {

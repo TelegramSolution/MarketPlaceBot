@@ -14,7 +14,7 @@ namespace MyTelegramBot.Messages.Admin
     /// <summary>
     /// Сообщение со списком операторов
     /// </summary>
-    public class AdminControlMessage:BotMessage
+    public class OperatosListMessage:BotMessage
     {
         private InlineKeyboardCallbackButton NewOperatorBtn { get; set; }
 

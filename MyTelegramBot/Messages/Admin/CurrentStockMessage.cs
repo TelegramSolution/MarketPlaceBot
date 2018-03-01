@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyTelegramBot.Messages.Admin
 {
-    public class AdminCurrentStockMessage:Bot.BotMessage
+    public class CurrentStockMessage:Bot.BotMessage
     {
         private List<Product> ProductList { get; set; }
 
@@ -26,7 +26,7 @@ namespace MyTelegramBot.Messages.Admin
         /// 
         /// </summary>
         /// <param name="CategoryId">товары какой категории отобразить в этом сообщениее. Если ни чего не предалть, то будет отображать товары самой первой категории</param>
-        public AdminCurrentStockMessage(int CategoryId = 0)
+        public CurrentStockMessage(int CategoryId = 0)
         {
             BackBtn = new InlineKeyboardCallbackButton("Назад", BuildCallData(Bot.AdminModule.AdminBot.BackToAdminPanelCmd , Bot.AdminModule.AdminBot.ModuleName));
             this.CategoryId = CategoryId;
@@ -73,7 +73,8 @@ namespace MyTelegramBot.Messages.Admin
                 product.Stock != null && product.Stock.Count > 0 && product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance == 0)
                     message += NewLine() + "нет в наличии";
 
-                message += NewLine() + "Изменить: /adminproduct" + product.Id.ToString() + NewLine();
+                message += NewLine() + "Изменить: /adminproduct" + product.Id.ToString() + NewLine() +
+                    "История: /stockhistory" + product.Id.ToString() + NewLine(); 
 
                 counter++;
 

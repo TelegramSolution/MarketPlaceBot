@@ -19,7 +19,7 @@ namespace MyTelegramBot.Messages.Admin
     /// <summary>
     /// Сообщение с админскими функциями Товара
     /// </summary>
-    public class AdminProductFuncMessage:BotMessage
+    public class ProductFuncMessage:BotMessage
     {
         private int ProductId { get; set; }
 
@@ -51,7 +51,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private Product Product { get; set; }
 
-        public AdminProductFuncMessage(int ProductId)
+        public ProductFuncMessage(int ProductId)
         {
             this.ProductId = ProductId;
             

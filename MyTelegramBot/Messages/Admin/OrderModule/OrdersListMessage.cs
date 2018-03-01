@@ -34,20 +34,14 @@ namespace MyTelegramBot.Messages.Admin
 
             OrderList = db.Orders.Include(o => o.CurrentStatusNavigation).Include(o=>o.OrderProduct).OrderByDescending(o => o.Id).ToList();
 
-
             Pages = BuildDataPage<Orders>(OrderList, base.PageSize);
+          
 
-            var page = Pages[base.SelectPageNumber];
-
-            if (page != null)
+            if (Pages != null && Pages.Count > 0 && Pages[SelectPageNumber] != null)
             {
-                base.NextPageBtn = base.BuildNextPageBtn<Orders>(Pages, base.SelectPageNumber, AdminBot.ViewOrdersListCmd, AdminBot.ModuleName);
+                var page = Pages[base.SelectPageNumber];
 
-                base.PreviousPageBtn = base.BuildPreviousPageBtn<Orders>(Pages, base.SelectPageNumber, AdminBot.ViewOrdersListCmd, AdminBot.ModuleName);
-
-                base.BackBtn = BuildInlineBtn("Панель администратора", BuildCallData(AdminBot.BackToAdminPanelCmd, AdminBot.ModuleName));
-
-                base.MessageReplyMarkup = base.PageNavigatorKeyboard(base.NextPageBtn, base.PreviousPageBtn, base.BackBtn);
+                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Orders>(Pages, AdminBot.ViewOrdersListCmd, AdminBot.ModuleName, base.BackToAdminPanelBtn());
 
                 base.TextMessage = "Список заказов (Всего заказов в системе " + OrderList.Count.ToString() + ")" + NewLine() +
                     "Страница " + base.SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();

@@ -16,7 +16,7 @@ namespace MyTelegramBot.Messages.Admin
     /// <summary>
     /// Панель администратора
     /// </summary>
-    public class AdminPanelCmdMessage:Bot.BotMessage
+    public class ControlPanelMessage:Bot.BotMessage
     {
         private InlineKeyboardCallbackButton EditProductBtn { get; set; }
 
@@ -35,16 +35,20 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton AddCategoryBtn { get; set; }
 
-        private InlineKeyboardCallbackButton CitiesBtn { get; set; }
+        private InlineKeyboardCallbackButton ViewCitiesBtn { get; set; }
 
-        private InlineKeyboardCallbackButton OperatorsBtn { get; set; }
+        private InlineKeyboardCallbackButton ViewOperatorsBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ViewPickupPointBtn { get; set; }
+
+        private InlineKeyboardButton MoreSettingsBtn { get; set; }
 
         private MyTelegramBot.Admin Admin { get; set; }
 
         private int FollowerId { get; set; }
 
         private int AdminId { get; set; }
-        public AdminPanelCmdMessage(int FollowerId)
+        public ControlPanelMessage(int FollowerId)
         {
             this.FollowerId = FollowerId;
         }
@@ -55,22 +59,21 @@ namespace MyTelegramBot.Messages.Admin
 
                 EditProductBtn = new InlineKeyboardCallbackButton("Изм. товар"+ " \ud83d\udd8a", BuildCallData(ProductEditBot.ProductEditorCmd, ProductEditBot.ModuleName));
                 EditCategoryBtn = new InlineKeyboardCallbackButton("Изм. категорию"+ " \ud83d\udd8a", BuildCallData(CategoryEditBot.CategoryEditorCmd, CategoryEditBot.ModuleName));
-                //ContactEditPanelBtn= new InlineKeyboardCallbackButton("Изменить контактные данные"+ " \ud83d\udd8a", BuildCallData(AdminBot.ContactEditCmd, AdminBot.ModuleName));
-                //NoConfirmOrdersBtn = new InlineKeyboardCallbackButton("Показать необработанные заказы" + " \ud83d\udcd2", BuildCallData(AdminBot.NoConfirmOrderCmd, AdminBot.ModuleName));
-                //PaymentsEnableListBtn = new InlineKeyboardCallbackButton("Выбрать доступные методы оплаты" + " \ud83d\udcb0", BuildCallData(AdminBot.PayMethodsListCmd, AdminBot.ModuleName));
                 StockViewBtn = BuildInlineBtn("Остатки", BuildCallData("ViewStock", AdminBot.ModuleName),base.Depth2Emodji);
                 
+                ViewFollowerBtn = BuildInlineBtn("Пользователи", BuildCallData(AdminBot.ViewFollowerListCmd, AdminBot.ModuleName), base.ManEmodji2);
 
-            ViewFollowerBtn = BuildInlineBtn("Пользователи", BuildCallData(AdminBot.ViewFollowerListCmd, AdminBot.ModuleName), base.ManEmodji2);
+                ViewOrdersBtn = BuildInlineBtn("Заказы", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.PackageEmodji);
 
-            ViewOrdersBtn = BuildInlineBtn("Заказы", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.PackageEmodji);
+                ViewPaymentsBtn = BuildInlineBtn("Платежи", BuildCallData(AdminBot.ViewPaymentsListCmd, AdminBot.ModuleName), base.CreditCardEmodji);
 
-            ViewPaymentsBtn = BuildInlineBtn("Платежи", BuildCallData(AdminBot.ViewPaymentsListCmd, AdminBot.ModuleName), base.CreditCardEmodji);
+                ViewCitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
 
-            CitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
+                ViewOperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(AdminBot.ViewOperatosCmd, AdminBot.ModuleName), base.ManAndComputerEmodji);
 
-            OperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(AdminBot.ViewOperatosCmd, AdminBot.ModuleName), base.ManAndComputerEmodji);
+                ViewPickupPointBtn = BuildInlineBtn("Пункты самовывоза", BuildCallData(AdminBot.ViewPickupPointCmd, AdminBot.ModuleName),base.Build2Emodji);
 
+                MoreSettingsBtn = BuildInlineBtn("Доп. настройки", BuildCallData("", ""), base.CogwheelEmodji);
 
             base.TextMessage = Bold("Панель администратора") + NewLine() +
                                "1) Добавить новый товар /newprod" + NewLine() +
@@ -89,11 +92,15 @@ namespace MyTelegramBot.Messages.Admin
                     new[]{
                 new[]
                         {
+                            MoreSettingsBtn
+                        },
+                new[]
+                        {
                             EditProductBtn,EditCategoryBtn
                         },
                 new[]
                         {
-                            ViewFollowerBtn,OperatorsBtn,CitiesBtn
+                            ViewFollowerBtn,ViewOperatorsBtn,ViewCitiesBtn
                         },
 
                 new[]
@@ -102,7 +109,7 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            StockViewBtn
+                            StockViewBtn,ViewPickupPointBtn
                         },
 
                      });

@@ -36,20 +36,13 @@ namespace MyTelegramBot.Messages.Admin
 
             Pages = base.BuildDataPage<Follower>(FollowerList, base.PageSize);
 
-            var page = Pages[SelectPageNumber];
-
             db.Dispose();
 
-            if (page != null)
+            if (Pages != null && Pages.Count > 0 && Pages[SelectPageNumber] != null)
             {
+                var page = Pages[SelectPageNumber];
 
-                base.NextPageBtn = base.BuildNextPageBtn<Follower>(Pages, base.SelectPageNumber, AdminBot.ViewFollowerListCmd, AdminBot.ModuleName);
-
-                base.PreviousPageBtn = base.BuildPreviousPageBtn<Follower>(Pages, base.SelectPageNumber, AdminBot.ViewFollowerListCmd, AdminBot.ModuleName);
-
-                base.BackBtn = BuildInlineBtn("Панель администратора", BuildCallData(AdminBot.BackToAdminPanelCmd, AdminBot.ModuleName));
-
-                base.MessageReplyMarkup = base.PageNavigatorKeyboard(base.NextPageBtn, base.PreviousPageBtn, base.BackBtn);
+                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Follower>(Pages, AdminBot.ViewFollowerListCmd, AdminBot.ModuleName, base.BackToAdminPanelBtn());
 
                 base.TextMessage = "Список пользователей (всего " + FollowerList.Count.ToString() + ")" + NewLine() +
                     "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();

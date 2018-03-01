@@ -16,19 +16,19 @@ namespace MyTelegramBot.Bot.AdminModule
     {
         public const string ModuleName = "Admin";
 
-        private AdminPanelCmdMessage AdminCmdListMsg { get; set; }
+        private ControlPanelMessage AdminCmdListMsg { get; set; }
 
         private CategoryListMessage CategoryListMsg { get; set; }
 
         private AdminProductListMessage AdminProductListMsg { get; set; }
 
-        private AdminProductFuncMessage AdminProductFuncMsg { get; set; }
+        private ProductFuncMessage AdminProductFuncMsg { get; set; }
 
         private ContactEditMessage ContactEditMsg { get; set; }
 
         private AdminAllProductsViewMessage AdminAllProductsViewMsg { get; set; }
 
-        private AdminCurrentStockMessage AdminCurrentStockMsg { get; set; }
+        private CurrentStockMessage AdminCurrentStockMsg { get; set; }
 
         private AdminPayMethodsSettings AdminPayMethodsSettingsMsg { get; set; }
 
@@ -36,7 +36,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private StatisticMessage StatisticMsg { get; set; }
 
-        private AdminControlMessage AdminControlMsg { get; set; }
+        private OperatosListMessage AdminControlMsg { get; set; }
 
         private AvailableCitiesMessage AvailableCitiesMsg { get; set; }
 
@@ -44,6 +44,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private OrdersListMessage OrdersListMsg { get; set; }
 
+        private PickUpPointListMessage PickUpPointListMsg { get; set; }
 
         public const string ProductCreateCmd = "ProductCreate";
 
@@ -127,6 +128,17 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string ViewOperatosCmd = "ViewOperatos";
 
+        public const string ViewPickupPointCmd = "ViewPickupPoint";
+
+        public const string AddPickupPoint = "/addpickuppoint";
+
+        public const string AddPickupPointForceReply = "Добавить пункт самовывоза";
+
+        public const string EnablePickUpPointCmd = "/pickupenable";
+
+        public const string DisablePickUpPointCmd = "/pickupdisable";
+
+
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
         {
@@ -138,12 +150,12 @@ namespace MyTelegramBot.Bot.AdminModule
             try
             {
                 AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage();
-                AdminCmdListMsg = new AdminPanelCmdMessage(base.FollowerId);
+                AdminCmdListMsg = new ControlPanelMessage(base.FollowerId);
                 ContactEditMsg = new ContactEditMessage();
                 AdminAllProductsViewMsg = new AdminAllProductsViewMessage();
-                AdminCurrentStockMsg = new AdminCurrentStockMessage();
+                AdminCurrentStockMsg = new CurrentStockMessage();
                 AdminPayMethodsSettingsMsg = new AdminPayMethodsSettings();
-                AdminControlMsg = new AdminControlMessage();
+                AdminControlMsg = new OperatosListMessage();
                 StatisticMsg = new StatisticMessage();
                 AvailableCitiesMsg = new AvailableCitiesMessage();
                 
@@ -151,7 +163,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 {
                     Parametr = base.Argumetns[0];
                     AdminProductListMsg = new AdminProductListMessage(this.Parametr);
-                    AdminProductFuncMsg = new AdminProductFuncMessage(Parametr);
+                    AdminProductFuncMsg = new ProductFuncMessage(Parametr);
                 }
 
 
@@ -193,8 +205,6 @@ namespace MyTelegramBot.Bot.AdminModule
                         case "/off":
                             return await OnOffPrivateMessage(false);
 
-                        case ViewFollowerListCmd:
-                            return await SendFollowerList();
 
                         case ViewOrdersListCmd:
                             return await SendOrderList();
@@ -209,6 +219,11 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 switch (base.CommandName)
                 {
+                    case ViewFollowerListCmd:
+                        return await SendFollowerList();
+
+                    case ViewPickupPointCmd:
+                        return await SendPickupPointList();
 
                     //Пользователь нажал на кнопку "Добавить товар", ему пришло Сообщение с иструкцией по добавлению
                     case "/newprod":
@@ -221,6 +236,9 @@ namespace MyTelegramBot.Bot.AdminModule
                     //Пользователь нажал на кнопку "Импорт из CSV" ему пришло сообщение с интрукцией
                     case "/import":
                         return await SendImportFAQ();
+
+                    case AddPickupPoint: // пользователь нажал на кнопку добавить пункт самовывоза
+                        return await ForceReplyBuilder(AddPickupPointForceReply);
 
                     case ContactEditCmd:
                         return await ContactEdit();
@@ -256,8 +274,8 @@ namespace MyTelegramBot.Bot.AdminModule
                     case AddGroup:
                        return await AddBotToChat();
 
-                    case "/cities":
-                        return await SendAvailableCities();
+                    case ViewCitiesCmd:
+                        return await SendAvailableCities(base.MessageId);
 
                     case "/newcity":
                         return await ForceReplyBuilder("Введите название города");
@@ -290,7 +308,14 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(RemoveOperatorCmd))
                     return await RemoveOperator();
 
+                if (base.OriginalMessage.Contains(AddPickupPointForceReply))
+                    return await InsertPicupPoint();
 
+                if (base.CommandName.Contains(EnablePickUpPointCmd))
+                    return await EnablePickUpPoint(EnablePickUpPointCmd);
+
+                if (base.CommandName.Contains(DisablePickUpPointCmd))
+                    return await EnablePickUpPoint(DisablePickUpPointCmd);
 
                 else
                     return null;
@@ -308,6 +333,79 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+
+        private async Task<IActionResult> EnablePickUpPoint(string Command)
+        {
+            int id =Convert.ToInt32(base.CommandName.Substring(Command.Length));
+
+            using(MarketBotDbContext db=new MarketBotDbContext())
+            {
+                var pickup = db.PickupPoint.Find(id);
+
+                if (pickup != null && pickup.Enable == false)
+                {
+                    pickup.Enable = true;
+                    db.SaveChanges();
+                    return await SendPickupPointList();
+                }
+
+                if (pickup != null && pickup.Enable)
+                {
+                    pickup.Enable = false;
+                    db.SaveChanges();
+                    return await SendPickupPointList();
+                }
+
+
+                else
+                    await SendPickupPointList();
+
+                return OkResult;
+            }
+        }
+
+        private async Task<IActionResult> InsertPicupPoint()
+        {
+            using (MarketBotDbContext db=new MarketBotDbContext())
+            {
+                if (db.PickupPoint.Where(p => p.Name == ReplyToMessageText).FirstOrDefault() == null)
+                {
+                    PickupPoint pickupPoint = new PickupPoint
+                    {
+                        Enable = true,
+                        Name = ReplyToMessageText,
+
+                    };
+
+                    db.PickupPoint.Add(pickupPoint);
+                    db.SaveChanges();
+                    await SendPickupPointList();
+                }
+
+                else
+                {
+                    await SendMessage(new BotMessage { TextMessage = "Уже существует" });
+                    await SendPickupPointList();
+                }
+
+                return OkResult;
+            }
+        }
+
+        private async Task<IActionResult> SendPickupPointList(int MessageId=0)
+        {
+            if (Argumetns!=null && Argumetns.Count > 0)
+                PickUpPointListMsg = new PickUpPointListMessage(Argumetns[0]);
+
+            else
+                PickUpPointListMsg = new PickUpPointListMessage();
+
+            await SendMessage(PickUpPointListMsg.BuildMsg(), MessageId);
+
+            return OkResult;
+
         }
 
         /// <summary>
@@ -415,11 +513,11 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Отправить сообщение со списком доступных городов
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendAvailableCities()
+        private async Task<IActionResult> SendAvailableCities(int MessageId=0)
         {
             try
             {
-               await SendMessage(AvailableCitiesMsg.BuildMsg());
+               await SendMessage(AvailableCitiesMsg.BuildMsg(), MessageId);
                return OkResult;
             }
 
@@ -439,16 +537,27 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 using (MarketBotDbContext db=new MarketBotDbContext())
                 {
-                    AvailableСities availableСities = new AvailableСities
+                    if (db.AvailableСities.Where(c => c.CityName == ReplyToMessageText).FirstOrDefault() == null)
                     {
-                        CityName = ReplyToMessageText,
-                        Timestamp = DateTime.Now
-                    };
 
-                    db.AvailableСities.Add(availableСities);
-                    db.SaveChanges();
+                        AvailableСities availableСities = new AvailableСities
+                        {
+                            CityName = ReplyToMessageText,
+                            Timestamp = DateTime.Now
+                        };
 
-                    return await SendAvailableCities();
+                        db.AvailableСities.Add(availableСities);
+                        db.SaveChanges();
+
+                        await SendAvailableCities();
+                    }
+
+                    else
+                    {
+                        await SendMessage(new BotMessage { TextMessage = "Этот город уже добавлен в список" });
+                    }
+
+                    return OkResult;
                 }
             }
 
@@ -594,7 +703,7 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                AdminCurrentStockMsg = new AdminCurrentStockMessage(CategoryId);
+                AdminCurrentStockMsg = new CurrentStockMessage(CategoryId);
                 await SendMessage(AdminCurrentStockMsg.BuildMsg(), MessageId);
                 return OkResult;
             }

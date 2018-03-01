@@ -31,7 +31,7 @@ namespace MyTelegramBot.Bot
 
         private string CategoryName { get; set; }
 
-        AdminCategoryFuncMessage AdminCategoryFuncMsg { get; set; }
+        CategoryFuncMessage AdminCategoryFuncMsg { get; set; }
 
         CategoryListMessage CategoryListMsg { get; set; }
 
@@ -51,7 +51,7 @@ namespace MyTelegramBot.Bot
                     if (Argumetns.Count > 0)
                     {
                         CategoryId = Argumetns[0];
-                        AdminCategoryFuncMsg = new AdminCategoryFuncMessage(CategoryId);
+                        AdminCategoryFuncMsg = new CategoryFuncMessage(CategoryId);
                     }
 
                     if (CategoryId > 0)
@@ -123,7 +123,7 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> SendCategoryEditorMsg(int CategoryId)
         {
-            AdminCategoryFuncMsg = new AdminCategoryFuncMessage(CategoryId);
+            AdminCategoryFuncMsg = new CategoryFuncMessage(CategoryId);
             if (await EditMessage(AdminCategoryFuncMsg.BuildMessage()) != null)
                 return OkResult;
 
@@ -164,7 +164,7 @@ namespace MyTelegramBot.Bot
                     db.Category.Add(category);
                     db.SaveChanges();
 
-                    AdminCategoryFuncMsg = new AdminCategoryFuncMessage(category.Id);
+                    AdminCategoryFuncMsg = new CategoryFuncMessage(category.Id);
 
                     if (await SendMessage(AdminCategoryFuncMsg.BuildMessage()) != null)
                         return OkResult;

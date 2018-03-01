@@ -12,24 +12,24 @@ namespace MyTelegramBot.Messages.Admin
     /// <summary>
     /// Сообщение с админскими функциями для редактирования категории
     /// </summary>
-    public class AdminCategoryFuncMessage:BotMessage
+    public class CategoryFuncMessage:BotMessage
     {
         private InlineKeyboardCallbackButton EditCategoryNameBtn { get; set; }
 
         private InlineKeyboardCallbackButton EditCategoryEnableBtn { get; set; }
 
-        private InlineKeyboardCallbackButton BackToAdminPanelBtn { get; set; }
+        private InlineKeyboardCallbackButton BackToAdminPanel { get; set; }
 
         private Category Category { get; set; }
 
         private int CategoryId { get; set; }
 
-        public AdminCategoryFuncMessage(int CategoryId)
+        public CategoryFuncMessage(int CategoryId)
         {
             this.CategoryId = CategoryId;
         }
 
-        public AdminCategoryFuncMessage BuildMessage()
+        public CategoryFuncMessage BuildMessage()
         {
             using (MarketBotDbContext db=new MarketBotDbContext())
                 Category = db.Category.Where(c => c.Id == CategoryId).FirstOrDefault();
@@ -48,7 +48,7 @@ namespace MyTelegramBot.Messages.Admin
                     EditCategoryEnableBtn = BuildInlineBtn("Активно",
                                                     BuildCallData(Bot.CategoryEditBot.CategoryEditEnableCmd, Bot.CategoryEditBot.ModuleName, CategoryId), base.UnCheckEmodji);
 
-                BackToAdminPanelBtn = BuildInlineBtn("Панель Администратора", BuildCallData(AdminBot.BackToAdminPanelCmd, Bot.AdminModule.AdminBot.ModuleName),base.CogwheelEmodji);
+                BackToAdminPanel = BuildInlineBtn("Панель Администратора", BuildCallData(AdminBot.BackToAdminPanelCmd, Bot.AdminModule.AdminBot.ModuleName),base.CogwheelEmodji);
 
                 SetInlineKeyBoard();               
 
@@ -74,7 +74,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 new[]
                         {
-                            BackToAdminPanelBtn
+                            BackToAdminPanel
                         },
 
                      });

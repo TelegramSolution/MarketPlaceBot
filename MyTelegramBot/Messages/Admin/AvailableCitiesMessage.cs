@@ -18,6 +18,7 @@ namespace MyTelegramBot.Messages.Admin
     public class AvailableCitiesMessage:BotMessage
     {
 
+
         public override BotMessage BuildMsg()
         {
             using (MarketBotDbContext db=new MarketBotDbContext())
@@ -26,7 +27,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 int count = 1;
 
-                base.TextMessage = "Список доступных городов"+NewLine();
+                base.TextMessage =base.Build2Emodji+ "Список доступных городов"+NewLine();
 
                 foreach(AvailableСities ac in Cities)
                 {
@@ -34,8 +35,18 @@ namespace MyTelegramBot.Messages.Admin
                     count++;
                 }
 
-                base.TextMessage += NewLine() + "Что бы добавить новый город нажмите сюда /newcity"+
-                    NewLine()+"Вернуться в панель администратора /admin";
+                base.TextMessage += NewLine() + "Что бы добавить новый город нажмите сюда /newcity";
+
+                base.BackBtn = BuildInlineBtn("Панель администратора", BuildCallData(AdminBot.BackToAdminPanelCmd, AdminBot.ModuleName));
+
+                base.MessageReplyMarkup= new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                            BackBtn
+                        },
+
+                }); 
 
                 return this;
             }

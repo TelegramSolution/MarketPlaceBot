@@ -32,7 +32,7 @@ namespace MyTelegramBot.Bot
         /// <summary>
         /// Сообщение с админскими функциями для товара
         /// </summary>
-        private AdminProductFuncMessage AdminProductFuncMsg { get; set; }
+        private ProductFuncMessage AdminProductFuncMsg { get; set; }
 
         private UnitListMessage UnitListMsg { get; set; }
 
@@ -194,7 +194,7 @@ namespace MyTelegramBot.Bot
 
                     AdminProductListMsg = new AdminProductListMessage(this.ProductId);
 
-                    AdminProductFuncMsg = new AdminProductFuncMessage(this.ProductId);
+                    AdminProductFuncMsg = new ProductFuncMessage(this.ProductId);
                 }
 
             }
@@ -1070,7 +1070,7 @@ namespace MyTelegramBot.Bot
                 var product = db.Product.Where(p => p.Name == ProductName).FirstOrDefault();
                 if (product != null)
                 {
-                    AdminProductFuncMsg = new AdminProductFuncMessage(product.Id);
+                    AdminProductFuncMsg = new ProductFuncMessage(product.Id);
 
                     return product.Id;
                 }
@@ -1090,7 +1090,7 @@ namespace MyTelegramBot.Bot
         {
             if (product != null)
             {
-                AdminProductFuncMsg = new AdminProductFuncMessage(product.Id);
+                AdminProductFuncMsg = new ProductFuncMessage(product.Id);
 
                 if (await SendMessage(AdminProductFuncMsg.BuildMsg(), MessageId) != null)
                     return OkResult;

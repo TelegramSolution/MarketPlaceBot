@@ -460,7 +460,7 @@ namespace MyTelegramBot.Bot
                     return null;
             }
 
-            catch
+            catch 
             {
                 //await telegram.SendTextMessageAsync(this.ChatId, botMessage.Text, ParseMode.Html, false, false, ReplyToMessageId, botMessage.InlineKeyboard);
 
