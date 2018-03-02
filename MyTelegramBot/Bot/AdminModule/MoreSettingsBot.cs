@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
-    public class MoreSettingsBot:BotCore
+    public class MoreSettingsBot : BotCore
     {
         public const string ModuleName = "MoreSet";
 
@@ -56,11 +56,21 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string DeliveryPriceCmd = "DeliveryPrice";
 
+        public const string StartWorkTimeCmd = "StartWorkTime";
 
+        public const string EndWorkTimeCmd = "EndWorkTime";
+
+        public const string RemoveWorkTimeCmd = "RemoveWorkTime";
+
+        public const string StartWorkTimeForceReplyCmd = "Время начала работы";
+
+        public const string EndWorkTimeForceReplyCmd = "Время окончания работы";
 
         MoreSettingsMessage MoreSettingsMsg { get; set; }
 
-        MethodOfObtaining  MethodOfObtainingMsg { get; set; }
+        MethodOfObtaining MethodOfObtainingMsg { get; set; }
+
+        WorkTimeMessage WorkTimeMsg { get; set; }
 
         public MoreSettingsBot(Update _update) : base(_update)
         {
@@ -76,6 +86,12 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             if (IsOwner())
             {
+                if (base.OriginalMessage == StartWorkTimeForceReplyCmd)
+                    return await SaveTime(StartWorkTimeForceReplyCmd);
+
+                if (base.OriginalMessage == EndWorkTimeForceReplyCmd)
+                    return await SaveTime(EndWorkTimeForceReplyCmd);
+
                 switch (base.CommandName)
                 {
                     case MoreSettingsCmd:
@@ -93,10 +109,26 @@ namespace MyTelegramBot.Bot.AdminModule
                     case BackToMoreSettingsCmd:
                         return await SendMoreSettings(base.MessageId);
 
+                    case WorkTimeEditorCmd:
+                        return await SendWorkTime(base.MessageId);
+
+                    case StartWorkTimeCmd:
+                        return await TimeInputSendForceReply(StartWorkTimeForceReplyCmd);
+
+                    case EndWorkTimeCmd:
+                        return await TimeInputSendForceReply(EndWorkTimeForceReplyCmd);
+
+                    case RemoveWorkTimeCmd:
+                        return await RemoveWorkTime();
+
                     default:
                         return null;
                 }
+
+
             }
+
+
 
             else
                 return null;
@@ -127,14 +159,14 @@ namespace MyTelegramBot.Bot.AdminModule
             MarketBotDbContext db = new MarketBotDbContext();
 
             ///Доставка активна, пользователь пытается ее деактивировать, тогда не останется доступных способов оплаты
-            if(BotInfo!=null && BotInfo.Configuration!=null && BotInfo.Configuration.Pickup==false && BotInfo.Configuration.Delivery)
+            if (BotInfo.Configuration.Pickup == false && BotInfo.Configuration.Delivery)
             {
-                await AnswerCallback("Должен быть доступен хотя бы один способ получения заказа",true);
+                await AnswerCallback("Должен быть доступен хотя бы один способ получения заказа", true);
 
             }
 
             // Пользователь 
-            if (BotInfo != null && BotInfo.Configuration != null && BotInfo.Configuration.Pickup == true)
+            if (BotInfo.Configuration.Pickup == true)
             {
                 if (BotInfo.Configuration.Delivery)
                     BotInfo.Configuration.Delivery = false;
@@ -145,6 +177,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 db.Update<Configuration>(BotInfo.Configuration);
 
                 int sabe = db.SaveChanges();
+
+                db.Dispose();
 
                 return await SendMethodOfObtaining();
 
@@ -159,14 +193,14 @@ namespace MyTelegramBot.Bot.AdminModule
             MarketBotDbContext db = new MarketBotDbContext();
 
             ///Доставка активна, пользователь пытается ее деактивировать, тогда не останется доступных способов оплаты
-            if (BotInfo != null && BotInfo.Configuration != null && BotInfo.Configuration.Delivery == false && BotInfo.Configuration.Pickup)
+            if (BotInfo.Configuration.Delivery == false && BotInfo.Configuration.Pickup)
             {
                 await AnswerCallback("Должен быть доступен хотя бы один способ получения заказа", true);
 
             }
 
             // Пользователь 
-            if (BotInfo != null && BotInfo.Configuration != null && BotInfo.Configuration.Delivery == true)
+            if (BotInfo.Configuration.Delivery == true)
             {
                 if (BotInfo.Configuration.Pickup)
                     BotInfo.Configuration.Pickup = false;
@@ -178,12 +212,92 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 int sabe = db.SaveChanges();
 
+                db.Dispose();
+
                 return await SendMethodOfObtaining();
 
             }
 
             else
                 return OkResult;
+        }
+
+        private async Task<IActionResult> SendWorkTime(int MessageId = 0)
+        {
+            WorkTimeMsg = new WorkTimeMessage(base.BotInfo);
+
+            await SendMessage(WorkTimeMsg.BuildMsg(), MessageId);
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> TimeInputSendForceReply(string ForceRelplyMsg)
+        {
+
+            await SendMessage(new BotMessage { TextMessage = "Введите время. Например 9:00" });
+            return await ForceReplyBuilder(ForceRelplyMsg);
+            
+        }
+
+        private async Task<IActionResult> SaveTime(string OriginalMessage)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+
+                TimeSpan timeSpan = Convert.ToDateTime(ReplyToMessageText).TimeOfDay;
+
+
+                if (OriginalMessage == StartWorkTimeForceReplyCmd)
+                {
+                    BotInfo.Configuration.StartTime = timeSpan;
+
+                    db.Update<Configuration>(BotInfo.Configuration);
+
+                    db.SaveChanges();
+
+                    return await SendWorkTime();
+
+                }
+
+                if (OriginalMessage == EndWorkTimeForceReplyCmd)
+                {
+                    BotInfo.Configuration.EndTime = timeSpan;
+
+                    db.Update<Configuration>(BotInfo.Configuration);
+
+                    db.SaveChanges();
+
+                    return await SendWorkTime();
+
+                }
+
+                else
+                    return OkResult;
+            }
+
+            catch
+            {
+                await SendMessage(new BotMessage { TextMessage = "Ошибка! Неверный формат данных" });
+                return await TimeInputSendForceReply(OriginalMessage);
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        private async Task<IActionResult> RemoveWorkTime()
+        {
+            using(MarketBotDbContext db=new MarketBotDbContext())
+            {
+                BotInfo.Configuration.StartTime = null;
+                BotInfo.Configuration.EndTime = null;
+                db.Update<Configuration>(BotInfo.Configuration);
+                return await SendWorkTime(base.MessageId);
+            }
         }
     }
 }

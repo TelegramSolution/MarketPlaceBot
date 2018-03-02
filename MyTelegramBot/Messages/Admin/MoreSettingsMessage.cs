@@ -37,7 +37,7 @@ namespace MyTelegramBot.Messages.Admin
 
         public override BotMessage BuildMsg()
         {
-            TimeWorkBtn = BuildInlineBtn("Время работы", BuildCallData(MoreSettingsBot.WorkTimeEditorCmd, MoreSettingsBot.ModuleName),base.ClockEmodji);
+            TimeWorkBtn = BuildInlineBtn("Режим работы", BuildCallData(MoreSettingsBot.WorkTimeEditorCmd, MoreSettingsBot.ModuleName),base.ClockEmodji);
 
             MethodsOfObtainingBtn = BuildInlineBtn("Способы получения", BuildCallData(MoreSettingsBot.MethodOfObtaitingCmd, MoreSettingsBot.ModuleName),base.CarEmodji);
 
