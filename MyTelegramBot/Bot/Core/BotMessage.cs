@@ -20,6 +20,16 @@ namespace MyTelegramBot.Bot
     public class BotMessage
     {
         /// <summary>
+        /// 📲 мобильный телефон
+        /// </summary>
+        protected readonly string MobileEmodji = "\ud83d\udcf2";
+
+        /// <summary>
+        /// ⏱ часы
+        /// </summary>
+        protected readonly string ClockEmodji = "\u23f1";
+
+        /// <summary>
         /// ✔️
         /// </summary>
         protected readonly string CheckEmodji = "\u2714\ufe0f";

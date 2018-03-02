@@ -73,7 +73,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 ViewPickupPointBtn = BuildInlineBtn("Пункты самовывоза", BuildCallData(AdminBot.ViewPickupPointCmd, AdminBot.ModuleName),base.Build2Emodji);
 
-                MoreSettingsBtn = BuildInlineBtn("Доп. настройки", BuildCallData("", ""), base.CogwheelEmodji);
+                MoreSettingsBtn = BuildInlineBtn("Доп. настройки", BuildCallData(MoreSettingsBot.MoreSettingsCmd, MoreSettingsBot.ModuleName), base.CogwheelEmodji);
 
             base.TextMessage = Bold("Панель администратора") + NewLine() +
                                "1) Добавить новый товар /newprod" + NewLine() +

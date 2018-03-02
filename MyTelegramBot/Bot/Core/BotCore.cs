@@ -430,7 +430,10 @@ namespace MyTelegramBot.Bot
             
         }
 
-        public abstract Task<IActionResult> Response();
+        public virtual Task<IActionResult> Response()
+        {
+            return null;
+        }
 
         /// <summary>
         /// Отправить сообщение 
