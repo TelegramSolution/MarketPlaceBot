@@ -1027,7 +1027,7 @@ namespace MyTelegramBot.Bot
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        protected virtual async Task<IActionResult> ForceReplyBuilder(string text)
+        protected virtual async Task<IActionResult> SendForceReplyMessage(string text)
         {
             if (this.Update.CallbackQuery != null)
                 await AnswerCallback();
@@ -1037,6 +1037,27 @@ namespace MyTelegramBot.Bot
 
             else
                 return NotFoundResult;
+        }
+
+       protected async Task<IActionResult> SendTextMessageAndForceReply(string TextMesage, string ForceReplyMessage)
+        {
+            try
+            {
+                if (TextMesage != null && ForceReplyMessage != null && TextMesage != "" && ForceReplyMessage != "")
+                {
+                    await SendMessage(new BotMessage { TextMessage = TextMesage });
+                    return await SendForceReplyMessage(ForceReplyMessage);
+
+                }
+
+                else
+                    return NotFoundResult;
+            }
+
+            catch
+            {
+                return NotFoundResult;
+            }
         }
 
 

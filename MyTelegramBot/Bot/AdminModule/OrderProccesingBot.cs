@@ -227,7 +227,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await UpdateOrderStatus(Argumetns[1]);
 
                     case "StatusAddComment":
-                        return await ForceReplyBuilder(ForceReplyAddCommentToStatus + Argumetns[0].ToString());
+                        return await SendForceReplyMessage(ForceReplyAddCommentToStatus + Argumetns[0].ToString());
 
                     case CmdConfirmNewStatus:
                         return await ConfirmNewStatus();
@@ -248,11 +248,11 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 //Администратор нажал на кнопку "Удалить заказ"
                 if (base.CommandName == CmdOrderDelete && Order != null)
-                    return await ForceReplyBuilder(ForceReplyOrderDelete + Order.Number.ToString());
+                    return await SendForceReplyMessage(ForceReplyOrderDelete + Order.Number.ToString());
 
                 //Администратор нажал на кнопку "Заказ согласован"
                 if (base.CommandName == CmdConfirmOrder && Order != null)
-                    return await ForceReplyBuilder(ForceReplyOrderConfirm + Order.Number.ToString());
+                    return await SendForceReplyMessage(ForceReplyOrderConfirm + Order.Number.ToString());
 
                 /// /order показать заказ для админа
                 if (base.CommandName.Contains(GetOrderCmd))

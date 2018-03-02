@@ -69,7 +69,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await SendHelpDesk();
 
                     case AddHelpAnswerCmd:
-                        return await ForceReplyBuilder(AddCommentForceReply + HelpNumber.ToString());
+                        return await SendForceReplyMessage(AddCommentForceReply + HelpNumber.ToString());
 
                     case CloseHelpCmd:
                         return await CloseHelpDesk();

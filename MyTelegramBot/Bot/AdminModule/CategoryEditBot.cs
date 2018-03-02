@@ -89,11 +89,11 @@ namespace MyTelegramBot.Bot
                         //Пользотваель нажал на кнопку добавить новыую категорию. 
                         //Приход Relpy сообщение с просьбой указать имя новой категории
                     case "/newcategory":
-                        return await ForceReplyBuilder(AdminBot.EnterNameNewCategoryCmd);
+                        return await SendForceReplyMessage(AdminBot.EnterNameNewCategoryCmd);
 
                     //Пользотватель нажал на кнопку "Изменить название категории. Приходи Reply сообщение с просьобой указать новое имя для этой категориии
                     case CategoryEditNameCmd:
-                        return await ForceReplyBuilder(NewNameForceReplyCmd + CategoryName);
+                        return await SendForceReplyMessage(NewNameForceReplyCmd + CategoryName);
 
 
                     //Пользователь нажал на кнопку "Отобразить/Скрыть".Выполняется обновление данных в бд, а потом присылается сообщение с доступными функциями
@@ -237,7 +237,7 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> ErrorMessage(string ForceReplyText, string ErrorMessage = "Ошибка")
         {
             if (await SendMessage(new BotMessage { TextMessage = ErrorMessage }) != null)
-                return await ForceReplyBuilder(ForceReplyText);
+                return await SendForceReplyMessage(ForceReplyText);
 
             else
                 return NotFoundResult;

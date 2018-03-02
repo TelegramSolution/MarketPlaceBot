@@ -252,22 +252,22 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await SendImportFAQ();
 
                     case AddPickupPoint: // пользователь нажал на кнопку добавить пункт самовывоза
-                        return await ForceReplyBuilder(AddPickupPointForceReply);
+                        return await SendForceReplyMessage(AddPickupPointForceReply);
 
                     case ContactEditCmd:
                         return await ContactEdit();
 
                     case VkEditCmd:
-                        return await ForceReplyBuilder(ForceReplyVk);
+                        return await SendForceReplyMessage(ForceReplyVk);
 
                     case InstagramEditCmd:
-                        return await ForceReplyBuilder(ForceReplyInstagram);
+                        return await SendForceReplyMessage(ForceReplyInstagram);
 
                     case ChatEditCmd:
-                        return await ForceReplyBuilder(ForceReplyChat);
+                        return await SendForceReplyMessage(ForceReplyChat);
 
                     case ChannelEditCmd:
-                        return await ForceReplyBuilder(ForceReplyChannel);
+                        return await SendForceReplyMessage(ForceReplyChannel);
 
 
                     case PayMethodsListCmd:
@@ -292,7 +292,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await SendAvailableCities(base.MessageId);
 
                     case "/newcity":
-                        return await ForceReplyBuilder("Введите название города");
+                        return await SendForceReplyMessage("Введите название города");
 
                     case "GetCategoryStock":
                         return await SendCurrentStock(Argumetns[0],MessageId);

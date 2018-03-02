@@ -37,7 +37,7 @@ namespace MyTelegramBot.Bot
             if (base.CommandName == "/help" || base.CommandName == "Help")
             {
                 await SendMessage(new BotMessage { TextMessage = "Техническая поддержка." });
-                await ForceReplyBuilder("Опишите вашу проблему");
+                await SendForceReplyMessage("Опишите вашу проблему");
 
                 return OkResult;
             }
@@ -46,7 +46,7 @@ namespace MyTelegramBot.Bot
                 return await AddTextToHelpDesk();
 
             if (base.CommandName == "AddAttachHelpDesk")
-                return await ForceReplyBuilder("Прикрепите файл(ы)");
+                return await SendForceReplyMessage("Прикрепите файл(ы)");
 
             if (base.OriginalMessage == "Прикрепите файл(ы)")
                return await GetHelpDeskNoSendAndAddAttach();

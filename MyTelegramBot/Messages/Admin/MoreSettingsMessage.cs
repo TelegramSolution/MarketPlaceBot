@@ -41,9 +41,9 @@ namespace MyTelegramBot.Messages.Admin
 
             MethodsOfObtainingBtn = BuildInlineBtn("Способы получения", BuildCallData(MoreSettingsBot.MethodOfObtaitingCmd, MoreSettingsBot.ModuleName),base.CarEmodji);
 
-            PaymentsEnableBtn = BuildInlineBtn("Доступные способы оплаты", BuildCallData(MoreSettingsBot.EnablePaymentMethodCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
+            PaymentsEnableBtn = BuildInlineBtn("Доступные плат. систем", BuildCallData(MoreSettingsBot.EnablePaymentMethodCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
 
-            PaymentsSettingsBtn= BuildInlineBtn("Настройка платежей", BuildCallData(MoreSettingsBot.SettingsPaymentMethodCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
+            PaymentsSettingsBtn= BuildInlineBtn("Настройка плат. систем", BuildCallData(MoreSettingsBot.SettingsPaymentMethodCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
 
             AboutEditorBtn= BuildInlineBtn("О нас (ред.)", BuildCallData(MoreSettingsBot.AboutEditCmd, MoreSettingsBot.ModuleName),base.NoteBookEmodji);
 
@@ -55,7 +55,7 @@ namespace MyTelegramBot.Messages.Admin
 
             ChannelEditorBtn = BuildInlineBtn("Канал (ред.)", BuildCallData(MoreSettingsBot.ChannelEditCmd, MoreSettingsBot.ModuleName), base.MobileEmodji);
 
-            DeliveryPriceBtn= BuildInlineBtn("Стоимость доставки", BuildCallData(MoreSettingsBot.ChannelEditCmd, MoreSettingsBot.ModuleName), base.CashEmodji);
+            DeliveryPriceBtn= BuildInlineBtn("Стоимость доставки", BuildCallData(MoreSettingsBot.DeliveryPriceCmd, MoreSettingsBot.ModuleName), base.CashEmodji);
 
             BackBtn = BackToAdminPanelBtn();
 

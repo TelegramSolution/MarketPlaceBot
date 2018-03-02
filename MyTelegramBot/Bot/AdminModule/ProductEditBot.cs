@@ -254,32 +254,32 @@ namespace MyTelegramBot.Bot
                     ///Пользователь нажал на кнопку Изменить навзание товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новое имя товара
                     case ProductEditNameCmd:
-                        return await ForceReplyBuilder(ProductEditNameRelpy);
+                        return await SendForceReplyMessage(ProductEditNameRelpy);
 
                     ///Пользователь нажал на кнопку Изменить стоимость товара.
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новое значение стоимость для товара
                     case ProductEditPriceCmd:
-                        return await ForceReplyBuilder(ProductEditPriceRelpy);
+                        return await SendForceReplyMessage(ProductEditPriceRelpy);
 
                     ///Пользователь нажал на кнопку Изменить описание товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новое описание товара
                     case ProductEditTextCmd:
-                        return await ForceReplyBuilder(ProductEditTextRelpy);
+                        return await SendForceReplyMessage(ProductEditTextRelpy);
 
                     ///Пользователь нажал на кнопку Изменить остаток товара.
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать на какое значение увеличить/уменьшить кол-во товара
                     case ProductEditStockCmd:
-                        return await ForceReplyBuilder(ProductEditStockReply);
+                        return await SendForceReplyMessage(ProductEditStockReply);
 
                     ///Пользователь нажал на кнопку Изменить ссылку на заметку для товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новую ссылку 
                     case ProductEditUrlCmd:
-                        return await ForceReplyBuilder(ProductEditUrlReply);
+                        return await SendForceReplyMessage(ProductEditUrlReply);
 
                     ///Пользователь нажал на кнопку Изменить фотографию товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой прислать новую фотографию для товара
                     case ProductEditPhotoCmd:
-                        return await ForceReplyBuilder(ProductEditPhotoReply);
+                        return await SendForceReplyMessage(ProductEditPhotoReply);
 
                     ///Пользователь нажал на кнопку Изменить навзание товара.
                     ///Сообщение меняется на список доступных категорий
@@ -293,7 +293,7 @@ namespace MyTelegramBot.Bot
 
                         //Пользователь нажана на кнопку Inline Фотография.
                     case ProductInlineImageCmd:
-                        return await ForceReplyBuilder(InlineForceReply);
+                        return await SendForceReplyMessage(InlineForceReply);
 
                         ///ПОльзователь нажал на "Ед. изм" появтляется сообщение со списком ед. измерений
                     case ProudctUnitCmd:
@@ -515,7 +515,7 @@ namespace MyTelegramBot.Bot
 
                 await SendMessage(new BotMessage { TextMessage ="Категории:"+ categoryListText });
 
-                await ForceReplyBuilder(ProductEditCategoryReply);
+                await SendForceReplyMessage(ProductEditCategoryReply);
 
                 return OkResult;
             }
@@ -1108,9 +1108,9 @@ namespace MyTelegramBot.Bot
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        protected override async Task<IActionResult> ForceReplyBuilder(string text)
+        protected override async Task<IActionResult> SendForceReplyMessage(string text)
         {
-            if (await base.ForceReplyBuilder(text + this.ProductName) != null)
+            if (await base.SendForceReplyMessage(text + this.ProductName) != null)
                 return base.OkResult;
 
             else
@@ -1126,7 +1126,7 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> ErrorMessage (string ForceReplyText,string ErrorMessage = "Ошибка")
         {
             if (await SendMessage(new BotMessage { TextMessage = ErrorMessage }) != null)
-                return await ForceReplyBuilder(ForceReplyText);
+                return await SendForceReplyMessage(ForceReplyText);
 
             else
                 return NotFoundResult;

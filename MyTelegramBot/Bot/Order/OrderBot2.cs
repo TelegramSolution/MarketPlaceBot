@@ -91,7 +91,7 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> AddCommentFeedback()
         {
             if (Argumetns.Count == 2)
-                return await ForceReplyBuilder(AddCommentFeedBackForce + Argumetns[1].ToString());
+                return await SendForceReplyMessage(AddCommentFeedBackForce + Argumetns[1].ToString());
 
             else
                 return NotFoundResult;
