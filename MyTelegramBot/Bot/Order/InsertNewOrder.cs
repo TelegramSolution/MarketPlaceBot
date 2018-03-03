@@ -108,8 +108,10 @@ namespace MyTelegramBot.Bot.Order
                     NewOrder.OrderProduct.Concat(FromBasketToOrderPosition(group.ElementAt(0).ProductId, NewOrder.Id, group));
 
 
+
                 var CurrentStarus= InsertOrderStatus(NewOrder.Id);
                 NewOrder.CurrentStatusNavigation = CurrentStarus;
+                RemoveOrderTmp();
                 db.SaveChanges();
                 db.Dispose();
                 return NewOrder;
@@ -118,6 +120,16 @@ namespace MyTelegramBot.Bot.Order
             else
                 return null;
             
+        }
+
+        private int RemoveOrderTmp()
+        {
+            var list = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotInfo.Id).ToList();
+
+            foreach (var value in list)
+                db.OrderTemp.Remove(value);
+
+            return db.SaveChanges();
         }
 
         /// <summary>
@@ -201,7 +213,7 @@ namespace MyTelegramBot.Bot.Order
         /// <returns></returns>
         private Invoice AddQiwiInvoice(Orders order,double Total, int LifeTimeDuration=30)
         {
-            var ListQiwi = db.PaymentTypeConfig.Where(q => q.PaymentId == Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true).
+            var ListQiwi = db.PaymentTypeConfig.Where(q => q.PaymentId == Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true && q.Pass!="").
                 OrderByDescending(q => q.Id).ToList();
 
             Random random = new Random();

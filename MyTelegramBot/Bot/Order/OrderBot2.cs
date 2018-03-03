@@ -43,6 +43,9 @@ namespace MyTelegramBot.Bot
                 this.Order.Paid = true;
                 db.Update<Orders>(this.Order);
 
+                this.Order.Invoice.Paid = true;
+                db.Update<Invoice>(this.Order.Invoice);
+
                 db.Payment.Add(payment);
                 db.SaveChanges();
 

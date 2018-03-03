@@ -10,6 +10,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.Messages.Admin.PaymentsModule;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
@@ -45,7 +46,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string MethodOfObtaitingCmd = "MethodOfObtaiting";
 
-        public const string QiwiSettingsCmd = "QiwiSettings";
+        public const string QiwiListCmd = "QiwiList";
 
         public const string BackToMoreSettingsCmd = "BackToMoreSettings";
 
@@ -77,6 +78,25 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string NewFreeDeliveryPriceForceReply = "Бесплатная доставка от";
 
+        public const string QiwiEditTokenCmd = "QiwiEditToken";
+
+        public const string QiwiRemoveCmd = "QiwiRemove";
+
+        public const string ViewYandexKassaCmd = "ViewYandexKassa";
+
+        public const string YandexKassaShopIdEditCmd = "YandexShopIdEdit";
+
+        public const string YandexKassaTokenEditCmd = "YandexTokenEdit";
+
+        public const string YandexRemoveCmd = "YandexRemove";
+
+        public const string YandexAddCmd = "YandexAdd";
+
+        public const string AddQiwi = "/addqiwi";
+
+        public const string QiwiTelForcerReply = "Введите номер телефона для Qiwi";
+
+        public const string QiwiTestConectionCmd = "QiwiTestConection";
 
         MoreSettingsMessage MoreSettingsMsg { get; set; }
 
@@ -85,6 +105,14 @@ namespace MyTelegramBot.Bot.AdminModule
         WorkTimeMessage WorkTimeMsg { get; set; }
 
         DeliveryPriceMessage DeliveryPriceMsg { get; set; }
+
+        YandexKassaEditMessage YandexKassaEditMsg { get; set; }
+
+        QiwiListMessage QiwiListMsg { get; set; }
+
+        AdminQiwiSettingsMessage AdminQiwiSettingsMsg { get; set; }
+
+        AdminPayMethodsSettings AdminPayMethodsSettingMsg { get; set; }
 
         public MoreSettingsBot(Update _update) : base(_update)
         {
@@ -100,6 +128,7 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             if (IsOwner())
             {
+
                 if (base.OriginalMessage == StartWorkTimeForceReplyCmd)
                     return await SaveTime(StartWorkTimeForceReplyCmd);
 
@@ -127,8 +156,14 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.OriginalMessage == AboutEditorForceReply)
                     return await SaveCompanyInfo(AboutEditorForceReply);
 
+                if (base.OriginalMessage == QiwiTelForcerReply)
+                    return await InsertQiwiTelephone();
+
                 switch (base.CommandName)
                 {
+                    case AddQiwi:
+                        return await SendForceReplyMessage(QiwiTelForcerReply);
+
                     case MoreSettingsCmd:
                         return await SendMoreSettings(base.MessageId);
 
@@ -183,6 +218,21 @@ namespace MyTelegramBot.Bot.AdminModule
                     case AboutEditCmd:
                         return await SendTextMessageAndForceReply("Введите информацию", AboutEditorForceReply);
 
+                    case SettingsPaymentMethodCmd:
+                        return await SendPaymentsSettings();
+
+                    case QiwiListCmd:
+                        return await SendQiwiList();
+
+                    case ViewYandexKassaCmd:
+                        return  await SendYandexKassaView();
+
+                    case QiwiTestConectionCmd:
+                        return await QiwiTestConnection();
+
+                    case QiwiRemoveCmd:
+                        return await QiwiRemove();
+
                     default:
                         return null;
                 }
@@ -194,6 +244,94 @@ namespace MyTelegramBot.Bot.AdminModule
 
             else
                 return null;
+        }
+
+
+        private async Task<IActionResult> QiwiRemove()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var Qiwi= db.PaymentTypeConfig.Find(Argumetns[0]);
+
+            db.PaymentTypeConfig.Remove(Qiwi);
+
+            db.SaveChanges();
+
+            return await SendPaymentsSettings();
+        }
+
+        private async Task<IActionResult> QiwiTestConnection()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var Qiwi = db.PaymentTypeConfig.Find(Argumetns[0]);
+
+            bool test= await Services.Qiwi.QiwiFunction.TestConnection(Qiwi.Login, Qiwi.Pass);
+
+            if (test)
+                await AnswerCallback("Успех!", true);
+
+            else
+                await AnswerCallback("Ошибка соединения", true);
+
+            db.Dispose();
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> InsertQiwiTelephone()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var qiwi = db.PaymentTypeConfig.Where(p => p.PaymentId == ConstantVariable.PaymentTypeVariable.QIWI && p.Login == ReplyToMessageText).FirstOrDefault();
+
+            if (qiwi != null)
+                return await SendTextMessageAndForceReply("Данный номер телефона уже добавлен", QiwiTelForcerReply);
+
+            else
+            {
+                PaymentTypeConfig paymentTypeConfig = new PaymentTypeConfig
+                {
+                    Enable = true,
+                    Login = ReplyToMessageText,
+                    TimeStamp = DateTime.Now,
+                    Pass = String.Empty,
+                    PaymentId=ConstantVariable.PaymentTypeVariable.QIWI
+                };
+
+                db.PaymentTypeConfig.Add(paymentTypeConfig);
+                db.SaveChanges();
+
+                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage(paymentTypeConfig);
+                await SendMessage(AdminQiwiSettingsMsg.BuildMsg());
+                return OkResult;
+            }
+        }
+
+        private async Task<IActionResult> SendYandexKassaView()
+        {
+            YandexKassaEditMsg = new YandexKassaEditMessage();
+            await EditMessage(YandexKassaEditMsg.BuildMsg());
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendQiwiList()
+        {
+            if(Argumetns.Count==1)
+                QiwiListMsg = new QiwiListMessage(Argumetns[0]);
+
+            else
+                QiwiListMsg = new QiwiListMessage();
+
+            await EditMessage(QiwiListMsg.BuildMsg());
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendPaymentsSettings()
+        {
+            AdminPayMethodsSettingMsg = new AdminPayMethodsSettings();
+            await EditMessage(AdminPayMethodsSettingMsg.BuildMsg());
+            return OkResult;
         }
 
         private async Task<IActionResult> SendMoreSettings(int MessageId = 0)

@@ -187,6 +187,7 @@ namespace MyTelegramBot
                     Positions += counter.ToString() + ") " + pos.FirstOrDefault().Product.Name + " " + pos.FirstOrDefault().Price.Value.ToString() +
                         pos.FirstOrDefault().Price.Currency.ShortName + " x " + pos.Count().ToString() + " " + pos.FirstOrDefault().Product.Unit.ShortName + " = "
                         + (pos.Count() * pos.FirstOrDefault().Price.Value).ToString() + " " + pos.FirstOrDefault().Price.Currency.ShortName + "\r\n";
+                    counter++;
                 }
 
                 return Positions;

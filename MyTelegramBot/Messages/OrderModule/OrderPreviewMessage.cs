@@ -56,7 +56,7 @@ namespace MyTelegramBot.Messages
 
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                OrderTemp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotId).Include(o=>o.PaymentType).FirstOrDefault();
+                OrderTemp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotId).Include(o=>o.PaymentType).LastOrDefault();
                 string PositionInfo = BasketPositionInfo.GetPositionInfo(FollowerId,BotId);
                 Configuration = db.Configuration.Where(c => c.BotInfoId == BotId).FirstOrDefault();
                 double BasketTotalPrice = BasketPositionInfo.BasketTotalPrice(FollowerId, BotId);

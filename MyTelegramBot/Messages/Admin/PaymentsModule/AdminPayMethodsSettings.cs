@@ -9,44 +9,47 @@ using MyTelegramBot.Bot;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
-using MyTelegramBot.Bot;
 using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// через бота можно настраивать только Qiwi, Яндекс кассу
+    /// </summary>
     public class AdminPayMethodsSettings:BotMessage
     {
-        private InlineKeyboardCallbackButton [][] MethodsBtns { get; set; }
+        private InlineKeyboardCallbackButton QiwiBtn { get; set; }
+
+        private InlineKeyboardCallbackButton DebitCardYandexBtn { get; set; }
+
 
 
         public override BotMessage BuildMsg()
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
+            base.TextMessage = "Выберите";
+
+            QiwiBtn = BuildInlineBtn("Qiwi", BuildCallData(MoreSettingsBot.QiwiListCmd, MoreSettingsBot.ModuleName));
+
+            DebitCardYandexBtn = BuildInlineBtn("Яндекс касса", BuildCallData(MoreSettingsBot.ViewYandexKassaCmd, MoreSettingsBot.ModuleName));
+
+            BackBtn = BuildInlineBtn("Назад", BuildCallData(MoreSettingsBot.BackToMoreSettingsCmd, MoreSettingsBot.ModuleName),base.Previuos2Emodji,false);
+
+
+            base.MessageReplyMarkup = new InlineKeyboardMarkup(new[]
             {
-                var methods = db.PaymentType.ToList();
-
-                MethodsBtns = new InlineKeyboardCallbackButton[methods.Count][];
-
-                base.TextMessage = "Выберите доступые методы оплаты." + NewLine() +
-                                   Italic("Должен быть доступен, как минимум один метод оплаты")+NewLine()
-                                   +"Вернуться в панель администратора /admin";
-
-                int counter = 0;
-                foreach (PaymentType pt in methods)
+                new[]
                 {
-                    MethodsBtns[counter]= new InlineKeyboardCallbackButton[1];
-
-                    if (pt.Enable==true)
-                        MethodsBtns[counter][0] = new InlineKeyboardCallbackButton(pt.Name+" "+base.CheckEmodji, BuildCallData(AdminBot.PaymentTypeEnableCmd, AdminBot.ModuleName, pt.Id));
-
-                    else
-                        MethodsBtns[counter][0] = new InlineKeyboardCallbackButton(pt.Name + " "+ base.UnCheckEmodji, BuildCallData(AdminBot.PaymentTypeEnableCmd, AdminBot.ModuleName, pt.Id));
-
-                    counter++;
+                    QiwiBtn
+                },
+                new[]
+                {
+                    DebitCardYandexBtn
+                },
+                new[]
+                {
+                    BackBtn
                 }
-
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(MethodsBtns);
-            }
+            });
 
             return this;
         }

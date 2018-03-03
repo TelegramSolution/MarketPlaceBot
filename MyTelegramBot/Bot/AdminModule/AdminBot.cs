@@ -157,7 +157,6 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage();
                 AdminCmdListMsg = new ControlPanelMessage(base.FollowerId);
                 ContactEditMsg = new ContactEditMessage();
                 AdminAllProductsViewMsg = new AdminAllProductsViewMessage();

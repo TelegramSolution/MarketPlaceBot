@@ -58,11 +58,11 @@ namespace MyTelegramBot.Messages
                                  Bold("Комментарий к платежу:") + Invoice.Comment + NewLine() +
                                  Bold("Сумма: ") + Invoice.Value.ToString() + " " + Invoice.PaymentType.Code + NewLine() +
                                  Bold("Время создания: ") + Invoice.CreateTimestamp.ToString() + NewLine() +
-                                 Bold("Способо оплаты: ") + Invoice.PaymentType.Name + NewLine() + NewLine() +
+                                 Bold("Способ оплаты: ") + Invoice.PaymentType.Name + NewLine() + NewLine() +
                                  "Вы должны оплатить этот счет не позднее " + Invoice.CreateTimestamp.Value.Add(Invoice.LifeTimeDuration.Value).ToString() + NewLine();
 
 
-                if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
+                if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa && !Invoice.Paid)
                     ProceedToСheckoutBtn= BuildInlineBtn("Перейти к оплате", BuildCallData(OrderBot.CmdDebitCardСheckout, OrderBot.ModuleName, OrderId),base.Next2Emodji);
 
                 else
