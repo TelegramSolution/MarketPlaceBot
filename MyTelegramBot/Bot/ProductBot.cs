@@ -5,6 +5,7 @@ using Telegram.Bot.Types;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {

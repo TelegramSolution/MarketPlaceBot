@@ -9,10 +9,11 @@ using System.IO;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
-    public partial class OrderProccesingBot : Bot.BotCore
+    public partial class OrderProccesingBot : BotCore
     {
         public const string ModuleName = "Or";
 
@@ -608,7 +609,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 if (order.Follower != null && order.Follower.UserName != null && order.Follower.UserName != "")
                 {
-                    string url = Bot.BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName);
+                    string url = BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName);
                     await SendMessage(new BotMessage { TextMessage = url });
                     return OkResult;
                 }

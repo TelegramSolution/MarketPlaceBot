@@ -8,11 +8,19 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
     public partial class OrderBot
     {
+
+        private async Task<IActionResult> answerPreCheckoutOrder()
+        {
+            await answerPreCheckoutQuery(true);
+            return OkResult;
+        }
+
         /// <summary>
         /// Сохранить отзыв и отправить его все операторам и владельцу 
         /// </summary>
@@ -674,7 +682,7 @@ namespace MyTelegramBot.Bot
 
                 if(order.Follower != null && order.Follower.UserName != null && order.Follower.UserName != "")
                 {
-                   string url= Bot.BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName);
+                   string url= BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName);
                    await SendMessage(new BotMessage { TextMessage = url });
                    return OkResult;
                 }

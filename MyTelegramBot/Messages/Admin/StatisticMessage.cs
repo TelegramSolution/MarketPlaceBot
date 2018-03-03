@@ -10,6 +10,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using System.IO;
 using Telegram.Bot.Types;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -36,7 +37,7 @@ namespace MyTelegramBot.Messages.Admin
         /// </summary>
         private const string FollowerStatSql = "Select  COUNT(*), CAST(Follower.DateAdd as date) FROM Follower GROUP BY CAST(Follower.DateAdd as date)";
 
-        BotMessage[] Messages = new Bot.BotMessage[3]; 
+        BotMessage[] Messages = new BotMessage[3]; 
 
         public StatisticMessage()
         {
@@ -66,10 +67,10 @@ namespace MyTelegramBot.Messages.Admin
 
 
 
-                    message.TextMessage = "Статистика всех ботов" + Bot.BotMessage.NewLine() + Bot.BotMessage.Bold("Количество отправленных ботам сообещний за сегодняшний день: ") + MessageCountStatToDayCount.ToString() +
-                                       Bot.BotMessage.NewLine() + Bot.BotMessage.Bold("Количество новых пользователей за сегодняшний день: ") + NewFollowerStatToDayCount.ToString() +
-                                         Bot.BotMessage.NewLine() + Bot.BotMessage.Bold("Всего пользователей: ") + db.Follower.ToList().Count.ToString() +
-                                         Bot.BotMessage.NewLine() + Bot.BotMessage.Bold("Общее количество сообщений отправленных ботам за весь период:") + db.TelegramMessage.ToList().Count.ToString();
+                    message.TextMessage = "Статистика всех ботов" + BotMessage.NewLine() + BotMessage.Bold("Количество отправленных ботам сообещний за сегодняшний день: ") + MessageCountStatToDayCount.ToString() +
+                                       BotMessage.NewLine() + BotMessage.Bold("Количество новых пользователей за сегодняшний день: ") + NewFollowerStatToDayCount.ToString() +
+                                         BotMessage.NewLine() + BotMessage.Bold("Всего пользователей: ") + db.Follower.ToList().Count.ToString() +
+                                         BotMessage.NewLine() + BotMessage.Bold("Общее количество сообщений отправленных ботам за весь период:") + db.TelegramMessage.ToList().Count.ToString();
 
                     return message;
                 }
@@ -151,11 +152,11 @@ namespace MyTelegramBot.Messages.Admin
 
                 var date_value = date.Key.Date.ToString().Substring(0, 10);
                 var count = date.Count();
-                tmpLine = String.Format("{0};{1};", date_value, count.ToString())+ Bot.BotMessage.NewLine();
+                tmpLine = String.Format("{0};{1};", date_value, count.ToString())+ BotMessage.NewLine();
                 Line += tmpLine;
             }
 
-            GeneralFunction.WriteToFile(column_name + Bot.BotMessage.NewLine() + Line, filename);
+            GeneralFunction.WriteToFile(column_name + BotMessage.NewLine() + Line, filename);
 
 
             return new FileToSend { Filename = filename, Content = GeneralFunction.ReadFile(filename) };

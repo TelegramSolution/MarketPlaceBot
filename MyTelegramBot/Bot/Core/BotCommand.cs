@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyTelegramBot.Bot
+namespace MyTelegramBot.Bot.Core
 {
     public class BotCommand
     {

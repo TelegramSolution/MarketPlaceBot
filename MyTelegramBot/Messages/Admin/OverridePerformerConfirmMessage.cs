@@ -9,6 +9,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -16,7 +17,7 @@ namespace MyTelegramBot.Messages.Admin
     /// Если заказ или заявка уже обрабатываются кем-то, то после нажатия на кнопку "взять в работу"
     /// придет сообщение с вопросом о назначении исполнителем себя вместо кого-то
     /// </summary>
-    public class OverridePerformerConfirmMessage:Bot.BotMessage
+    public class OverridePerformerConfirmMessage:BotMessage
     {
         private InlineKeyboardCallbackButton ConfirmOverrideBtn { get; set; }
 

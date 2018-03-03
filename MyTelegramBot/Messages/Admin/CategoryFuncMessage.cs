@@ -6,6 +6,7 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using MyTelegramBot.Bot;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {

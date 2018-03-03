@@ -16,8 +16,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Telegram.Bot.Types.Payments;
+using System.Text;
+using System.Collections.Specialized;
 
-namespace MyTelegramBot.Bot
+namespace MyTelegramBot.Bot.Core
 {
     public abstract class BotCore
     {
@@ -1127,6 +1130,42 @@ namespace MyTelegramBot.Bot
             catch
             {
                 return null;
+            }
+        }
+
+        protected async Task<Message> SendInvoice()
+        {
+            try
+            {
+             
+                LabeledPrice[] labeledPrice = new LabeledPrice[1];
+                labeledPrice[0] = new LabeledPrice();
+                labeledPrice[0].Amount = 10000;
+                labeledPrice[0].Label = "100 rubbley";
+
+
+               await TelegramClient.SendInvoiceAsync(ChatId, "Заказ 7", "Оплата заказа номер 7", "7", "381764678:TEST:4679", "test", "RUB", labeledPrice);
+
+                return null;
+            }
+
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
+
+        protected async Task<bool> answerPreCheckoutQuery(bool Ok, string ErrorText=null)
+        {
+            try
+            {
+               return await TelegramClient.AnswerPreCheckoutQueryAsync(Update.PreCheckoutQuery.Id, Ok,ErrorText);
+
+            }
+
+            catch
+            {
+                return false;
             }
         }
     }

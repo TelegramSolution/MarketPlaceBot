@@ -15,10 +15,15 @@ using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using MyTelegramBot.Bot.AdminModule;
 
-namespace MyTelegramBot.Bot
+namespace MyTelegramBot.Bot.Core
 {
     public class BotMessage
     {
+        /// <summary>
+        /// 📖 развернутая книжка
+        /// </summary>
+        protected readonly string OpenedBookEmodji = "\ud83d\udcd6";
+
         /// <summary>
         /// 📲 мобильный телефон
         /// </summary>

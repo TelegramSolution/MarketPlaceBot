@@ -8,10 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types.InlineQueryResults;
 using MyTelegramBot.Bot;
 using Newtonsoft.Json;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
-    public class InvoiceViewMessage:Bot.BotMessage
+    public class InvoiceViewMessage:BotMessage
     {
         private Invoice Invoice { get; set; }
 
@@ -22,6 +23,8 @@ namespace MyTelegramBot.Messages
         private MarketBotDbContext db { get; set; }
 
         private InlineKeyboardCallbackButton CheckPayBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ProceedToСheckoutBtn { get; set; }
 
         public InvoiceViewMessage (Invoice invoice,int OrderId,string BackCmdName= "BackToOrder")
         {
@@ -34,7 +37,7 @@ namespace MyTelegramBot.Messages
             else
                 BackBtn = new InlineKeyboardCallbackButton("Вернуться к заказу", BuildCallData(BackCmdName, OrderBot.ModuleName, OrderId));
 
-            CheckPayBtn = new InlineKeyboardCallbackButton("Я оплатил", BuildCallData(Bot.OrderBot.CheckPayCmd,OrderBot.ModuleName , OrderId));
+            
         }
 
 
@@ -56,8 +59,21 @@ namespace MyTelegramBot.Messages
                                  Bold("Сумма: ") + Invoice.Value.ToString() + " " + Invoice.PaymentType.Code + NewLine() +
                                  Bold("Время создания: ") + Invoice.CreateTimestamp.ToString() + NewLine() +
                                  Bold("Способо оплаты: ") + Invoice.PaymentType.Name + NewLine() + NewLine() +
-                                 "Вы должны оплатить этот счет не позднее " + Invoice.CreateTimestamp.Value.Add(Invoice.LifeTimeDuration.Value).ToString() + NewLine() +
-                                 NewLine() + "После оплаты нажмите кнопку \"Я оплатил\" (Если вы оплачивали с помощью криптовалюты нажмите эту кнопку через 5-10 минут после оплаты)";
+                                 "Вы должны оплатить этот счет не позднее " + Invoice.CreateTimestamp.Value.Add(Invoice.LifeTimeDuration.Value).ToString() + NewLine();
+
+
+                if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
+                    ProceedToСheckoutBtn= new InlineKeyboardCallbackButton("Перейти к оплате", BuildCallData(OrderBot.CmdDebitCardСheckout, OrderBot.ModuleName, OrderId));
+
+                else
+                    CheckPayBtn = new InlineKeyboardCallbackButton("Я оплатил", BuildCallData(Bot.OrderBot.CheckPayCmd, OrderBot.ModuleName, OrderId));
+
+                if (Invoice.PaymentTypeId==Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
+                    base.TextMessage+= NewLine() + "После оплаты нажмите кнопку \"Я оплатил\"";
+
+                if(Invoice.PaymentTypeId!= Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI && Invoice.PaymentTypeId!= Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
+                    base.TextMessage += NewLine() + "После оплаты нажмите кнопку \"Я оплатил\"" +NewLine() + Italic("Криптовалютые платежи будут доступны спустя 10-15 минут");
+
 
                 if (Invoice.PaymentType != null &&Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin ||
                     Invoice.PaymentType != null && Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Bitcoin ||
@@ -93,7 +109,7 @@ namespace MyTelegramBot.Messages
                         },
                     });
 
-            if (Invoice.Paid == false)
+            if (Invoice.Paid == false && ProceedToСheckoutBtn==null)
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                     new[]{
                     new[]
@@ -104,6 +120,21 @@ namespace MyTelegramBot.Messages
                     new[]
                         {
                             CheckPayBtn,
+
+                        },
+                    });
+
+            if (Invoice.Paid == false && ProceedToСheckoutBtn != null)
+                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                    new[]{
+                    new[]
+                        {
+                            BackBtn,
+
+                        },
+                    new[]
+                        {
+                            ProceedToСheckoutBtn,
 
                         },
                     });

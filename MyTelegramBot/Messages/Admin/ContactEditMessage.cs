@@ -7,10 +7,12 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
-    public class ContactEditMessage:Bot.BotMessage
+    public class ContactEditMessage:BotMessage
     {
         private InlineKeyboardCallbackButton VkEditBtn { get; set; }
 

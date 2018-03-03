@@ -8,10 +8,11 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
-    public partial class OrderBot:Bot.BotCore
+    public partial class OrderBot:BotCore
     {
         public const string ModuleName = "Order";
 
@@ -175,6 +176,7 @@ namespace MyTelegramBot.Bot
 
         public const string CmdSaveFeedBack = "SaveFeedBack";
 
+        public const string CmdDebitCardСheckout = "DebitCardСheckout";
 
         int AddressId { get; set; }
 
@@ -331,6 +333,11 @@ namespace MyTelegramBot.Bot
 
             if (base.OriginalMessage.Contains(AddCommentFeedBackForce))
                 return await SaveFeedBackComment();
+
+            if (Update.PreCheckoutQuery != null)
+                return await answerPreCheckoutOrder();
+
+
 
             else
                 return null;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -23,10 +24,10 @@ namespace MyTelegramBot.Messages.Admin
                 foreach(Stock s in stock)
                 {
                     var NewLine = string.Format("{0};{1};{2};{3};{4};{5};", s.Product.Name, s.Product.Category.Name, s.DateAdd.ToString(), s.Quantity.ToString(), s.Balance.ToString(),s.Text);
-                    line +=NewLine+Bot.BotMessage.NewLine();
+                    line +=NewLine+BotMessage.NewLine();
                 }
 
-                if (WriteToFile(data + Bot.BotMessage.NewLine() + line) > 0)
+                if (WriteToFile(data + BotMessage.NewLine() + line) > 0)
                     return ReadFile();
 
                 else

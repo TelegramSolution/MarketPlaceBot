@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
-    public class OrderPositionBot:Bot.BotCore
+    public class OrderPositionBot:BotCore
     {
         public const string ModuleName = "OrderPos";
 

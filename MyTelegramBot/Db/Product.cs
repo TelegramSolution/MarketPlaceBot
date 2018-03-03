@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot
 {
@@ -74,9 +75,9 @@ namespace MyTelegramBot
 
                 var price = ProductPrice.Where(p => p.Enabled).FirstOrDefault().ToString();
 
-                return "Название: " + Name + Bot.BotMessage.NewLine() +
-                "Цена: " + ProductPrice.Where(p => p.Enabled).FirstOrDefault().ToString() + " / " + Unit.ShortName + Bot.BotMessage.NewLine() +
-                "Описание: " + Text + Bot.BotMessage.NewLine() +
+                return "Название: " + Name + BotMessage.NewLine() +
+                "Цена: " + ProductPrice.Where(p => p.Enabled).FirstOrDefault().ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
+                "Описание: " + Text + BotMessage.NewLine() +
                 "В наличии: " + StockStatus;
             }
 
@@ -103,12 +104,12 @@ namespace MyTelegramBot
 
             try
             {
-                return Bot.BotMessage.Bold("Название: ") + Name + Bot.BotMessage.NewLine() +
-                Bot.BotMessage.Bold("Цена: ") + ProductPrice.Where(p => p.Enabled).OrderByDescending(o => o.Id).FirstOrDefault().ToString() + " / " + Unit.ShortName + Bot.BotMessage.NewLine() +
-                Bot.BotMessage.Bold("Категория: ") + Category.Name + Bot.BotMessage.NewLine() +
-                Bot.BotMessage.Bold("Описание: ") + Text + Bot.BotMessage.NewLine() +
-                Bot.BotMessage.Bold("В наличии: ") + Balance.ToString() + Bot.BotMessage.NewLine() +
-                Bot.BotMessage.Bold("В меню: ") + MenuStatus;
+                return BotMessage.Bold("Название: ") + Name + BotMessage.NewLine() +
+                BotMessage.Bold("Цена: ") + ProductPrice.Where(p => p.Enabled).OrderByDescending(o => o.Id).FirstOrDefault().ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
+                BotMessage.Bold("Категория: ") + Category.Name + BotMessage.NewLine() +
+                BotMessage.Bold("Описание: ") + Text + BotMessage.NewLine() +
+                BotMessage.Bold("В наличии: ") + Balance.ToString() + BotMessage.NewLine() +
+                BotMessage.Bold("В меню: ") + MenuStatus;
             }
 
             catch (Exception e)

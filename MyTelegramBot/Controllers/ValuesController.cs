@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using MyTelegramBot.Bot.AdminModule;
 using Microsoft.Extensions.Configuration;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Controllers
 {
@@ -65,7 +66,7 @@ namespace MyTelegramBot.Controllers
 
             if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null)
             {
-                ModuleName = JsonConvert.DeserializeObject<Bot.BotCommand>(update.CallbackQuery.Data).M;
+                ModuleName = JsonConvert.DeserializeObject<BotCommand>(update.CallbackQuery.Data).M;
             }
 
             if (Result == null && ModuleName != null && ModuleName == MoreSettingsBot.ModuleName || Result == null && ModuleName == null)
@@ -110,7 +111,8 @@ namespace MyTelegramBot.Controllers
                     Result = await Address.Response();
                 }
 
-                if (Result == null && ModuleName != null && ModuleName == OrderBot.ModuleName || Result == null && ModuleName == null)
+                if (Result == null && ModuleName != null && ModuleName == OrderBot.ModuleName || Result == null && ModuleName == null
+                || Result==null && update.PreCheckoutQuery!=null)
                 {
                     OrderBot = new OrderBot(update);
                     Result = await OrderBot.Response();

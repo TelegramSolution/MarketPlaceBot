@@ -9,6 +9,9 @@ using MyTelegramBot.Bot;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
+
+
 namespace MyTelegramBot.Messages.Admin
 {
     public class PickUpPointListMessage : BotMessage

@@ -9,6 +9,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using System.IO;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {

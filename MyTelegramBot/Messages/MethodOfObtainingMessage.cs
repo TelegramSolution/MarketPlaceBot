@@ -6,13 +6,14 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с выбором способа получения заказа 
     /// </summary>
-    public class MethodOfObtainingMessage:Bot.BotMessage
+    public class MethodOfObtainingMessage:BotMessage
     {
         private InlineKeyboardCallbackButton DeliveryBtn { get; set; }
 

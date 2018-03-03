@@ -13,6 +13,7 @@ using System.Web;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {

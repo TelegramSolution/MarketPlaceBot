@@ -9,13 +9,16 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
+
+
 namespace MyTelegramBot.Messages.Admin
 {
     /// <summary>
     /// Сообщение с текущими остатками по товорам которые только что бы приобретены. 
     /// Это сообщение отсылается после того как Оператор нажал "Выполнено"
     /// </summary>
-    public class StockChangesMessage:Bot.BotMessage
+    public class StockChangesMessage:BotMessage
     {
         private List<IGrouping<Product, Stock>> StockList { get; set; }
 

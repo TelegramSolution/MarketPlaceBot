@@ -8,13 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types.InlineQueryResults;
 using MyTelegramBot.Bot;
 using Newtonsoft.Json;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с описание товара
     /// </summary>
-    public class ProductViewMessage : Bot.BotMessage
+    public class ProductViewMessage : BotMessage
     {
         private InlineKeyboardCallbackButton AddToBasketBtn { get; set; }
 

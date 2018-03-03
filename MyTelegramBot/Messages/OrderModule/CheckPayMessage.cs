@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
+
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// сообщение со статусом платежа найден / не найден 
     /// </summary>
-    public class CheckPayMessage:Bot.BotMessage
+    public class CheckPayMessage:BotMessage
     {
         public Orders Order { get; set; }
 

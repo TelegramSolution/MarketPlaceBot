@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с обновленными данными из корзины по конкретному товару. После удаления одной еденицы
     /// </summary>
-    public class ProductRemoveFromBasket:Bot.BotMessage
+    public class ProductRemoveFromBasket:BotMessage
     {
         private int ProductId { get; set; }
 

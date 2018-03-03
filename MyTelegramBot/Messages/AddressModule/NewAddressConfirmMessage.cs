@@ -6,7 +6,7 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using MyTelegramBot.Sevices.YandexMap;
 using MyTelegramBot.Bot;
-
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {

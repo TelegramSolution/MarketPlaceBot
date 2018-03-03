@@ -9,6 +9,7 @@ using System.IO;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
@@ -669,7 +670,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
                     if (db.SaveChanges() > 0)
                     {
-                        await SendMessage(new BotMessage { TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:" + Bot.BotMessage.NewLine()+ Bot.BotMessage.Italic("/key " + key.KeyValue) });
+                        await SendMessage(new BotMessage { TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:" + BotMessage.NewLine()+ BotMessage.Italic("/key " + key.KeyValue) });
                         return OkResult;
                     }
 
@@ -1170,7 +1171,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     if (db.SaveChanges() > 0)
                     {
                         string meessage = "Зарегистрирован новый оператор системы: " + db.Follower.Where(f=>f.Id==FollowerId).FirstOrDefault().FirstName
-                            +Bot.BotMessage.NewLine()+"Ключ: "+ adminKey.KeyValue;
+                            +BotMessage.NewLine()+"Ключ: "+ adminKey.KeyValue;
                         await SendMessage(BotOwner, new BotMessage { TextMessage = meessage });
                         return await SendAdminControlPanelMsg();
                     }

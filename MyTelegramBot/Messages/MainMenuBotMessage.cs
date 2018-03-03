@@ -14,13 +14,14 @@ using Newtonsoft.Json;
 using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Главное меню бота
     /// </summary>
-    public class MainMenuBotMessage:Bot.BotMessage
+    public class MainMenuBotMessage:BotMessage
     {
         private InlineKeyboardCallbackButton MenuBtn { get; set; }
 

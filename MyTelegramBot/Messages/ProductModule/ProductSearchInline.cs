@@ -10,6 +10,7 @@ using Telegram.Bot.Types.InputMessageContents;
 using System.Data.SqlClient;
 using Newtonsoft.Json;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {

@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
-    public class AddressBot:Bot.BotCore
+    public class AddressBot:BotCore
     {
 
         public const string ModuleName = "Addr";

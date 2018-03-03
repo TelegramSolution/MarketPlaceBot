@@ -8,10 +8,11 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
-    public class HelpDeskProccessingBot : Bot.BotCore
+    public class HelpDeskProccessingBot : BotCore
     {
         public const string ModuleName = "HelpAdm";
 
@@ -224,7 +225,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 if (follower != null && follower.UserName != null && follower.UserName != "")
                 {
-                    string url = Bot.BotMessage.HrefUrl("https://t.me/" + follower.UserName, follower.UserName);
+                    string url = BotMessage.HrefUrl("https://t.me/" + follower.UserName, follower.UserName);
                     await SendMessage(new BotMessage { TextMessage = url });
                     return OkResult;
                 }
@@ -360,7 +361,7 @@ namespace MyTelegramBot.Bot.AdminModule
                             await Processing.NotifyChanges("Заявка №" + Help.Number.ToString() + " закрыта. Пользователь: " + GeneralFunction.FollowerFullName(FollowerId), Help.Id);
                             //Отправляем сообщение пользователю о том что его заявка закрыта
                             long ChatId = db.Follower.Where(f => f.Id == Help.FollowerId).FirstOrDefault().ChatId;
-                            string text = "Заявка №" + Help.Number.ToString() + " Закрыта"+Bot.BotMessage.NewLine()+"Комментарий:"+answer.Text;
+                            string text = "Заявка №" + Help.Number.ToString() + " Закрыта"+BotMessage.NewLine()+"Комментарий:"+answer.Text;
                             await SendMessage(ChatId, new BotMessage { TextMessage = text });
                         }
 

@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
-    public class FollowerBot:Bot.BotCore
+    public class FollowerBot:BotCore
     {
         RequestPhoneNumberMessage RequestPhoneNumberMessageMsg { get; set; }
 

@@ -6,13 +6,14 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с заказом, из таблицы OrderTemp
     /// </summary>
-    public class OrderTempMessage:Bot.BotMessage
+    public class OrderTempMessage:BotMessage
     {
         InlineKeyboardCallbackButton SendBtn { get; set; }
 
@@ -180,14 +181,14 @@ namespace MyTelegramBot.Messages
                         int count = basket.Where(p => p.ProductId == id).Count();
                         var price = db.ProductPrice.Where(p => p.ProductId == id && p.Enabled).Include(p=>p.Currency).FirstOrDefault();
                         message += counter.ToString() + ") " + name + " " + count.ToString() + 
-                            " x " + price.ToString() + " = " + (count * price.Value).ToString() + price.Currency.ShortName + Bot.BotMessage.NewLine();
+                            " x " + price.ToString() + " = " + (count * price.Value).ToString() + price.Currency.ShortName + BotMessage.NewLine();
                         total += price.Value * count;
                         counter++;
                         currency = price.Currency.ShortName;
 
                     }
 
-                    return message + Bot.BotMessage.NewLine() + Bot.BotMessage.Bold("Общая стоимость: ") + total.ToString()+ " " + currency;
+                    return message + BotMessage.NewLine() + BotMessage.Bold("Общая стоимость: ") + total.ToString()+ " " + currency;
                 }
 
                 else

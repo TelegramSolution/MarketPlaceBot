@@ -87,7 +87,11 @@ namespace MyTelegramBot.Bot.Order
                     && OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.QIWI) 
                     Invoice= AddCryptoCurrencyInvoice(NewOrder,Convert.ToInt32(OrderTmp.PaymentTypeId), total);
 
-                if(Invoice!=null)
+                //Оплата банковской картой через яндекс кассу внутри бота
+                if (OrderTmp.PaymentTypeId == Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
+                    Invoice = AddDibitCardInvoice(NewOrder, total);
+
+                if (Invoice!=null)
                     NewOrder.InvoiceId = Invoice.Id;
 
                 db.Orders.Add(NewOrder);
@@ -279,6 +283,41 @@ namespace MyTelegramBot.Bot.Order
 
             else
                 return null;
+        }
+
+
+        private Invoice AddDibitCardInvoice(Orders order, double Total, int LifeTimeDuration = 30)
+        {
+            var YandexKassa = db.PaymentTypeConfig.Find(Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa);
+
+            if (YandexKassa != null && order!=null && Total>0)
+            {
+
+                Invoice invoice = new Invoice
+                {
+                    CreateTimestamp = DateTime.Now,
+                    AccountNumber = YandexKassa.Login + " идентификатор магазина в ЯндексКассе",
+                    Comment = GeneralFunction.BuildPaymentComment(BotInfo.Name, order.Number.ToString()),
+                    InvoiceNumber = GenerateInvoiceNumber(),
+                    LifeTimeDuration = System.TimeSpan.FromMinutes(LifeTimeDuration),
+                    PaymentTypeId = Core.ConstantVariable.PaymentTypeVariable.QIWI,
+                    Value = Total,
+                    Paid = false
+
+                };
+
+                db.Invoice.Add(invoice);
+
+                if (db.SaveChanges() > 0)
+                    return invoice;
+
+                else
+                    return null;
+            }
+
+            else
+                return null;
+
         }
 
         /// <summary>

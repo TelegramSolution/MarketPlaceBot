@@ -14,13 +14,14 @@ using Newtonsoft.Json;
 using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с категориями товаров в виде кнопок
     /// </summary>
-    public class CategoryListMessage:Bot.BotMessage
+    public class CategoryListMessage:BotMessage
     {
         private string Cmd { get; set; }
 
@@ -69,7 +70,7 @@ namespace MyTelegramBot.Messages
             this.Cmd = "ProductInCategory";
             this.BackCmd = "MainMenu";
             this.ModuleName = Bot.CategoryBot.ModuleName;
-            base.BackBtn = BuildInlineBtn("Назад", BuildCallData(this.BackCmd, Bot.MainMenuBot.ModuleName));
+            base.BackBtn = BuildInlineBtn("Назад", BuildCallData(this.BackCmd, Bot.MainMenuBot.ModuleName),base.Previuos2Emodji,false);
             this.SelectPageNumber = PageNumber;
             base.PageSize = 4;
         }
@@ -84,7 +85,7 @@ namespace MyTelegramBot.Messages
             this.BackBtn = BuildInlineBtn("Панель администратора", BuildCallData(Bot.AdminModule.AdminBot.BackToAdminPanelCmd, Bot.AdminModule.AdminBot.ModuleName),base.CogwheelEmodji);
         }
 
-        public Bot.BotMessage BuildCategoryPage()
+        public BotMessage BuildCategoryPage()
         {
             Pages = BuildPages();
 
@@ -94,8 +95,8 @@ namespace MyTelegramBot.Messages
             {
                 int count = 0;
                 var page = Pages[SelectPageNumber];
-                ViewAllBtn = new InlineKeyboardCallbackButton("Показать весь ассортимент",
-                                                    BuildCallData("ViewAllProduct", Bot.CategoryBot.ModuleName));
+                ViewAllBtn = BuildInlineBtn("Показать весь ассортимент",
+                                                    BuildCallData("ViewAllProduct", Bot.CategoryBot.ModuleName),base.OpenedBookEmodji);
 
                 if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
                     NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.CategoryBot.ModuleName, SelectPageNumber + 1),base.Next2Emodji);
@@ -156,8 +157,8 @@ namespace MyTelegramBot.Messages
 
                 foreach (Category cat in page)
                 {
-                    InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton(cat.Name,
-                        base.BuildCallData(Cmd, ModuleName, cat.Id));
+                    InlineKeyboardCallbackButton button = BuildInlineBtn(cat.Name,
+                        base.BuildCallData(Cmd, ModuleName, cat.Id),BlueRhombus,false);
                     CategoryListBtn[count] = new InlineKeyboardCallbackButton[1];
                     CategoryListBtn[count][0] = button;
 
@@ -176,7 +177,7 @@ namespace MyTelegramBot.Messages
                 return null;
         }
 
-        public Bot.BotMessage BuildCategoryAdminPage()
+        public BotMessage BuildCategoryAdminPage()
         {
             Pages = BuildPages(false);
 

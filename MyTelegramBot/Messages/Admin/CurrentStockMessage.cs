@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
-    public class CurrentStockMessage:Bot.BotMessage
+    public class CurrentStockMessage:BotMessage
     {
         private List<Product> ProductList { get; set; }
 
@@ -32,7 +33,7 @@ namespace MyTelegramBot.Messages.Admin
             this.CategoryId = CategoryId;
         }
 
-        public override Bot.BotMessage BuildMsg()
+        public override BotMessage BuildMsg()
         {
             db = new MarketBotDbContext();
 

@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// сообщение с телефоном пользователя
     /// </summary>
-    public class ContactMessage:Bot.BotMessage
+    public class ContactMessage:BotMessage
     {
         private InlineKeyboardUrlButton VkBtn { get; set; }
 

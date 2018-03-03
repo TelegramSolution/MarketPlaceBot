@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
-
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Весь ассортимент категории одним сообщением
     /// </summary>
-    public class ViewAllProductInCategoryMessage : Bot.BotMessage
+    public class ViewAllProductInCategoryMessage : BotMessage
     {
         private List<Product> ProductList { get; set; }
 
@@ -62,7 +62,7 @@ namespace MyTelegramBot.Messages
             this.SelectPageNumber = PageNumber;
         }
 
-        public override Bot.BotMessage BuildMsg()
+        public override BotMessage BuildMsg()
         {
             db = new MarketBotDbContext();
 

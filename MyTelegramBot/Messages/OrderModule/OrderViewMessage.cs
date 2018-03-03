@@ -7,6 +7,7 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using System.Security.Cryptography;
 using System.Text;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {

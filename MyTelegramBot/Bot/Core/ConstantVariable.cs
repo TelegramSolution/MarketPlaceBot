@@ -26,6 +26,11 @@ namespace MyTelegramBot.Bot.Core
             public const int Doge = 5;
 
             public const int Bitcoin=6;
+
+            /// <summary>
+            /// оплата банковской карторй внутри бота, через яндекс кассу
+            /// </summary>
+            public const int DebitCardForYandexKassa = 7;
         }
 
         /// <summary>

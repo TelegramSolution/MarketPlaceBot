@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
@@ -43,8 +44,16 @@ namespace MyTelegramBot.Bot
             if (base.CommandName == "OpenSource")
                 return await OpenSourceSend();
 
+            if (base.CommandName == "/testPayment")
+                return await TestPayment();
 
             else return null;
+        }
+
+        private async Task<IActionResult> TestPayment()
+        {
+            await SendInvoice();
+            return OkResult;
         }
 
         private async Task<IActionResult> SendMainMenu(int MessageId=0)

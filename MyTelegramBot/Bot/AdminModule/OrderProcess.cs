@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages.Admin;
+using MyTelegramBot.Bot.Core;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
-    public class OrderProcess:Bot.BotCore,IProcessing
+    public class OrderProcess:BotCore,IProcessing
     {
         private OrderMiniViewMessage OrderMiniViewMsg { get; set; }
         public OrderProcess(Update update):base(update)
