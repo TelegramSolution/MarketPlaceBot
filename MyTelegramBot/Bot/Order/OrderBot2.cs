@@ -14,10 +14,93 @@ namespace MyTelegramBot.Bot
 {
     public partial class OrderBot
     {
+        /// <summary>
+        /// Заносим информацию о полученом платеже в бд и уведовляем об этом операторов
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SuccessfulPaymentCreditCard()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
 
+            var id =Convert.ToInt32(this.Update.Message.SuccessfulPayment.InvoicePayload);
+
+            this.OrderId = Convert.ToInt32(id);
+
+            this.Order= this.Order = db.Orders.Where(o => o.Id == OrderId).Include(o => o.Invoice).Include(o => o.CurrentStatusNavigation).FirstOrDefault();
+
+            if (this.Order.Paid==false && db.Payment.Where(p => p.TxId == this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId).FirstOrDefault() == null)
+            {
+
+                Payment payment = new Payment
+                {
+                    DataAdd = DateTime.Now,
+                    InvoiceId = Order.InvoiceId,
+                    Summ = (this.Update.Message.SuccessfulPayment.TotalAmount / 100),
+                    TxId = this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId,
+                    Comment = "идентификатор платежа в Telegram:"+this.Update.Message.SuccessfulPayment.TelegramPaymentChargeId
+                };
+
+                this.Order.Paid = true;
+                db.Update<Orders>(this.Order);
+
+                db.Payment.Add(payment);
+                db.SaveChanges();
+
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Поступил новый платеж. Заказ /order" + Order.Number.ToString() });
+            }
+            return OkResult;
+        }
+
+        /// <summary>
+        /// отправить инвойс для оплаты банковской картой внутри бота
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendDebitCardInvoice()
+        {
+            TelegramDebitCardInvoice telegramDebitCardInvoice = new TelegramDebitCardInvoice(this.Order, base.BotInfo);
+            var invoice=telegramDebitCardInvoice.CreateInvoice();
+
+            await base.SendInvoice(invoice);
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Проверка данных перед совершением оплаты через банковскую карту
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> answerPreCheckoutOrder()
         {
-            await answerPreCheckoutQuery(true);
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            this.OrderId = Convert.ToInt32(base.Update.PreCheckoutQuery.InvoicePayload);
+
+            this.Order = db.Orders.Where(o => o.Id == OrderId).Include(o=>o.Invoice).Include(o => o.CurrentStatusNavigation).FirstOrDefault();
+
+            db.Dispose();
+
+            if (this.Order.CurrentStatusNavigation.StatusId==ConstantVariable.OrderStatusVariable.Canceled)
+                await answerPreCheckoutQuery(false,"Заказ отменен");
+
+            if (this.Order.CurrentStatusNavigation.StatusId == ConstantVariable.OrderStatusVariable.Completed)
+                await answerPreCheckoutQuery(false, "Заказ уже выполнен");
+
+            if(this.Order.Paid==true)
+                await answerPreCheckoutQuery(false, "Заказ уже оплачен");
+
+
+            if (this.Order.Invoice.CreateTimestamp.Value.Date!=DateTime.Today &&
+                DateTime.Now.TimeOfDay > (this.Order.Invoice.CreateTimestamp.Value.TimeOfDay + this.Order.Invoice.LifeTimeDuration))
+            {
+                await answerPreCheckoutQuery(false, "Вы должны были оплатить заказ до " +
+                    (this.Order.Invoice.CreateTimestamp.Value.TimeOfDay + this.Order.Invoice.LifeTimeDuration).Value.ToString());
+            }
+
+           
+
+            else
+                await answerPreCheckoutQuery(true);
+
             return OkResult;
         }
 
@@ -919,7 +1002,9 @@ namespace MyTelegramBot.Bot
             {
                 InvoiceViewMsg = new InvoiceViewMessage(mess.Order.Invoice, mess.Order.Id, "BackToMyOrder");
                 await EditMessage(InvoiceViewMsg.BuildMsg());
-                await OrderRedirectToAdmins(mess.Order.Id);
+
+
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage= "Поступил новый платеж. Заказ /order" + mess.Order.Number.ToString() });
             }
 
             return OkResult;

@@ -1133,23 +1133,23 @@ namespace MyTelegramBot.Bot.Core
             }
         }
 
-        protected async Task<Message> SendInvoice()
+        protected async Task<Message> SendInvoice(TelegramDebitCardInvoice telegramDebitCardInvoice)
         {
             try
             {
              
-                LabeledPrice[] labeledPrice = new LabeledPrice[1];
-                labeledPrice[0] = new LabeledPrice();
-                labeledPrice[0].Amount = 10000;
-                labeledPrice[0].Label = "100 rubbley";
+              return await TelegramClient.SendInvoiceAsync(ChatId, 
+                    title: telegramDebitCardInvoice.Title, 
+                    description: telegramDebitCardInvoice.Desc,
+                    payload: telegramDebitCardInvoice.PayLoad, 
+                    startParameter: telegramDebitCardInvoice.StartParametr, 
+                    providerToken: telegramDebitCardInvoice.ProviderToken,
+                    currency: telegramDebitCardInvoice.CurrencyCode, 
+                    prices: telegramDebitCardInvoice.labeledPrice);
 
-
-               await TelegramClient.SendInvoiceAsync(ChatId, "Заказ 7", "Оплата заказа номер 7", "7", "381764678:TEST:4679", "test", "RUB", labeledPrice);
-
-                return null;
             }
 
-            catch (Exception e)
+            catch
             {
                 return null;
             }

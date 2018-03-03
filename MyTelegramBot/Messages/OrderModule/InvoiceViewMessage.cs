@@ -32,10 +32,10 @@ namespace MyTelegramBot.Messages
             this.OrderId = OrderId;
 
             if(BackCmdName== "BackToOrder")
-                BackBtn = new InlineKeyboardCallbackButton("Вернуться к заказу", BuildCallData(BackCmdName,Bot.AdminModule.OrderProccesingBot.ModuleName ,OrderId));
+                BackBtn = BuildInlineBtn("Вернуться к заказу", BuildCallData(BackCmdName,Bot.AdminModule.OrderProccesingBot.ModuleName ,OrderId), base.Previuos2Emodji, false);
 
-            else
-                BackBtn = new InlineKeyboardCallbackButton("Вернуться к заказу", BuildCallData(BackCmdName, OrderBot.ModuleName, OrderId));
+            else // для операторов
+                BackBtn = BuildInlineBtn("Вернуться к заказу", BuildCallData(BackCmdName, OrderBot.ModuleName, OrderId),base.Previuos2Emodji,false);
 
             
         }
@@ -63,7 +63,7 @@ namespace MyTelegramBot.Messages
 
 
                 if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
-                    ProceedToСheckoutBtn= new InlineKeyboardCallbackButton("Перейти к оплате", BuildCallData(OrderBot.CmdDebitCardСheckout, OrderBot.ModuleName, OrderId));
+                    ProceedToСheckoutBtn= BuildInlineBtn("Перейти к оплате", BuildCallData(OrderBot.CmdDebitCardСheckout, OrderBot.ModuleName, OrderId),base.Next2Emodji);
 
                 else
                     CheckPayBtn = new InlineKeyboardCallbackButton("Я оплатил", BuildCallData(Bot.OrderBot.CheckPayCmd, OrderBot.ModuleName, OrderId));

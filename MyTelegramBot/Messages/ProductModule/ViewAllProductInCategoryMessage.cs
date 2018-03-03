@@ -60,6 +60,7 @@ namespace MyTelegramBot.Messages
             BackBtn = new InlineKeyboardCallbackButton("Назад", BuildCallData("BackCategoryList",Bot.CategoryBot.ModuleName));
             this.CategoryId = CategoryId;
             this.SelectPageNumber = PageNumber;
+            this.PageSize = 5;
         }
 
         public override BotMessage BuildMsg()
@@ -98,7 +99,7 @@ namespace MyTelegramBot.Messages
 
           
 
-            if (Pages.Count > 0 && Pages.Count >= SelectPageNumber)
+            if (Pages.Count > 0 && Pages.Count >= SelectPageNumber && Pages[SelectPageNumber]!=null)
             {
                 var Page = Pages[SelectPageNumber];
 

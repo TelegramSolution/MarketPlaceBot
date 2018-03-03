@@ -33,7 +33,7 @@ namespace MyTelegramBot.Bot
 
         BasketPositionListMessage  BasketPositionListMsg { get; set; }
 
-        BasketPositionEditMessage BasketPositionEditMsg { get; set; }
+        BasketPositionCallBackAnswerMessage BasketPositionEditMsg { get; set; }
 
         private int ProductId { get; set; }
 
@@ -53,7 +53,7 @@ namespace MyTelegramBot.Bot
                 if (base.Argumetns.Count > 0)
                 {
                     this.ProductId = Argumetns[0];
-                    BasketPositionEditMsg = new BasketPositionEditMessage(base.FollowerId, this.ProductId);
+                    BasketPositionEditMsg = new BasketPositionCallBackAnswerMessage(base.FollowerId, this.ProductId);
                 }
             }
 
@@ -154,21 +154,38 @@ namespace MyTelegramBot.Bot
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                Basket basket = new Basket
+                var list = db.Basket.Where(b => b.ProductId == ProductId && b.BotInfoId == BotInfo.Id && b.FollowerId == FollowerId).ToList();
+
+                var CurrentStock = db.Stock.Where(s => s.ProductId == ProductId).LastOrDefault();
+
+                if (CurrentStock != null && CurrentStock.Balance >= list.Count+1)
                 {
-                    FollowerId = FollowerId,
-                    ProductId = ProductId,
-                    Enable = true,
-                    DateAdd = DateTime.Now,
-                    Amount = 1,
-                    BotInfoId=BotInfo.Id
-                };
 
-                db.Add(basket);
+                    Basket basket = new Basket
+                    {
+                        FollowerId = FollowerId,
+                        ProductId = ProductId,
+                        Enable = true,
+                        DateAdd = DateTime.Now,
+                        Amount = 1,
+                        BotInfoId = BotInfo.Id
+                    };
 
-                db.SaveChanges();
+                    db.Add(basket);
 
-                return await EditPositionMsg();
+                    db.SaveChanges();
+
+                    return await EditPositionMsg();
+                }
+
+                if (CurrentStock != null && CurrentStock.Balance < list.Count + 1)
+                {
+                    await AnswerCallback("В наличии только " + CurrentStock.Balance.ToString(), true);
+                    return OkResult;
+                }
+
+                else
+                    return OkResult;
             }
         }
 

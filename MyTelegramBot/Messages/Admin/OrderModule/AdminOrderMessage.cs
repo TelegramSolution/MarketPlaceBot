@@ -148,6 +148,7 @@ namespace MyTelegramBot.Messages.Admin
                 if (Order.OrderProduct == null || Order.OrderProduct != null && Order.OrderProduct.Count == 0)
                     Order.OrderProduct = db.OrderProduct.Where(o => o.OrderId == Order.Id).ToList();
 
+                total += Order.TotalPrice();
 
                 /////////Формируем основную часть сообщения - Доставка
                 if(Order != null && Order.OrderAddress!=null)
@@ -167,7 +168,7 @@ namespace MyTelegramBot.Messages.Admin
                 /////////Формируем основную часть сообщения - Самовывоз
                 if (Order != null && Order.PickupPoint != null)
                     base.TextMessage = Bold("Номер заказа: ")  + Order.Number.ToString() + NewLine()
-                            + Position + NewLine()
+                            + Order.PositionToString() + NewLine()
                             + Bold("Общая стоимость: ") + total.ToString() + NewLine()
                             + Bold("Комментарий: ") + Order.Text + NewLine()
                             + Bold("Способ получения заказа: ") + " Самовывоз" + NewLine()

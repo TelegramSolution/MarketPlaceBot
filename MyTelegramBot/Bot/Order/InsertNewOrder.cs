@@ -84,7 +84,8 @@ namespace MyTelegramBot.Bot.Order
 
                 // создаем инвойс для оплаты в криптовалюте
                 if (OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.PaymentOnReceipt 
-                    && OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.QIWI) 
+                    && OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.QIWI && 
+                    OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa) 
                     Invoice= AddCryptoCurrencyInvoice(NewOrder,Convert.ToInt32(OrderTmp.PaymentTypeId), total);
 
                 //Оплата банковской картой через яндекс кассу внутри бота
@@ -288,7 +289,7 @@ namespace MyTelegramBot.Bot.Order
 
         private Invoice AddDibitCardInvoice(Orders order, double Total, int LifeTimeDuration = 30)
         {
-            var YandexKassa = db.PaymentTypeConfig.Find(Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa);
+            var YandexKassa = db.PaymentTypeConfig.Where(p=>p.PaymentId==Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa).FirstOrDefault();
 
             if (YandexKassa != null && order!=null && Total>0)
             {
@@ -297,10 +298,10 @@ namespace MyTelegramBot.Bot.Order
                 {
                     CreateTimestamp = DateTime.Now,
                     AccountNumber = YandexKassa.Login + " идентификатор магазина в ЯндексКассе",
-                    Comment = GeneralFunction.BuildPaymentComment(BotInfo.Name, order.Number.ToString()),
+                    Comment = "",
                     InvoiceNumber = GenerateInvoiceNumber(),
                     LifeTimeDuration = System.TimeSpan.FromMinutes(LifeTimeDuration),
-                    PaymentTypeId = Core.ConstantVariable.PaymentTypeVariable.QIWI,
+                    PaymentTypeId = Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa,
                     Value = Total,
                     Paid = false
 

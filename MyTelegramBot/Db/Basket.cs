@@ -16,5 +16,7 @@ namespace MyTelegramBot
         public BotInfo BotInfo { get; set; }
         public Follower Follower { get; set; }
         public Product Product { get; set; }
+
+
     }
 }

@@ -44,17 +44,10 @@ namespace MyTelegramBot.Bot
             if (base.CommandName == "OpenSource")
                 return await OpenSourceSend();
 
-            if (base.CommandName == "/testPayment")
-                return await TestPayment();
 
             else return null;
         }
 
-        private async Task<IActionResult> TestPayment()
-        {
-            await SendInvoice();
-            return OkResult;
-        }
 
         private async Task<IActionResult> SendMainMenu(int MessageId=0)
         {

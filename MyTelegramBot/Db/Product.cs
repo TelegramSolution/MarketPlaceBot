@@ -53,19 +53,7 @@ namespace MyTelegramBot
             {
                 string StockStatus = String.Empty;
 
-                const string StockStatusMany = "Много";
-
-                const string StockStatusFew = "Мало";
-
                 const string StockStatusOutOfStock = "Нет в наличии";
-
-                const int Many = 5;
-
-                if (Stock.Count > 0 && Stock.ElementAt(Stock.Count - 1) != null && Stock.ElementAt(Stock.Count - 1).Balance >= Many)
-                    StockStatus = StockStatusMany;
-
-                if (Stock.Count > 0 && Stock.ElementAt(Stock.Count - 1) != null && Stock.ElementAt(Stock.Count - 1).Balance > 0 && Stock.ElementAt(Stock.Count - 1).Balance <= Many)
-                    StockStatus = StockStatusFew;
 
                 if (Stock.Count > 0 && Stock.ElementAt(Stock.Count - 1) == null || Stock.Count > 0 && Stock.ElementAt(Stock.Count - 1) != null && Stock.ElementAt(Stock.Count - 1).Balance == 0)
                     StockStatus = StockStatusOutOfStock;
@@ -77,8 +65,8 @@ namespace MyTelegramBot
 
                 return "Название: " + Name + BotMessage.NewLine() +
                 "Цена: " + ProductPrice.Where(p => p.Enabled).FirstOrDefault().ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
-                "Описание: " + Text + BotMessage.NewLine() +
-                "В наличии: " + StockStatus;
+                "Описание: " + Text + BotMessage.NewLine() 
+                 + StockStatus;
             }
 
             catch

@@ -208,15 +208,21 @@ namespace MyTelegramBot.Bot
                 return base.NotFoundResult;
         }
 
+        /// <summary>
+        /// Добавить позицию в корзину после нажатия кнопки с плюсом (+)
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> AddToBasket()
         {
             var message = AddProductToBasketMsg.BuildMsg();
 
-            if (await base.AnswerCallback(message.CallBackTitleText))
-                return base.OkResult;
+            if (AddProductToBasketMsg.Basket != null) // товар успешно добвлен в корзину
+                await base.AnswerCallback(message.CallBackTitleText);
 
-            else
-                return base.NotFoundResult;
+           else // в наличии меньше чем хочет пользваотель
+                await base.AnswerCallback(message.CallBackTitleText,true);
+
+            return OkResult;
         }
 
         /// <summary>

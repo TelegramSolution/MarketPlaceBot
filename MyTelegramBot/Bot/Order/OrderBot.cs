@@ -293,6 +293,9 @@ namespace MyTelegramBot.Bot
                 case CmdAddFeedBack:
                     return await SendFeedBackMyOrder(Argumetns[0]);
 
+                case CmdDebitCardСheckout:
+                    return await SendDebitCardInvoice();
+
                     //пользователь нажал на кнопку с товаром что бы добавить к нему отзыв
                 case CmdAddFeedBackProduct:
                     return await SendFeedBackToProductEditor();
@@ -337,7 +340,8 @@ namespace MyTelegramBot.Bot
             if (Update.PreCheckoutQuery != null)
                 return await answerPreCheckoutOrder();
 
-
+            if (Update.Message.SuccessfulPayment != null) // поступил платеж через банк. карту.
+                return await SuccessfulPaymentCreditCard();
 
             else
                 return null;
