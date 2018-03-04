@@ -35,6 +35,8 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton DeliveryPriceBtn { get; set; }
 
+        private InlineKeyboardCallbackButton CurrencyEditorBtn { get; set; }
+
 
         public override BotMessage BuildMsg()
         {
@@ -42,7 +44,7 @@ namespace MyTelegramBot.Messages.Admin
 
             MethodsOfObtainingBtn = BuildInlineBtn("Способы получения", BuildCallData(MoreSettingsBot.MethodOfObtaitingCmd, MoreSettingsBot.ModuleName),base.CarEmodji);
 
-            PaymentsEnableBtn = BuildInlineBtn("Доступные плат. систем", BuildCallData(MoreSettingsBot.EnablePaymentMethodCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
+            PaymentsEnableBtn = BuildInlineBtn("Вкл/Выкл плат. систем", BuildCallData(MoreSettingsBot.EnablePaymentMethodEditorCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
 
             PaymentsSettingsBtn= BuildInlineBtn("Настройка плат. систем", BuildCallData(MoreSettingsBot.SettingsPaymentMethodCmd, MoreSettingsBot.ModuleName),base.CreditCardEmodji);
 
@@ -57,6 +59,8 @@ namespace MyTelegramBot.Messages.Admin
             ChannelEditorBtn = BuildInlineBtn("Канал (ред.)", BuildCallData(MoreSettingsBot.ChannelEditCmd, MoreSettingsBot.ModuleName), base.MobileEmodji);
 
             DeliveryPriceBtn= BuildInlineBtn("Стоимость доставки", BuildCallData(MoreSettingsBot.DeliveryPriceCmd, MoreSettingsBot.ModuleName), base.CashEmodji);
+
+            CurrencyEditorBtn= BuildInlineBtn("Основная валюта", BuildCallData(MoreSettingsBot.CurrencyEditorCmd, MoreSettingsBot.ModuleName), base.CashEmodji);
 
             BackBtn = BackToAdminPanelBtn();
 
@@ -93,7 +97,10 @@ namespace MyTelegramBot.Messages.Admin
                         {
                             PaymentsEnableBtn,PaymentsSettingsBtn
                         },
-
+                new[]
+                        {
+                                CurrencyEditorBtn
+                        },
                 new[]
                         {
                             BackBtn

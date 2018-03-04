@@ -37,6 +37,7 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton MethodOfObtainingInfoBtn { get; set; }
 
+
         public override BotMessage BuildMsg()
         {
             MenuBtn = new InlineKeyboardCallbackButton("Каталог товаров"+ " \ud83d\udcc3", BuildCallData("Menu",Bot.CategoryBot.ModuleName));
@@ -45,6 +46,7 @@ namespace MyTelegramBot.Messages
             MyOrdersBtn = new InlineKeyboardCallbackButton("Мои заказы"+ " \ud83d\udce6", BuildCallData(Bot.OrderBot.MyOrdersListCmd,Bot.OrderBot.ModuleName));
             HelpBtn = new InlineKeyboardCallbackButton("Техническая поддержка", BuildCallData("Help", Bot.HelpDeskBot.ModuleName));
             OpenSourceBtn = new InlineKeyboardCallbackButton("Исходный код", BuildCallData("OpenSource", Bot.MainMenuBot.ModuleName));
+
             SetInlineKeyBoard();
             base.TextMessage = "Выберите действие";
             return this;
@@ -52,6 +54,9 @@ namespace MyTelegramBot.Messages
 
         private void SetInlineKeyBoard()
         {
+
+            //new [] { InlineKeyboardButton.WithUrl("Link to Repository", "https://github.com/TelegramBots/Telegram.Bot"), }
+
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -70,8 +75,10 @@ namespace MyTelegramBot.Messages
 
                 new[]
                         {
-                        OpenSourceBtn
-                        }
+                        OpenSourceBtn,
+                        },
+                    new [] { InlineKeyboardButton.WithSwitchInlineQuery("Поделиться товаром с другом" + base.SenderEmodji), },
+                    new [] { InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск товаров" + base.SearchEmodji), },
                  });
 
 

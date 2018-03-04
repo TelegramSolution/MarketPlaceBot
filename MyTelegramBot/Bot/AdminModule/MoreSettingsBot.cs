@@ -40,7 +40,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string AboutEditorForceReply = "О нас";
 
-        public const string EnablePaymentMethodCmd = "EnablePaymentMethod";
+        public const string EnablePaymentMethodEditorCmd = "EnablePaymentMethodEditor";
 
         public const string SettingsPaymentMethodCmd = "SettingsPaymentMethod";
 
@@ -106,6 +106,11 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string YandexTokenForceReply = "Введите токен яндекс кассы";
 
+        public const string EnablePaymentMethodCmd = "EnablePaymentMethod";
+
+        public const string CurrencyEditorCmd = "CurrencyEditor";
+
+        public const string CurrencyEditorUpdCmd = "CurrencyUpd";
 
         MoreSettingsMessage MoreSettingsMsg { get; set; }
 
@@ -123,6 +128,10 @@ namespace MyTelegramBot.Bot.AdminModule
 
         AdminPayMethodsSettings AdminPayMethodsSettingMsg { get; set; }
 
+        EnablePaymentsMethodMessage EnablePaymentsMethodMsg { get; set; }
+
+        CurrencySettingsMessage CurrencySettingsMsg { get; set; }
+
         public MoreSettingsBot(Update _update) : base(_update)
         {
 
@@ -131,6 +140,7 @@ namespace MyTelegramBot.Bot.AdminModule
         protected override void Constructor()
         {
             MoreSettingsMsg = new MoreSettingsMessage();
+            EnablePaymentsMethodMsg = new EnablePaymentsMethodMessage();
         }
 
         public async override Task<IActionResult> Response()
@@ -269,19 +279,92 @@ namespace MyTelegramBot.Bot.AdminModule
                     case YandexRemoveCmd:
                         return await RemoveYandex();
 
+                    case EnablePaymentMethodEditorCmd:
+                        return await SendEnablePaymentEditor();
+
+                    case EnablePaymentMethodCmd:
+                        return await UpdEnablePayment();
+
+                    case CurrencyEditorUpdCmd:
+                        return await UpdCurrency();
+
+                    case CurrencyEditorCmd:
+                        return await SendCurrencyEditor();
+
                     default:
                         return null;
                 }
 
-
             }
-
-
 
             else
                 return null;
         }
 
+        private async Task<IActionResult> UpdCurrency()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var prices = db.ProductPrice.Where(p => p.Enabled).ToList();
+
+            foreach(var p in prices)
+            {
+                p.CurrencyId = Argumetns[0];
+                db.Update<ProductPrice>(p);
+                db.SaveChanges();
+            }
+
+            base.BotInfo.Configuration.CurrencyId = Argumetns[0];
+            db.Update<Configuration>(base.BotInfo.Configuration);
+            db.SaveChanges();
+            db.Dispose();
+
+            return await SendCurrencyEditor();
+        }
+
+        private async Task<IActionResult> SendCurrencyEditor()
+        {
+            CurrencySettingsMsg = new CurrencySettingsMessage(base.BotInfo);
+
+            await EditMessage(CurrencySettingsMsg.BuildMsg());
+
+            return OkResult;
+
+        }
+
+        private async Task<IActionResult> UpdEnablePayment()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var res= db.PaymentTypeConfig.Where(p => p.PaymentId == Argumetns[0]).ToList();
+
+            if (res.Count > 0 || Argumetns[0]==ConstantVariable.PaymentTypeVariable.PaymentOnReceipt)
+            {
+                var cgf = db.PaymentType.Find(Argumetns[0]);
+
+                if (cgf.Enable)
+                    cgf.Enable = false;
+
+                else
+                    cgf.Enable = true;
+
+                db.Update<PaymentType>(cgf);
+                db.SaveChanges();
+                return await SendEnablePaymentEditor();
+
+            }
+
+            else
+                await AnswerCallback("Способ оплаты не настроен", true);
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendEnablePaymentEditor()
+        {
+            await EditMessage(EnablePaymentsMethodMsg.BuildMsg());
+            return OkResult;
+        }
         private async Task<IActionResult> RemoveYandex()
         {
             MarketBotDbContext db = new MarketBotDbContext();

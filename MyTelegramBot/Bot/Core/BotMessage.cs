@@ -19,6 +19,14 @@ namespace MyTelegramBot.Bot.Core
 {
     public class BotMessage
     {
+
+
+
+        /// <summary>
+        /// 🔍 лупа
+        /// </summary>
+        protected readonly string SearchEmodji = "\ud83d\udd0d";
+
         /// <summary>
         /// 📖 развернутая книжка
         /// </summary>
