@@ -19,7 +19,7 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
 
         private InlineKeyboardCallbackButton TokenEditBtn { get; set; }
 
-        private InlineKeyboardCallbackButton ShopIdEditBtn { get; set; }
+        private InlineKeyboardCallbackButton YandexFaqBtn { get; set; }
 
         private InlineKeyboardCallbackButton AddBtn { get; set; }
 
@@ -36,13 +36,14 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
 
             BackBtn= BuildInlineBtn("Назад", BuildCallData(MoreSettingsBot.SettingsPaymentMethodCmd, MoreSettingsBot.ModuleName), base.Previuos2Emodji,false);
 
+            YandexFaqBtn= BuildInlineBtn("Инструкция", BuildCallData(MoreSettingsBot.SettingsPaymentMethodCmd, MoreSettingsBot.ModuleName), base.Previuos2Emodji, false);
+
             if (YandexKassaConfig != null)
             {
-                base.TextMessage = "Яндекс Касса" + NewLine() + NewLine() +
+                base.TextMessage = "Яндекс Касса (бот не передает в Кассу данные для фискализации. Будет реализовано позднее)" + NewLine() + NewLine() +
                     Bold("Идентификатор магазина: ") + YandexKassaConfig.Login + NewLine() +
                     Bold("Платежный токен: ") + YandexKassaConfig.Pass + NewLine();
 
-                ShopIdEditBtn = BuildInlineBtn("Изм. Идентификатор магазина", BuildCallData(MoreSettingsBot.YandexKassaShopIdEditCmd, MoreSettingsBot.ModuleName),base.PenEmodji);
                 TokenEditBtn = BuildInlineBtn("Изм. токен", BuildCallData(MoreSettingsBot.YandexKassaTokenEditCmd, MoreSettingsBot.ModuleName),base.PenEmodji);
                 RemoveBtn = BuildInlineBtn("Удалить", BuildCallData(MoreSettingsBot.YandexRemoveCmd, MoreSettingsBot.ModuleName),base.CrossEmodji);
 
@@ -50,7 +51,7 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
                 {
                 new[]
                 {
-                    TokenEditBtn, ShopIdEditBtn
+                    TokenEditBtn
                 },
                 new[]
                 {
@@ -67,7 +68,7 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
             else
             {
                 AddBtn = BuildInlineBtn("Добавить", BuildCallData(MoreSettingsBot.YandexAddCmd, MoreSettingsBot.ModuleName), base.PenEmodji);
-
+                base.TextMessage = "Яндекс Касса (бот не передает в Кассу данные для фискализации. Будет реализовано позднее)" + NewLine();
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(new[]
                 {
                         new[]

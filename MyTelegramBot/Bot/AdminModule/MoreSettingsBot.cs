@@ -98,6 +98,15 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string QiwiTestConectionCmd = "QiwiTestConection";
 
+        public const string QiwiTokenForceReply = "Введите токен Qiwi:";
+
+        public const string PayCgfCmd = "/paycgf";
+
+        public const string YandexShopidForceReply = "Введите идентификатор магазина";
+
+        public const string YandexTokenForceReply = "Введите токен яндекс кассы";
+
+
         MoreSettingsMessage MoreSettingsMsg { get; set; }
 
         MethodOfObtaining MethodOfObtainingMsg { get; set; }
@@ -156,8 +165,20 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.OriginalMessage == AboutEditorForceReply)
                     return await SaveCompanyInfo(AboutEditorForceReply);
 
-                if (base.OriginalMessage == QiwiTelForcerReply)
+                if (base.OriginalMessage.Contains(QiwiTelForcerReply))
                     return await InsertQiwiTelephone();
+
+                if (base.CommandName.Contains(PayCgfCmd))
+                    return await SendQiwiEditor();
+
+                if (base.OriginalMessage.Contains(QiwiTokenForceReply))
+                    return await UpdQiwiToken();
+
+                if (base.OriginalMessage == YandexShopidForceReply)
+                    return await InsertYandexShopId();
+
+                if (base.OriginalMessage.Contains(YandexTokenForceReply))
+                    return await UpdYandexToken();
 
                 switch (base.CommandName)
                 {
@@ -233,6 +254,21 @@ namespace MyTelegramBot.Bot.AdminModule
                     case QiwiRemoveCmd:
                         return await QiwiRemove();
 
+                    case QiwiEditTokenCmd:
+                        return await base.SendForceReplyMessage(QiwiTokenForceReply+Argumetns[0]);
+
+                    case YandexKassaShopIdEditCmd:
+                        return await SendForceReplyMessage(YandexShopidForceReply);
+
+                    case YandexKassaTokenEditCmd:
+                        return await SendForceReplyMessage(YandexTokenForceReply);
+
+                    case YandexAddCmd:
+                        return await SendForceReplyMessage(YandexShopidForceReply);
+
+                    case YandexRemoveCmd:
+                        return await RemoveYandex();
+
                     default:
                         return null;
                 }
@@ -246,6 +282,101 @@ namespace MyTelegramBot.Bot.AdminModule
                 return null;
         }
 
+        private async Task<IActionResult> RemoveYandex()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var yandex = db.PaymentTypeConfig.Where(p => p.PaymentId == ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa).LastOrDefault();
+
+            if (yandex != null)
+            {
+                yandex.Pass = ReplyToMessageText;
+                db.PaymentTypeConfig.Remove(yandex);
+                db.SaveChanges();
+                db.Dispose();
+            }
+
+            return await SendMoreSettings();
+        }
+
+        private async Task<IActionResult> UpdYandexToken()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var yandex = db.PaymentTypeConfig.Where(p => p.PaymentId == ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa).LastOrDefault();
+
+            if (yandex != null)
+            {
+                yandex.Pass = ReplyToMessageText;
+                db.Update<PaymentTypeConfig>(yandex);
+                db.SaveChanges();
+                db.Dispose();
+            }
+
+            return await SendYandexKassaView();
+        }
+
+        private async Task<IActionResult> InsertYandexShopId()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            PaymentTypeConfig paymentTypeConfig = new PaymentTypeConfig
+            {
+                Enable = true,
+                Login = ReplyToMessageText,
+                TimeStamp = DateTime.Now,
+                Pass = "",
+                PaymentId=ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa
+            };
+
+            db.PaymentTypeConfig.Add(paymentTypeConfig);
+            db.SaveChanges();
+            db.Dispose();
+            return await SendYandexKassaView();
+        }
+
+        private async Task<IActionResult> SendQiwiEditor ()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            int id = Convert.ToInt32(CommandName.Substring(PayCgfCmd.Length));
+
+            var qiwi = db.PaymentTypeConfig.Find(id);
+
+            if (qiwi != null)
+            {
+                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage(qiwi);
+                await SendMessage(AdminQiwiSettingsMsg.BuildMsg());
+                db.Dispose();
+            }
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> UpdQiwiToken()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            string token = ReplyToMessageText;
+
+            int id =Convert.ToInt32(OriginalMessage.Substring(QiwiTokenForceReply.Length));
+
+            var qiwi = db.PaymentTypeConfig.Find(id);
+
+            if (qiwi != null)
+            {
+                qiwi.Pass = token;
+                db.Update<PaymentTypeConfig>(qiwi);
+                db.SaveChanges();
+                db.Dispose();
+
+                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage(qiwi);
+                await SendMessage(AdminQiwiSettingsMsg.BuildMsg());
+
+            }
+
+            return OkResult;
+        }
 
         private async Task<IActionResult> QiwiRemove()
         {
