@@ -166,7 +166,12 @@ namespace MyTelegramBot.Bot
 
         private const string InlineForceReply = "Изменить Inline фотографию:";
 
+        /// <summary>
+        /// показать доп кнопки для изменения настроек товара
+        /// </summary>
+        public const string MoreProdFuncCmd = "MoreProdFunc";
 
+        public const string BackToProductEditorCmd = "BackToProductEditor";
 
         /// <summary>
         /// Конструктор
@@ -188,7 +193,7 @@ namespace MyTelegramBot.Bot
                 if (this.ProductId > 0)
                 {
                     using (MarketBotDbContext db = new MarketBotDbContext())
-                        ProductName = db.Product.Where(p => p.Id == ProductId).FirstOrDefault().Name;
+                        ProductName = db.Product.Find(ProductId).Name;
 
                     UnitListMsg = new UnitListMessage(this.ProductId);
 
@@ -234,13 +239,9 @@ namespace MyTelegramBot.Bot
                         return await AdminProductInCategory();
 
                         ///Назад к сообщению с описание товара и кнопками упралвния
-                    case "BackToProductEditor":
+                    case BackToProductEditorCmd:
                         return await SendProductAdminMsg(MessageId);
 
-
-                        ///Пользователь выбрал валюту
-                    case "UpdateProductCurrency":
-                        return await UpdateCurrency();
 
                     // Пользователь выбрал товар который будет редактировать. 
                     //Присылается сообщение с описание товара и кнопками ф-ций
@@ -285,7 +286,7 @@ namespace MyTelegramBot.Bot
                     ///Пользователь нажал на кнопку Изменить навзание товара.
                     ///Сообщение меняется на список доступных категорий
                     case ProductEditCategoryCmd:
-                        return await ProductEditCategory();
+                        return await SendCategoryList();
 
                     ///пользваотель выбрал новую категорию для товара. 
                     //Данные обновляются в БД. Сообщение редактируется на Описание товара и кнопки с функциями
@@ -304,14 +305,12 @@ namespace MyTelegramBot.Bot
                     case "UpdateProductUnit":
                         return await UpdateUnit();
 
+                    case MoreProdFuncCmd:
+                        return await SendMoreFunctionButton();
+
                     default:
                         break;
                 }
-
-
-                //Пользователь нажал на кнопку Добавить новый товар. Пользователю приходит сообщение с просьбой указать Имя, Название категори, Цена, Комментарий (не обязательной)
-                if (base.OriginalMessage == AdminBot.EnterNameNewProductCmd)
-                    return await AddNewProduct();
 
                 //Пользователь прислал новое имя для товара. данные обновляются в БД. Бот присылает сообщение с Описание товара и кнопки с функциями
                 if (base.OriginalMessage.Contains(ProductEditNameRelpy))
@@ -344,18 +343,9 @@ namespace MyTelegramBot.Bot
                 if (base.OriginalMessage.Contains(ProductEditCategoryReply))
                     return await UpdateProductCategory();
 
-                if (base.CommandName.Contains(SetProductCmd)) // админская командка для быстрого отрытия панели упраления товаром
-                {
-                    int id = Convert.ToInt32(base.CommandName.Substring(SetProductCmd.Length));
+                if (base.CommandName.Contains(SetProductCmd)) // админская командка для быстрого отрытия панели упраления товаро
+                    return await SendProductFunc(Convert.ToInt32(base.CommandName.Substring(SetProductCmd.Length)));
 
-                    Product product = new Product();
-                    using (MarketBotDbContext db = new MarketBotDbContext())
-                        product = db.Product.Where(p => p.Id == id).FirstOrDefault();
-
-                    await SendProductFunc(product);
-
-                    return OkResult;
-                }
 
                 else
                     return null;
@@ -365,6 +355,15 @@ namespace MyTelegramBot.Bot
                 return null;
         }
 
+
+        private async Task<IActionResult> SendMoreFunctionButton()
+        {
+            AdminProductFuncMsg = new ProductFuncMessage(Argumetns[0]);
+
+            await EditInlineReplyKeyboard(AdminProductFuncMsg.MoreBtn());
+
+            return OkResult;
+        }
 
         private async Task<IActionResult> SendProductPage(int CategoryId, int PageNumber = 1)
         {
@@ -397,34 +396,6 @@ namespace MyTelegramBot.Bot
         }
 
         /// <summary>
-        /// Сохраняем новое значение валюты для цены
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> UpdateCurrency()
-        {
-            try
-            {
-                using (MarketBotDbContext db=new MarketBotDbContext())
-                {
-                    var product = db.Product.Where(p => p.Id == ProductId).Include(p => p.ProductPrice).FirstOrDefault();
-
-                    product.ProductPrice.Where(p=>p.Enabled).OrderByDescending(p=>p.Id).FirstOrDefault().CurrencyId = Argumetns[1];
-
-                    db.SaveChanges();
-
-                    return await SendProductFunc(product, base.MessageId);
-                }
-            }
-
-            catch
-            {
-                return NotFoundResult;
-            }
-        }
-
-
-
-        /// <summary>
         /// Сохрнаяем новоем значение Ед. измерения для товара
         /// </summary>
         /// <returns></returns>
@@ -434,7 +405,7 @@ namespace MyTelegramBot.Bot
             {
                 using (MarketBotDbContext db = new MarketBotDbContext())
                 {
-                    var product = db.Product.Where(p => p.Id == ProductId).Include(p => p.ProductPrice).FirstOrDefault();
+                    var product = db.Product.Where(p => p.Id == ProductId).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
 
                     product.UnitId = Argumetns[1];
 
@@ -477,7 +448,7 @@ namespace MyTelegramBot.Bot
             {
                 using (MarketBotDbContext db = new MarketBotDbContext())
                 {
-                    var product = db.Product.Where(p => p.Id == ProductGet(InlineForceReply)).FirstOrDefault();
+                    var product = db.Product.Where(p => p.Id == ProductGet(InlineForceReply)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p=>p.Category).FirstOrDefault();
 
                     string Url = base.ReplyToMessageText;
 
@@ -503,7 +474,7 @@ namespace MyTelegramBot.Bot
         /// Показать все категории
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> ProductEditCategory()
+        private async Task<IActionResult> SendCategoryList()
         {
             using (MarketBotDbContext db=new MarketBotDbContext())
             {
@@ -566,7 +537,7 @@ namespace MyTelegramBot.Bot
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditNameRelpy)).FirstOrDefault();
+                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditNameRelpy)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
 
                 string NewName = base.ReplyToMessageText;
 
@@ -586,8 +557,8 @@ namespace MyTelegramBot.Bot
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditNameRelpy)).FirstOrDefault();
-               
+                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditNameRelpy)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
+
                 string NewText = base.ReplyToMessageText;
 
                 product.Text = NewText;
@@ -610,7 +581,7 @@ namespace MyTelegramBot.Bot
                 Product product = new Product();
                 if (WebUrl != null && WebUrl.Length > 0)
                 {
-                     product =db.Product.Where(p=>p.Id==ProductGet(ProductEditUrlReply)).FirstOrDefault();
+                     product =db.Product.Where(p=>p.Id==ProductGet(ProductEditUrlReply)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
 
                     if (product != null)
                     {
@@ -627,7 +598,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return await ErrorMessage(ProductEditUrlReply);
+                    return await ErrorMessage(ProductEditUrlReply,"Ошибка. Введите Url");
             }
         }
 
@@ -640,17 +611,10 @@ namespace MyTelegramBot.Bot
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditPhotoReply)).FirstOrDefault();
+                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditPhotoReply)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
                 string NewPhoto = base.PhotoId;
 
                 int fs_id= await base.InsertToAttachmentFs(base.PhotoId);
-
-                ProductPhoto productPhoto = new ProductPhoto
-                {
-                    AttachmentFsId = fs_id,
-                    ProductId = product.Id,
-                    MainPhoto=true
-                };
 
                 AttachmentTelegram attachment = new AttachmentTelegram
                 {
@@ -660,7 +624,8 @@ namespace MyTelegramBot.Bot
 
                 };
 
-                db.ProductPhoto.Add(productPhoto);
+                product.MainPhoto = fs_id;
+                db.Update<Product>(product);
                 db.AttachmentTelegram.Add(attachment);
                 db.SaveChanges();
 
@@ -679,7 +644,7 @@ namespace MyTelegramBot.Bot
                 double NewPrice = 0.0;
                 try
                 {
-                    var product = db.Product.Where(p => p.Id == ProductGet(ProductEditPriceRelpy)).Include(p=>p.ProductPrice).FirstOrDefault();
+                    var product = db.Product.Where(p => p.Id == ProductGet(ProductEditPriceRelpy)).Include(p=>p.CurrentPrice).Include(p => p.Category).FirstOrDefault();
                     NewPrice = Convert.ToDouble(base.ReplyToMessageText);
 
                     ProductPrice productPrice = new ProductPrice
@@ -690,14 +655,13 @@ namespace MyTelegramBot.Bot
                         Value = NewPrice
                     };
 
-                    var OldPrice = product.ProductPrice.Where(p => p.Enabled).FirstOrDefault();
+                    var OldPrice = product.CurrentPrice;
 
                     if (OldPrice != null)
                         OldPrice.Enabled = false;
 
                     db.ProductPrice.Add(productPrice);
                     db.SaveChanges();
-
                     return await SendProductFunc(product);
                 }
 
@@ -720,9 +684,7 @@ namespace MyTelegramBot.Bot
 
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditStockReply)).Include(p=>p.Stock).FirstOrDefault();
-
-
+                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditStockReply)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
 
                 try
                 {
@@ -745,6 +707,7 @@ namespace MyTelegramBot.Bot
 
                     db.Stock.Add(stock);
                     db.SaveChanges();
+                    product.Stock.Add(stock);
                     return await SendProductFunc(product);
                 }
 
@@ -764,18 +727,18 @@ namespace MyTelegramBot.Bot
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var product =db.Product.Where(p => p.Id == ProductId).FirstOrDefault();
+                var product =db.Product.Where(p => p.Id == ProductId).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
 
-                if (product != null && product.Enable == true || product!=null && product.Enable==null)
+                if (product != null && product.Enable == true || product!=null && product.Enable==false)
                 {
-                    product.Enable = false;
+                    product.Enable = true;
                     db.SaveChanges();
                     return await SendProductFunc(product, base.MessageId);
                 }
 
-                if (product != null && product.Enable == false || product != null && product.Enable == null)
+                if (product != null && product.Enable == false || product != null && product.Enable == true)
                 {
-                    product.Enable = true;
+                    product.Enable = false;
                     db.SaveChanges();
                     return await SendProductFunc(product, base.MessageId);
                 }
@@ -794,7 +757,7 @@ namespace MyTelegramBot.Bot
 
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditCategoryReply)).FirstOrDefault();
+                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditCategoryReply)).Include(p => p.Category).Include(p => p.CurrentPrice).Include(p => p.Unit).Include(p => p.Stock).Include(p => p.Category).FirstOrDefault();
 
                 string CatName = base.ReplyToMessageText;
 
@@ -811,154 +774,12 @@ namespace MyTelegramBot.Bot
                 else
                 {
                     await SendMessage(new BotMessage { TextMessage = "Категория не найдена!" });
-                    return await ProductEditCategory();
+                    return await SendCategoryList();
                 }
             }
 
         }
 
-        /// <summary>
-        /// Добавить товар через бота
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> AddNewProduct()
-        {
-            List<string> SplitData = new List<string>();
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                try
-                {
-                    //string quote = "\"";
-                    //" Название товара, Категория, Цена, Еденица измерения, В наличии, " + quote + "Краткое описание [не обязательно]"
-                    //  "Сникерс, Конфеты, 50, г., 1000" + quote + "Вкусные конфеты. Ага" + quote
-
-                    if (base.Caption != null && ReplyToMessageText==null)
-                    {
-                        string[] SplitTmp = base.Caption.Split(",");
-                        for (int i = 0; i < SplitTmp.Length; i++)
-                            SplitData.Add(SplitTmp[i]);
-                        
-                    }
-
-                    if(base.Caption==null && base.ReplyToMessageText!=null)
-                    {
-                        string[] SplitTmp = base.ReplyToMessageText.Split(",");
-                        for (int i = 0; i < SplitTmp.Length; i++)
-                            SplitData.Add(SplitTmp[i]);
-                    }
-
-                    const string quote = "\"";
-                    string Name = String.Empty;
-                    string CategoryName = String.Empty;
-                    double Price = 0.0;
-                    Currency Currency=new Currency();
-                    string UnitName = "";
-                    Units unit = new Units();
-                    int Stock = 0;
-
-                    string Text = String.Empty;
-
-
-                    for (int i = 0; i < SplitData.Count; i++)
-                        SplitData[i] = SplitData[i].Trim();
-
-                    if (SplitData != null && SplitData.Count > 0)
-                    {
-
-                        Name = SplitData[0];
-
-                        CategoryName = SplitData[1];
-
-                        Price = ToDouble(SplitData[2]);
-
-                        //определям валюту
-                         Currency = db.Currency.Find(BotInfo.Configuration.CurrencyId);
-
-                        //Определяем ед измерения
-                        UnitName = SplitData[3];
-                        if (UnitName != null)
-                            unit = db.Units.Where(u => u.ShortName == UnitName).FirstOrDefault();
-
-                        //В наличии
-                        Stock = ToInt(SplitData[4]);
-                        
-                        if (SplitData.Count>5 && SplitData[5] != "")// Комментарий к товару
-                            Text = SplitData[5].Substring(1, SplitData[5].Length - 2);
-
-
-                        ///ПРоверяем есть ли уже товар с таким название в БД
-                        var ReapetProduct = db.Product.Where(p => p.Name == Name).FirstOrDefault();
-
-                        // Проверям есть ли такая катерогия
-                        var Category = db.Category.Where(c => c.Name == CategoryName).FirstOrDefault();
-
-                        if (ReapetProduct != null) //отправялем сообщение с ошибкой что товар с таким навзание уже существует
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Товар с таким названием уже существует");
-
-                        if (Category == null) //отправялем сообщение с ошибкой что найдена категория
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Категория " + CategoryName + " не найдена");
-
-                        if (Price == -1) //ошибка. Цена не может быть меньше или равно 0
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Ошибка. Не удалось определить цену");
-
-                        if (Price < -1) //ошибка. Цена не может быть меньше или равно 0
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Цена должна быть положительным числом");
-
-                        if (Price ==0) //ошибка. Цена не может быть меньше или равно 0
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Цена не может быть равно 0");
-
-                        if(unit==null)
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Не удалось определить еденицу измерения");
-
-                        if (Stock < 0)
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Не удалось определить кол-во товара в наличии. Это должно быть целое число");
-
-                        if (Stock == 0)
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "кол-во товара в наличии должно быть больше 0.");
-
-                        if (ReapetProduct == null && Category != null && Price > 0 && Currency!=null && unit!=null && Stock>0)
-                        {
-                            var PhotoFs = await InsertToAttachmentFs(base.PhotoId);
-
-                            NewProduct newProduct = new NewProduct
-                            {
-                                Name = Name,
-                                CategoryId = Category.Id,
-                                Text = Text,
-                                Price = Price,
-                                AttacmentFsId = PhotoFs,
-                                Currency = Currency.Id,
-                                Unit = unit.Id,
-                                Volume = 1,
-                                Stock = Stock
-
-                            };
-                           
-
-                            var product = InsertProduct(newProduct);
-
-
-                            return await SendProductFunc(product);
-
-                        }
-
-
-                        else
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Неизвестная ошибка");
-                    }
-
-                    else
-                        return base.NotFoundResult;
-                }
-
-                catch (Exception exp)
-                {
-                    //не удалось преобразовать в числойвой формат. Пользователь неверно ввел цену
-                    return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Неизвестная ошибка");
-                }
-            }
-        }
 
         private int ToInt(string value)
         {
@@ -983,78 +804,6 @@ namespace MyTelegramBot.Bot
             catch
             {
                 return -1;
-            }
-        }
-
-        /// <summary>
-        /// Добавить новый товар в БД
-        /// </summary>
-        /// <param name="newProduct"></param>
-        /// <returns></returns>
-        private Product InsertProduct(NewProduct newProduct)
-        {
-            string idPhoto = String.Empty;
-
-
-            Product product = new Product
-            {
-                Name = newProduct.Name,
-                CategoryId = newProduct.CategoryId,
-                Enable = false,
-                DateAdd = DateTime.Now,
-                Text = newProduct.Text,
-                TelegraphUrl =String.Empty,
-                UnitId=newProduct.Unit
-                 
-            };
-
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                db.Product.Add(product);
-                if (db.SaveChanges() > 0)
-                {
-                    ProductPrice productPrice = new ProductPrice
-                    {
-                        DateAdd = DateTime.Now,
-                        Enabled = true,
-                        ProductId = product.Id,
-                        Value = newProduct.Price,
-                        Volume = newProduct.Volume,
-                        CurrencyId = newProduct.Currency
-                    };
-
-                    Stock stock = new Stock();
-                    stock.ProductId = product.Id;
-                    stock.DateAdd = DateTime.Now;
-                    stock.Quantity = newProduct.Stock;
-                    stock.Balance = newProduct.Stock;
-
-                    if (newProduct.AttacmentFsId > 0) // если есть фотография
-                    {
-                        try
-                        {
-                            ProductPhoto productPhoto = new ProductPhoto
-                            {
-                                AttachmentFsId = newProduct.AttacmentFsId,
-                                ProductId = product.Id,
-                                MainPhoto=true
-                            };
-                            db.ProductPhoto.Add(productPhoto);
-                           int a= db.SaveChanges();
-                        }
-
-                        catch (Exception e)
-                        {
-
-                        }
-                    }
-                    product.ProductPrice.Add(productPrice);
-                    product.Stock.Add(stock);
-                    db.SaveChanges();
-                }
-
-                return product;
             }
         }
 
@@ -1087,17 +836,32 @@ namespace MyTelegramBot.Bot
         /// <param name="product"></param>
         /// <param name="MessageId"></param>
         /// <returns></returns>
-        private async Task<IActionResult> SendProductFunc(Product product, int MessageId=0)
+        private async Task<IActionResult> SendProductFunc(int productId, int MessageId=0)
         {
-            if (product != null)
+            if (productId >0)
             {
-                AdminProductFuncMsg = new ProductFuncMessage(product.Id);
+                AdminProductFuncMsg = new ProductFuncMessage(productId);
+                var mess = AdminProductFuncMsg.BuildMsg();
+                await SendMessage(mess, MessageId);
 
-                if (await SendMessage(AdminProductFuncMsg.BuildMsg(), MessageId) != null)
-                    return OkResult;
+                return OkResult;
 
-                else
-                    return NotFoundResult;
+            }
+
+            else
+                return NotFoundResult;
+        }
+
+        private async Task<IActionResult> SendProductFunc(Product product, int MessageId = 0)
+        {
+            if (product !=null)
+            {
+                AdminProductFuncMsg = new ProductFuncMessage(product);
+                var mess = AdminProductFuncMsg.BuildMsg();
+                await SendMessage(mess, MessageId);
+
+                return OkResult;
+
             }
 
             else

@@ -17,7 +17,6 @@ namespace MyTelegramBot
         public int? RaitingId { get; set; }
         public int? RaitingValue { get; set; }
         public int? ProductId { get; set; }
-
         public bool Enable { get; set; }
 
         public Orders Order { get; set; }

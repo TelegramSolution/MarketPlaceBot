@@ -97,9 +97,13 @@ namespace MyTelegramBot.Bot.AdminModule
 
             try
             {
-                HelpDeskId = Argumetns[0];                
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                    HelpNumber =Convert.ToInt32(db.HelpDesk.Where(h => h.Id == HelpDeskId).FirstOrDefault().Number);
+                if (Argumetns.Count > 0)
+                {
+                    HelpDeskId = Argumetns[0];
+
+                    using (MarketBotDbContext db = new MarketBotDbContext())
+                        HelpNumber = Convert.ToInt32(db.HelpDesk.Where(h => h.Id == HelpDeskId).FirstOrDefault().Number);
+                }
             }
 
             catch

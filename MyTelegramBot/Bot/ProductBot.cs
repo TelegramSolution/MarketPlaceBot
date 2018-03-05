@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.Core;
+using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Types.ReplyMarkups;
+using Newtonsoft.Json;
+using System.Web;
+using Telegram.Bot.Types.InlineKeyboardButtons;
 
 namespace MyTelegramBot.Bot
 {
@@ -48,7 +53,7 @@ namespace MyTelegramBot.Bot
 
         public ProductBot(Update _update) : base(_update)
         {
-           
+
         }
 
         protected override void Constructor()
@@ -58,9 +63,9 @@ namespace MyTelegramBot.Bot
                 if (base.Argumetns.Count > 0)
                 {
                     ProductId = Argumetns[0];
-                    ProductViewMsg = new ProductViewMessage(this.ProductId,BotInfo.Id);
-                    AddProductToBasketMsg = new AddProductToBasketMessage(base.FollowerId, this.ProductId,BotInfo.Id);
-                    ProductRemoveFromBasketMsg = new ProductRemoveFromBasket(this.FollowerId, this.ProductId,BotInfo.Id);
+                    ProductViewMsg = new ProductViewMessage(this.ProductId, BotInfo.Id);
+                    AddProductToBasketMsg = new AddProductToBasketMessage(base.FollowerId, this.ProductId, BotInfo.Id);
+                    ProductRemoveFromBasketMsg = new ProductRemoveFromBasket(this.FollowerId, this.ProductId, BotInfo.Id);
                 }
 
             }
@@ -103,7 +108,7 @@ namespace MyTelegramBot.Bot
             }
 
             //inlene поиск
-            if (Update.InlineQuery != null && Update.InlineQuery.Query!="")
+            if (Update.InlineQuery != null && Update.InlineQuery.Query != "")
                 await ProductInlineSearch(Update.InlineQuery.Query);
 
             //ПОльзователь через инлай режим отправил в чат навзание 
@@ -121,7 +126,7 @@ namespace MyTelegramBot.Bot
             else
                 return null;
         }
-        
+
         /// <summary>
         /// Отправить стр. с товарами
         /// </summary>
@@ -139,7 +144,7 @@ namespace MyTelegramBot.Bot
             return OkResult;
         }
 
-        private async Task<IActionResult> SendFeedBack ()
+        private async Task<IActionResult> SendFeedBack()
         {
             if (Argumetns.Count == 1)
             {
@@ -158,10 +163,10 @@ namespace MyTelegramBot.Bot
                 if (mess != null)
                     await EditMessage(mess);
             }
-           
+
 
             else
-                await AnswerCallback("Отзывы отсутствуют",true);
+                await AnswerCallback("Отзывы отсутствуют", true);
 
             return OkResult;
         }
@@ -219,8 +224,8 @@ namespace MyTelegramBot.Bot
             if (AddProductToBasketMsg.Basket != null) // товар успешно добвлен в корзину
                 await base.AnswerCallback(message.CallBackTitleText);
 
-           else // в наличии меньше чем хочет пользваотель
-                await base.AnswerCallback(message.CallBackTitleText,true);
+            else // в наличии меньше чем хочет пользваотель
+                await base.AnswerCallback(message.CallBackTitleText, true);
 
             return OkResult;
         }
@@ -235,7 +240,7 @@ namespace MyTelegramBot.Bot
             {
                 int id = Convert.ToInt32(base.CommandName.Substring(ProductCmd.Length));
 
-                ProductViewMsg = new ProductViewMessage(id,BotInfo.Id);
+                ProductViewMsg = new ProductViewMessage(id, BotInfo.Id);
                 return await GetProduct();
             }
 
@@ -262,7 +267,7 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> RemoveFromBasket()
         {
-            var message= ProductRemoveFromBasketMsg.BuildMsg();
+            var message = ProductRemoveFromBasketMsg.BuildMsg();
             if (await AnswerCallback(message.CallBackTitleText))
                 return base.OkResult;
 
@@ -275,14 +280,22 @@ namespace MyTelegramBot.Bot
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                if (await SendMessage(new BotMessage
-                {
-                    TextMessage = db.Product.Where(p => p.Id == ProductId).FirstOrDefault().TelegraphUrl
-                }) != null)
-                    return base.OkResult;
 
-                else
-                    return base.NotFoundResult;
+                var product = db.Product.Find(ProductId);
+                await SendUrl("Вернуться к товару /product" + product.Id + BotMessage.NewLine() + BotMessage.NewLine() + product.TelegraphUrl);
+                return OkResult;
+                //     await SendUrl("Вернуться к товару /product"+product.Id+ BotMessage.NewLine()+ BotMessage.NewLine() + product.TelegraphUrl,
+                //         new InlineKeyboardMarkup(
+                //new[]{
+                //new[]
+                //            {
+                //               new InlineKeyboardCallbackButton("Назад","ddd")
+                //            },
+
+                //    }));
+                //    return OkResult;
+
+                //}
             }
         }
     }

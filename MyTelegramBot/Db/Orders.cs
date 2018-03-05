@@ -11,6 +11,7 @@ namespace MyTelegramBot
         {
             OrderProduct = new HashSet<OrderProduct>();
             OrdersInWork = new HashSet<OrdersInWork>();
+            FeedBack = new HashSet<FeedBack>();
         }
 
         public int Id { get; set; }
@@ -33,9 +34,13 @@ namespace MyTelegramBot
         public OrderHistory Delete { get; set; }
         public OrderHistory Done { get; set; }
         public Follower Follower { get; set; }
+
         public Invoice Invoice { get; set; }
         public PickupPoint PickupPoint { get; set; }
-        public FeedBack FeedBack { get; set; }
+        public ICollection<FeedBack> FeedBack
+        {
+            get; set;
+        }
         public OrderAddress OrderAddress { get; set; }
         public ICollection<OrderProduct> OrderProduct { get; set; }
         public ICollection<OrdersInWork> OrdersInWork { get; set; }
@@ -57,10 +62,10 @@ namespace MyTelegramBot
                     counter++;
 
                     if (p.Product == null)
-                        p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.ProductPrice).FirstOrDefault();
+                        p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.CurrentPrice).FirstOrDefault();
 
                     if (p.Price == null)
-                        p.Price = p.Product.ProductPrice.FirstOrDefault();
+                        p.Price = p.Product.CurrentPrice;
 
 
                     total += p.Price.Value * p.Count;
@@ -119,10 +124,10 @@ namespace MyTelegramBot
                         counter++;
 
                         if (p.Product == null)
-                            p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.ProductPrice).FirstOrDefault();
+                            p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.CurrentPrice).FirstOrDefault();
 
                         if (p.Price == null)
-                            p.Price = p.Product.ProductPrice.FirstOrDefault();
+                            p.Price = p.Product.CurrentPrice;
 
                         total += p.Price.Value * p.Count;
                     }

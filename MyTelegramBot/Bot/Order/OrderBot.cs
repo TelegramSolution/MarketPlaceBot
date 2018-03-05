@@ -340,7 +340,7 @@ namespace MyTelegramBot.Bot
             if (Update.PreCheckoutQuery != null)
                 return await answerPreCheckoutOrder();
 
-            if (Update.Message.SuccessfulPayment != null) // поступил платеж через банк. карту.
+            if (Update.Message!=null && Update.Message.SuccessfulPayment != null) // поступил платеж через банк. карту.
                 return await SuccessfulPaymentCreditCard();
 
             else

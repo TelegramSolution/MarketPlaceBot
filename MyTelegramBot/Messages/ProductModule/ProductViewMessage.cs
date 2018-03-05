@@ -73,7 +73,7 @@ namespace MyTelegramBot.Messages
             {
                 this.ProductName = ProductName;
                 using (MarketBotDbContext db = new MarketBotDbContext())
-                    Product = db.Product.Where(p => p.Name == ProductName && p.Enable == true).Include(p => p.ProductPrice).Include(p => p.Stock).FirstOrDefault();
+                    Product = db.Product.Where(p => p.Name == ProductName && p.Enable == true).Include(p => p.CurrentPrice).Include(p => p.Stock).FirstOrDefault();
             }
 
             catch
@@ -89,17 +89,17 @@ namespace MyTelegramBot.Messages
 
                 if (CategoryId > 0)
                     Product = db.Product.Where(p => p.CategoryId == CategoryId && p.Enable == true)
-                        .Include(p => p.ProductPrice).Include(p=>p.ProductPhoto).Include(p => p.Stock).Include(p => p.Unit).FirstOrDefault();
+                        .Include(p => p.CurrentPrice).Include(p=>p.ProductPhoto).Include(p => p.Stock).Include(p => p.Unit).FirstOrDefault();
 
                 if (ProductId > 0)
                     Product = db.Product.Where(p => p.Id == ProductId && p.Enable == true)
-                        .Include(p => p.ProductPrice).Include(p => p.ProductPhoto).Include(p => p.Stock).Include(p=>p.Unit).FirstOrDefault();
+                        .Include(p => p.CurrentPrice).Include(p => p.ProductPhoto).Include(p => p.Stock).Include(p=>p.Unit).FirstOrDefault();
 
                 if (Product != null && Product.Id > 0)
                 {
-                    NextProductId = GetNextProductId(Product.Id, Product.CategoryId);
+                    NextProductId = GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId));
 
-                    PreviousProductId = GetPreviousId(Product.Id, Product.CategoryId);
+                    PreviousProductId = GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId));
 
                     Url = Product.TelegraphUrl;
 
@@ -330,11 +330,12 @@ namespace MyTelegramBot.Messages
         private void GetMainPhoto(MarketBotDbContext db,string Caption)
         {
             //Ищем фотографии для этого бота
-            var photo = Product.ProductPhoto.Where(p=>p.MainPhoto).OrderByDescending(a => a.AttachmentFsId).FirstOrDefault();
+            var photo = db.AttachmentFs.Find(Convert.ToInt32(this.Product.MainPhoto));
+
             if (photo != null) 
             {
                 //Берем последнюю фотографию
-                var attach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == photo.AttachmentFsId && a.BotInfoId==BotId).OrderByDescending(a=>a.AttachmentFsId).FirstOrDefault();
+                var attach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == photo.Id && a.BotInfoId==BotId).OrderByDescending(a=>a.AttachmentFsId).FirstOrDefault();
 
                 // для бота уже загружена фотография. Вытаскиваем id файла
                 if (attach != null && attach.FileId != null)
@@ -351,17 +352,15 @@ namespace MyTelegramBot.Messages
 
                 else
                 {
-                    var attach_fs = db.AttachmentFs.Where(a => a.Id == photo.AttachmentFsId).OrderByDescending(a=>a.Id).FirstOrDefault();
-
                     ///для бота фотография не загружена. Вытаскиваем файл фотографии из бд
-                    if (attach_fs != null && attach_fs.Fs.Length > 0)
+                    if (photo != null && photo.Fs.Length > 0)
                     {
                         base.MediaFile = new MediaFile
                         {
                             Caption = Caption,
-                            FileTo = new Telegram.Bot.Types.FileToSend { Content = new System.IO.MemoryStream(attach_fs.Fs), Filename = "Photo.jpg" },
+                            FileTo = new Telegram.Bot.Types.FileToSend { Content = new System.IO.MemoryStream(photo.Fs), Filename = "Photo.jpg" },
                             
-                            AttachmentFsId=attach_fs.Id,
+                            AttachmentFsId= photo.Id,
                             FileTypeId=Bot.Core.ConstantVariable.MediaTypeVariable.Photo
                         };
                     }

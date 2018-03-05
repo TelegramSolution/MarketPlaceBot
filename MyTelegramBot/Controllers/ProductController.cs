@@ -28,11 +28,8 @@ namespace MyTelegramBot.Controllers
         public IActionResult Index()
         {
             db = new MarketBotDbContext();
-            var products = db.Product.Include(p => p.Category).ToList();
+            var products = db.Product.Include(p=>p.CurrentPrice).Include(p => p.Category).ToList();
            
-            foreach(Product p in products)
-                p.ProductPrice = db.ProductPrice.Where(pr => pr.ProductId == p.Id && pr.Enabled == true).Include(pr=>pr.Currency).OrderByDescending(pr => pr.Id).ToList();            
-
             return View(products);
         }
 
@@ -54,7 +51,7 @@ namespace MyTelegramBot.Controllers
             product.TelegraphUrl = String.Empty;
             product.Text = String.Empty;
             product.PhotoUrl = String.Empty;
-            product.ProductPrice.Add(new ProductPrice { CurrencyId = conf.Configuration.CurrencyId, Value = 0 });
+            product.CurrentPrice=new ProductPrice { CurrencyId = conf.Configuration.CurrencyId, Value = 0 };
 
             if(catlist.Count>0)
             ViewBag.Category = new SelectList(catlist, "Id", "Name", db.Category.FirstOrDefault().Id);
@@ -115,7 +112,7 @@ namespace MyTelegramBot.Controllers
             {
 
                 foreach (IFormFile file in image)
-                    AddAttachment(file, ProductId, false);
+                    InsertProductPhoto(ProductId,InsertAttachment(file, ProductId));
 
 
                 RedirectResult redirectResult = new RedirectResult("Photos\\" + ProductId);
@@ -201,15 +198,10 @@ namespace MyTelegramBot.Controllers
             if (id > 0)
             {
                 db = new MarketBotDbContext();
-                var product = db.Product.Where(p => p.Id == id).Include(p => p.Unit).Include(p=>p.Category).FirstOrDefault();
-
-                product.ProductPhoto.Add(db.ProductPhoto.Where(photo => photo.ProductId == product.Id && photo.MainPhoto).
-                    OrderByDescending(photo=>photo.AttachmentFsId).Include(photo=>photo.AttachmentFs).FirstOrDefault());
-
-                product.ProductPrice.Add(db.ProductPrice.Where(price => price.ProductId == product.Id && price.Enabled == true).OrderByDescending(price => price.Id).FirstOrDefault());
+                var product = db.Product.Where(p => p.Id == id).Include(p => p.Unit).Include(p=>p.CurrentPrice).Include(p=>p.MainPhotoNavigation).Include(p=>p.Category).FirstOrDefault();
                 if (product.ProductPhoto.FirstOrDefault() != null)
                 {
-                    string imageBase64Data = Convert.ToBase64String(product.ProductPhoto.FirstOrDefault().AttachmentFs.Fs);
+                    string imageBase64Data = Convert.ToBase64String(product.MainPhotoNavigation.Fs);
                     string imageDataURL = string.Format("data:image/png;base64,{0}", imageBase64Data);
                     ViewBag.ImageData = imageDataURL;
                 }
@@ -241,16 +233,15 @@ namespace MyTelegramBot.Controllers
 
             var conf = db.BotInfo.Where(b => b.Name == Bot.GeneralFunction.GetBotName()).Include(b => b.Configuration).FirstOrDefault();
 
-            SaveProduct.ProductPrice.FirstOrDefault().CurrencyId = conf.Configuration.CurrencyId;
+            SaveProduct.CurrentPrice.CurrencyId = conf.Configuration.CurrencyId;
 
             if (SaveProduct!=null)
                 Check = CheckName(SaveProduct.Name);
 
             if (SaveProduct != null && SaveProduct.Id > 0)
             {
-                Product = db.Product.Where(p => p.Id == SaveProduct.Id).FirstOrDefault(); // находим товар в бд
-                Product.ProductPrice = db.ProductPrice.Where(pr => pr.ProductId == Product.Id && pr.Enabled == true).
-                    Include(pr => pr.Currency).OrderByDescending(pr => pr.Id).ToList();
+                Product = db.Product.Find(SaveProduct.Id); // находим товар в бд
+
             }
 
             if (Product!=null && Product.Name != SaveProduct.Name && Check == false || Product==null && Check==false)
@@ -271,18 +262,19 @@ namespace MyTelegramBot.Controllers
                 Product.UnitId = SaveProduct.UnitId;
 
                 // Проверям изменил ли пользователь цену .  Если изменил то добавляем новую запись в БД
-                if (SaveProduct.ProductPrice.FirstOrDefault().Value != Product.ProductPrice.FirstOrDefault().Value 
-                    && SaveProduct.ProductPrice.FirstOrDefault().Value >0)
+                if (SaveProduct.CurrentPrice.Value != Product.CurrentPrice.Value 
+                    && SaveProduct.CurrentPrice.Value >0)
                 {
-                    SaveProduct.ProductPrice.FirstOrDefault().ProductId = Product.ProductPrice.FirstOrDefault().ProductId;
-                    ProductPriceInsert(SaveProduct.ProductPrice.FirstOrDefault());
-                    DisablePrice(Product.ProductPrice.FirstOrDefault());
+                    SaveProduct.CurrentPrice.ProductId = Product.CurrentPrice.ProductId;        
+                    Product.CurrentPrice= ProductPriceInsert(SaveProduct.CurrentPrice);
+                    DisablePrice(Product.CurrentPrice);
                 }
 
                 if (image != null && SaveProduct!=null && SaveProduct.Id>0) // обновляем фотографию
-                    AddAttachment(image, SaveProduct.Id);
+                    Product.MainPhotoNavigation=InsertAttachment(image, Product.Id);
 
                 db.SaveChanges();
+                db.Dispose();
                 return new RedirectResult("Editor\\" + SaveProduct.Id);
             }
 
@@ -292,7 +284,7 @@ namespace MyTelegramBot.Controllers
                 SaveProduct=ProductInsert(SaveProduct);
 
                 if (SaveProduct.Id > 0 && image != null)
-                    AddAttachment(image, SaveProduct.Id);
+                    InsertAttachment(image, SaveProduct.Id);
 
                 if(SaveProduct.Id>0)
                     return RedirectToAction("Index");
@@ -317,10 +309,10 @@ namespace MyTelegramBot.Controllers
             if (db == null)
                 db = new MarketBotDbContext();
 
-            if (product!=null && product.ProductPrice.FirstOrDefault() != null)
+            if (product!=null && product.CurrentPrice != null)
             {
-                product.ProductPrice.FirstOrDefault().Enabled = true;
-                product.ProductPrice.FirstOrDefault().DateAdd = DateTime.Now;
+                product.CurrentPrice.Enabled = true;
+                product.CurrentPrice.DateAdd = DateTime.Now;
             }
 
             if(product!=null && product.Stock.FirstOrDefault() != null)
@@ -360,7 +352,7 @@ namespace MyTelegramBot.Controllers
             return NewPrice;
         }
 
-        private void AddAttachment(IFormFile file , int ProductId, bool MainMenu=true)
+        private AttachmentFs InsertAttachment(IFormFile file , int ProductId)
         {
             if (db == null)
                 db = new MarketBotDbContext();
@@ -381,17 +373,23 @@ namespace MyTelegramBot.Controllers
 
             db.SaveChanges();
 
+            return fs;
+
+        }
+
+        private ProductPhoto InsertProductPhoto(int ProductId, AttachmentFs attachmentFs)
+        {
             ProductPhoto productPhoto = new ProductPhoto
             {
-                AttachmentFsId = fs.Id,
+                AttachmentFsId = attachmentFs.Id,
                 ProductId = ProductId,
-                MainPhoto= MainMenu
             };
 
             db.ProductPhoto.Add(productPhoto);
 
             db.SaveChanges();
 
+            return productPhoto;
         }
 
         /// <summary>

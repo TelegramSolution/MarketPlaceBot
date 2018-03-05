@@ -44,11 +44,13 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton OpenProductBtn { get; set; }
 
-        //private InlineKeyboardCallbackButton CurrencyBtn { get; set; }
+        private InlineKeyboardCallbackButton MoreSettingsBtn { get; set; }
 
         private InlineKeyboardCallbackButton UnitBtn { get; set; }
 
         private InlineKeyboardCallbackButton InlineImageBtn { get; set; }
+
+        private InlineKeyboardCallbackButton AdditionalPhotosBtn { get; set; }
 
         private Product Product { get; set; }
 
@@ -58,12 +60,18 @@ namespace MyTelegramBot.Messages.Admin
             
         }
 
+        public ProductFuncMessage (Product product)
+        {
+            this.Product = product;
+        }
+
         public override BotMessage BuildMsg()
         {
             int? Quantity = 0;
 
-            using(MarketBotDbContext db=new MarketBotDbContext())
-                Product=db.Product.Where(p => p.Id == ProductId).Include(p => p.Category).Include(p => p.ProductPrice).Include(p=>p.Unit).Include(p => p.Stock).FirstOrDefault();
+            if(Product==null)
+                using(MarketBotDbContext db=new MarketBotDbContext())
+                    Product=db.Product.Where(p => p.Id == ProductId).Include(p => p.Category).Include(p => p.ProductPrice).Include(p=>p.Unit).Include(p => p.Stock).FirstOrDefault();
             
 
             if (Product != null && Product.Stock != null && Product.Stock.Count > 0)
@@ -73,39 +81,30 @@ namespace MyTelegramBot.Messages.Admin
             {
                 // base.TextMessage = product.ToString()+ " - "+ Quantity.ToString()+" шт.";
 
-              
+                AdminPanelBtn = BackToAdminPanelBtn();
 
-                base.BackBtn = new InlineKeyboardCallbackButton("Назад", BuildCallData(AdminBot.AdminProductInCategoryCmd, AdminBot.ModuleName, Product.CategoryId));
 
-                ProductEditNameBtn = BuildInlineBtn("Название", BuildCallData(ProductEditBot.ProductEditNameCmd, ProductEditBot.ModuleName, ProductId),base.PenEmodji);
+                ProductEditNameBtn = BuildInlineBtn("Название", BuildCallData(ProductEditBot.ProductEditNameCmd, ProductEditBot.ModuleName, Product.Id),base.PenEmodji);
 
-                ProductEditCategoryBtn = BuildInlineBtn("Категория", BuildCallData(ProductEditBot.ProductEditCategoryCmd, ProductEditBot.ModuleName, ProductId), base.PenEmodji);
+                ProductEditCategoryBtn = BuildInlineBtn("Категория", BuildCallData(ProductEditBot.ProductEditCategoryCmd, ProductEditBot.ModuleName, Product.Id), base.PenEmodji);
 
-                ProductEditPriceBtn = BuildInlineBtn("Стоимость", BuildCallData(ProductEditBot.ProductEditPriceCmd, ProductEditBot.ModuleName, ProductId), base.CashEmodji);
+                ProductEditPriceBtn = BuildInlineBtn("Стоимость", BuildCallData(ProductEditBot.ProductEditPriceCmd, ProductEditBot.ModuleName, Product.Id), base.CashEmodji);
 
-                ProductEditStockBtn = BuildInlineBtn("Остаток", BuildCallData(ProductEditBot.ProductEditStockCmd, ProductEditBot.ModuleName, ProductId),base.DepthEmodji);
+                ProductEditStockBtn = BuildInlineBtn("Остаток", BuildCallData(ProductEditBot.ProductEditStockCmd, ProductEditBot.ModuleName, Product.Id),base.DepthEmodji);
 
-                ProductEditTextBtn = BuildInlineBtn("Описание", BuildCallData(ProductEditBot.ProductEditTextCmd, ProductEditBot.ModuleName, ProductId),base.NoteBookEmodji);
+                ProductEditTextBtn = BuildInlineBtn("Описание", BuildCallData(ProductEditBot.ProductEditTextCmd, ProductEditBot.ModuleName, Product.Id),base.NoteBookEmodji);
 
-                ProductEditPhotoBtn = BuildInlineBtn("Фотография", BuildCallData(ProductEditBot.ProductEditPhotoCmd, ProductEditBot.ModuleName, ProductId),base.PictureEmodji);
+                ProductEditPhotoBtn = BuildInlineBtn("Фотография", BuildCallData(ProductEditBot.ProductEditPhotoCmd, ProductEditBot.ModuleName, Product.Id),base.PictureEmodji);
 
-                ProductEditUrlBtn = BuildInlineBtn("Заметка", BuildCallData(ProductEditBot.ProductEditUrlCmd, ProductEditBot.ModuleName, ProductId),base.PenEmodji);
-
-                AdminPanelBtn = BuildInlineBtn("Панель администратора", BuildCallData(AdminBot.BackToAdminPanelCmd,AdminBot.ModuleName),base.CogwheelEmodji);
-
-                UnitBtn = BuildInlineBtn("Ед.изм.", BuildCallData(ProductEditBot.ProudctUnitCmd, ProductEditBot.ModuleName, ProductId),base.WeigherEmodji);
-
-                //CurrencyBtn = new InlineKeyboardCallbackButton("Валюта", BuildCallData(ProductEditBot.ProudctCurrencyCmd, ProductEditBot.ModuleName, ProductId));
-
-                InlineImageBtn = BuildInlineBtn("Фото в Inline", BuildCallData(ProductEditBot.ProductInlineImageCmd, ProductEditBot.ModuleName, ProductId),base.PictureEmodji);
+                MoreSettingsBtn = BuildInlineBtn("Дополнительно", BuildCallData(ProductEditBot.MoreProdFuncCmd, ProductEditBot.ModuleName, Product.Id), base.Next2Emodji);
 
                 base.TextMessage = Product.AdminMessage();
 
                 if (Product.Enable == true)
-                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, ProductId),base.CheckEmodji);
+                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id),base.CheckEmodji);
 
                 else
-                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, ProductId),base.UnCheckEmodji);
+                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id),base.UnCheckEmodji);
 
                 if (Product.Enable == true)
                     OpenProductBtn = BuildInlineBtn("Открыть", BuildCallData(ProductBot.GetProductCmd, ProductBot.ModuleName, Product.Id),base.SenderEmodji);
@@ -134,23 +133,19 @@ namespace MyTelegramBot.Messages.Admin
 
                 new[]
                         {
-                            ProductEditTextBtn, ProductEditPhotoBtn,UnitBtn
+                            ProductEditTextBtn, ProductEditPhotoBtn
                         },
 
                 new[]
                         {
-                            ProductEditEnableBtn, ProductEditUrlBtn,InlineImageBtn
+                            ProductEditEnableBtn
                         },
 
                 new[]
                          {
-                            AdminPanelBtn
+                            AdminPanelBtn,MoreSettingsBtn
                          }
                 ,
-                new[]
-                        {
-                            BackBtn
-                        }
 
                 });
 
@@ -171,26 +166,58 @@ namespace MyTelegramBot.Messages.Admin
 
                 new[]
                         {
-                            ProductEditTextBtn, ProductEditPhotoBtn,UnitBtn
+                            ProductEditTextBtn, ProductEditPhotoBtn
                         },
 
                 new[]
                         {
-                            ProductEditEnableBtn, ProductEditUrlBtn,InlineImageBtn
+                            ProductEditEnableBtn
                         },
 
                 new[]
                          {
-                            AdminPanelBtn
+                            AdminPanelBtn,MoreSettingsBtn
                          }
                 ,
-                new[]
-                        {
-                            BackBtn
-                        }
 
                 });
 
+        }
+
+        public InlineKeyboardMarkup MoreBtn()
+        {
+            AdditionalPhotosBtn = BuildInlineBtn("Доп. фотографии", BuildCallData("AdditionalPhotosEditor", ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
+
+            ProductEditUrlBtn = BuildInlineBtn("Заметка", BuildCallData(ProductEditBot.ProductEditUrlCmd, ProductEditBot.ModuleName, ProductId), base.PenEmodji);
+
+            AdminPanelBtn = BackToAdminPanelBtn();
+
+            UnitBtn = BuildInlineBtn("Ед.изм.", BuildCallData(ProductEditBot.ProudctUnitCmd, ProductEditBot.ModuleName, ProductId), base.WeigherEmodji);
+
+            BackBtn = BuildInlineBtn("Назад", BuildCallData(ProductEditBot.BackToProductEditorCmd, ProductEditBot.ModuleName, ProductId), base.Previuos2Emodji, false);
+
+            InlineImageBtn = BuildInlineBtn("Фото для поиска", BuildCallData(ProductEditBot.ProductInlineImageCmd, ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
+
+
+            return new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                            ProductEditUrlBtn, UnitBtn
+                        },
+                new[]
+                        {
+                            InlineImageBtn, AdditionalPhotosBtn
+                        },
+
+
+                new[]
+                         {
+                            BackBtn,AdminPanelBtn
+                         }
+                ,
+
+                });
         }
     }
 }

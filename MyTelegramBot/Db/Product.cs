@@ -12,40 +12,39 @@ namespace MyTelegramBot
         public Product()
         {
             Basket = new HashSet<Basket>();
-            Notification = new HashSet<Notification>();
-            OrderProduct = new HashSet<OrderProduct>();
-            ProductPrice = new HashSet<ProductPrice>();
-            ProductPhoto = new HashSet<ProductPhoto>();
-            Stock = new HashSet<Stock>();
             FeedBack = new HashSet<FeedBack>();
+            OrderProduct = new HashSet<OrderProduct>();
+            ProductPhoto = new HashSet<ProductPhoto>();
+            ProductPrice = new HashSet<ProductPrice>();
+            Stock = new HashSet<Stock>();
         }
 
         public int Id { get; set; }
-
         public string Name { get; set; }
         public string Text { get; set; }
         public string PhotoId { get; set; }
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
         public bool Enable { get; set; }
         public string TelegraphUrl { get; set; }
         public DateTime? DateAdd { get; set; }
         public string PhotoUrl { get; set; }
-
         public int? UnitId { get; set; }
-
         public string Code { get; set; }
+        public int? MainPhoto { get; set; }
+        public int? CurrentPriceId { get; set; }
 
         public Category Category { get; set; }
+        public ProductPrice CurrentPrice { get; set; }
+        public AttachmentFs MainPhotoNavigation { get; set; }
+        public Units Unit { get; set; }
         public ICollection<Basket> Basket { get; set; }
-        public ICollection<Notification> Notification { get; set; }
+        public ICollection<FeedBack> FeedBack { get; set; }
         public ICollection<OrderProduct> OrderProduct { get; set; }
+        public ICollection<ProductPhoto> ProductPhoto { get; set; }
+
         public ICollection<ProductPrice> ProductPrice { get; set; }
 
-        public ICollection<FeedBack> FeedBack { get; set; }
-
-        public ICollection<ProductPhoto> ProductPhoto { get; set; }
         public ICollection<Stock> Stock { get; set; }
-        public Units Unit { get; set; }
 
         public override string ToString()
         {
@@ -61,10 +60,10 @@ namespace MyTelegramBot
                 if (Stock.Count == 0)
                     StockStatus = StockStatusOutOfStock;
 
-                var price = ProductPrice.Where(p => p.Enabled).FirstOrDefault().ToString();
+                string price = CurrentPrice.ToString();
 
                 return "Название: " + Name + BotMessage.NewLine() +
-                "Цена: " + ProductPrice.Where(p => p.Enabled).FirstOrDefault().ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
+                "Цена: " + price + " / " + Unit.ShortName + BotMessage.NewLine() +
                 "Описание: " + Text + BotMessage.NewLine() 
                  + StockStatus;
             }
@@ -93,7 +92,7 @@ namespace MyTelegramBot
             try
             {
                 return BotMessage.Bold("Название: ") + Name + BotMessage.NewLine() +
-                BotMessage.Bold("Цена: ") + ProductPrice.Where(p => p.Enabled).OrderByDescending(o => o.Id).FirstOrDefault().ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
+                BotMessage.Bold("Цена: ") + CurrentPrice.ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
                 BotMessage.Bold("Категория: ") + Category.Name + BotMessage.NewLine() +
                 BotMessage.Bold("Описание: ") + Text + BotMessage.NewLine() +
                 BotMessage.Bold("В наличии: ") + Balance.ToString() + BotMessage.NewLine() +

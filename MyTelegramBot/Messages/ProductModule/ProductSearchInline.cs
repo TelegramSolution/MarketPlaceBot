@@ -26,6 +26,8 @@ namespace MyTelegramBot.Messages
 
         MarketBotDbContext db { get; set; }
 
+        private const string NotFoundImg = "http://proxyprivat.com/images/noimage.jpeg";
+
         public ProductSearchInline(string Query)
         {
             this.Query = Query;
@@ -63,9 +65,16 @@ namespace MyTelegramBot.Messages
                    + product[i].ProductPrice.Where(p => p.Enabled).FirstOrDefault().Currency.ShortName
                    + "\r\nНажмите сюда";
 
-                article[i].ThumbUrl = product[i].PhotoUrl;
+                if (product[i].PhotoUrl != null && product[i].PhotoUrl != "")
+                    article[i].ThumbUrl = product[i].PhotoUrl;
+
+                else
+                    article[i].ThumbUrl = NotFoundImg;
+
                 article[i].Url = product[i].TelegraphUrl;
+
                 article[i].InputMessageContent = textcontent[i];
+
                 article[i].ReplyMarkup  = new InlineKeyboardMarkup(
                     new[]{
                     new[]

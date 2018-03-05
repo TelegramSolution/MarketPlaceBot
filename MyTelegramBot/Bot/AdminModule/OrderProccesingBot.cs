@@ -196,7 +196,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
                     ///Администратор нажал на кнопку "показать номер телефона"
                     case CmdGetTelephone:
-                        return await GetContact();
+                        return await SendContactUser();
 
                     ///Адмнистратор нажал на кнопку "Показать на карте"
                     case CmdViewAddressOnMap:
@@ -587,7 +587,7 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Показать номер телефона покупателя
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> GetContact()
+        private async Task<IActionResult> SendContactUser()
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
@@ -609,8 +609,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 if (order.Follower != null && order.Follower.UserName != null && order.Follower.UserName != "")
                 {
-                    string url = BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName);
-                    await SendMessage(new BotMessage { TextMessage = url });
+
+                    await SendUrl(BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName));
                     return OkResult;
                 }
 

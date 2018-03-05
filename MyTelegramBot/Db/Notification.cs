@@ -12,5 +12,6 @@ namespace MyTelegramBot
 
         public Follower Follower { get; set; }
         public Product Product { get; set; }
+        public string Text { get; internal set; }
     }
 }
