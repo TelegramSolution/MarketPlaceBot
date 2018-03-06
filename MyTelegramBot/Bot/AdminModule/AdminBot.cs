@@ -145,7 +145,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string StockHistoryProudctCmd="/stockhistory";
 
-     
+        public const string BlockUserCmd = "/userblock";
+
+        public const string UnblockUserCmd = "/userunblock";
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -280,7 +282,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await SendStat();
 
                     case ViewOperatosCmd:
-                        return await SendOperatorList();
+                        return await SendOperatorList(MessageId);
 
                     case "GenerateKey":
                         return await GenerateKey();
@@ -331,6 +333,12 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(DisablePickUpPointCmd))
                     return await EnablePickUpPoint(DisablePickUpPointCmd);
 
+                if (base.CommandName.Contains(BlockUserCmd)) 
+                    return await BlockUser();
+
+                if (base.CommandName.Contains(UnblockUserCmd))
+                    return await UnBlockUser();
+
                 else
                     return null;
             }
@@ -349,6 +357,86 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
+
+        /// <summary>
+        /// заблокировать пользователя
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> BlockUser()
+        {
+            try
+            {
+                int id = Convert.ToInt32(base.CommandName.Substring(BlockUserCmd.Length));
+
+                MarketBotDbContext db = new MarketBotDbContext();
+
+                var follower = db.Follower.Find(id);
+
+                db.Dispose();
+
+                if (follower != null)
+                {
+                    if (!follower.Blocked)
+                    {
+                        follower.Blocked = true;
+                        db.Update<Follower>(follower);
+                        db.SaveChanges();
+                        await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Пользователь " + follower.FirstName + " " + follower.LastName + " заблокирован" });
+                        return OkResult;
+                    }
+
+                    else
+                        await SendMessage(new BotMessage { TextMessage = "Пользователь уже заблокирован" });
+                }
+
+                return OkResult;
+            }
+
+            catch
+            {
+                return OkResult;
+            }
+        }
+
+        /// <summary>
+        /// Разблокировать пользо
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> UnBlockUser()
+        {
+            try
+            {
+                int id = Convert.ToInt32(base.CommandName.Substring(UnblockUserCmd.Length));
+
+                MarketBotDbContext db = new MarketBotDbContext();
+
+                var follower = db.Follower.Find(id);
+
+                db.Dispose();
+
+                if (follower != null)
+                {
+                    if (follower.Blocked)
+                    {
+                        follower.Blocked = false;
+                        db.Update<Follower>(follower);
+                        db.SaveChanges();
+                        await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Пользователь " + follower.FirstName + " " + follower.LastName + " разблокирован" });
+                        return OkResult;
+                    }
+
+                    else
+                        await SendMessage(new BotMessage { TextMessage = "Пользователь разблокирован!" });
+                }
+
+                return OkResult;
+            }
+
+            catch
+            {
+                return OkResult;
+            }
+        }
 
         private async Task<IActionResult> SendProductStockHistory(int ProductId,int PageNumber=1,int MessageId=0)
         {
@@ -687,15 +775,12 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Отправить сообщение со списком всех операторов
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendOperatorList()
+        private async Task<IActionResult> SendOperatorList(int MessageId=0)
         {
             try
             {
-                if(AdminControlMsg!=null && await SendMessage(AdminControlMsg.BuildMsg()) != null)
-                    return OkResult;
-
-                else
-                    return OkResult;
+                await SendMessage(AdminControlMsg.BuildMsg(), MessageId);
+                return OkResult;
             }
 
             catch

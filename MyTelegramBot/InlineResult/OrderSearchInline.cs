@@ -46,7 +46,6 @@ namespace MyTelegramBot.InlineResult
 
             catch (Exception e)
             {
-                db.Dispose();
                 return null;
             }
 
@@ -81,20 +80,19 @@ namespace MyTelegramBot.InlineResult
                 article[i].Title = Orders[i].Number.ToString();
                 article[i].Description = "№" + Orders[i].Number.ToString() + "\r\nДата:" + Orders[i].DateAdd.ToString()
                     + StatusOrderLine;
-                    
 
-                article[i].ThumbUrl = "http://pngimages.net/sites/default/files/purchase-order-png-image-59159.png";
-
+                article[i].ThumbUrl = "https://cdn2.iconfinder.com/data/icons/shop-payment-vol-6/128/shop-19-256.png";
                 article[i].InputMessageContent = textcontent[i];
-
                 article[i].ReplyMarkup = new InlineKeyboardMarkup(
                     new[]{
-                    new[]
-                    {
-                        OpenOrderBtn=BuildInlineBtn("Открыть",BuildCallData(Bot.AdminModule.OrderProccesingBot.CmdOpenOrder,Bot.AdminModule.OrderProccesingBot.ModuleName,Orders[i].Id))
+                            new[]
+                            {
+                                OpenOrderBtn=BuildInlineBtn("Открыть",
+                                            BuildCallData(Bot.AdminModule.OrderProccesingBot.CmdOpenOrder,Bot.AdminModule.OrderProccesingBot.ModuleName,Orders[i].Id))
 
-                    }
+                            }
                     });
+
                 result[i] = new InlineQueryResult();
                 result[i] = article[i];
                 

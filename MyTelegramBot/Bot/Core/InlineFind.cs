@@ -24,10 +24,31 @@ namespace MyTelegramBot.Bot.Core
 {
     public class InlineFind
     {
+        /// <summary>
+        /// поиск по заказам
+        /// </summary>
         public const string FindOrder = "Заказы";
 
+        /// <summary>
+        /// поиск доп фоток у товара
+        /// </summary>
         public const string AdditionalProduct = "Доп.фото";
 
+        /// <summary>
+        /// поиск по пользователям
+        /// </summary>
+        public const string FindUsers = "Пользователи";
+
+        public const string FindOperators = "Операторы";
+
+        /// <summary>
+        /// поиск по товарам
+        /// </summary>
+        public const string PhotoCatalog = "Фотокаталог";
+
+        public const string SearchProduct = "Поиск";
+
+        public const string EditProduct = "Редактор";
 
         private InlineQuery inlineQuery { get; set; }
 
@@ -42,9 +63,6 @@ namespace MyTelegramBot.Bot.Core
         private Dictionary <string,string> FindArgument { get; set; }
 
 
-        private InlineResult.OrderSearchInline OrderSearchInline { get; set; }
-
-        private InlineResult.ProductSearchInline ProductSearchInline { get; set; }
 
         private Telegram.Bot.TelegramBotClient  TelegramBot { get; set; }
 
@@ -72,9 +90,29 @@ namespace MyTelegramBot.Bot.Core
                 if (GetFrom(inlineQuery.Query) == FindOrder)
                     BotInline = new InlineResult.OrderSearchInline(QueryLine(inlineQuery.Query));
 
+                if(GetFrom(inlineQuery.Query) == FindUsers)
+                    BotInline = new InlineResult.FollowerInlineSearchInline(QueryLine(inlineQuery.Query));
 
-                else
-                    BotInline = new InlineResult.ProductSearchInline(QueryLine(inlineQuery.Query),BotInfo);
+                if (GetFrom(inlineQuery.Query) == PhotoCatalog)
+                    BotInline = new InlineResult.PhotoCatalogInline(QueryLine(inlineQuery.Query),BotInfo);
+
+                if (GetFrom(inlineQuery.Query) == SearchProduct)
+                    BotInline = new InlineResult.ProductSearchInline(QueryLine(inlineQuery.Query));
+
+                if (GetFrom(inlineQuery.Query) == EditProduct)
+                    BotInline = new InlineResult.AdminProductSearchInline(QueryLine(inlineQuery.Query));
+
+                if (GetFrom(inlineQuery.Query) == FindOperators)
+                    BotInline = new InlineResult.OperatorSearchInline(QueryLine(inlineQuery.Query));
+
+                if (BotInline != null)
+                    await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
+
+            }
+
+            else
+            {
+                BotInline = new InlineResult.ProductSearchInline(QueryLine(inlineQuery.Query));
 
                 if (BotInline != null)
                     await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
@@ -106,8 +144,10 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
-                return query.Substring(query.IndexOf('|')+1); // определяем где проходит поиск
-                //return ArgumentsTableName[parse];
+                string res = query.Substring(query.IndexOf('|') + 1);
+
+                return res; 
+
             }
 
             catch

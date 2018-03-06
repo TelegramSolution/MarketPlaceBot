@@ -38,7 +38,7 @@ namespace MyTelegramBot.Messages.Admin
 
             Pages = base.BuildDataPage<Stock>(StockList, base.PageSize);
 
-            base.MessageReplyMarkup = base.PageNavigatorKeyboard<Stock>(Pages, Bot.AdminModule.AdminBot.ViewStockProdCmd, Bot.AdminModule.AdminBot.ModuleName, base.BackToAdminPanelBtn(), ProductId);
+            base.MessageReplyMarkup = base.PageNavigatorKeyboard<Stock>(Pages, Bot.AdminModule.AdminBot.ViewStockProdCmd, Bot.AdminModule.AdminBot.ModuleName, base.BackToAdminPanelBtn(),Argument: ProductId);
 
             if(Pages!=null && Pages.Count>0 && Pages[SelectPageNumber] != null)
             {

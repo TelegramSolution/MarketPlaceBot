@@ -371,7 +371,7 @@ namespace MyTelegramBot.Bot.Core
 
         }
 
-        protected IReplyMarkup PageNavigatorKeyboard<T>(Dictionary<int, List<T>> Pages, string CmdName, string CmdModuleName, InlineKeyboardCallbackButton BackBtn , params int[] Argument)
+        protected IReplyMarkup PageNavigatorKeyboard<T>(Dictionary<int, List<T>> Pages, string CmdName, string CmdModuleName, InlineKeyboardCallbackButton BackBtn , InlineKeyboardButton[] RowBtns=null, params int[] Argument)
         {
             if (Pages != null && Pages.Count > 0 && Pages.Count>=SelectPageNumber && Pages[SelectPageNumber] != null && BackBtn != null)
             {
@@ -381,7 +381,7 @@ namespace MyTelegramBot.Bot.Core
 
                 this.PreviousPageBtn = this.BuildPreviousPageBtn<T>(Pages, this.SelectPageNumber, CmdName, CmdModuleName, Argument);
 
-                return PageNavigatorKeyboard(this.NextPageBtn, this.PreviousPageBtn, BackBtn);
+                return PageNavigatorKeyboard(this.NextPageBtn, this.PreviousPageBtn, BackBtn,RowBtns);
             }
 
             else
@@ -396,9 +396,9 @@ namespace MyTelegramBot.Bot.Core
         /// <param name="PrevBtn">кнопка "пред. запись"</param>
         /// <param name="BackBtn">кнопка "вернуться назад"</param>
         /// <returns></returns>
-        private IReplyMarkup PageNavigatorKeyboard(InlineKeyboardCallbackButton NextBtn, InlineKeyboardCallbackButton PrevBtn, InlineKeyboardCallbackButton BackBtn)
+        private IReplyMarkup PageNavigatorKeyboard(InlineKeyboardCallbackButton NextBtn, InlineKeyboardCallbackButton PrevBtn, InlineKeyboardCallbackButton BackBtn, InlineKeyboardButton[] RowBtns=null)
         {
-            if (NextBtn !=null && PrevBtn !=null && BackBtn !=null )
+            if (NextBtn !=null && PrevBtn !=null && BackBtn !=null && RowBtns==null)
             {
                 return new InlineKeyboardMarkup(
                 new[]{
@@ -417,7 +417,27 @@ namespace MyTelegramBot.Bot.Core
                 });
             }
 
-            if (NextBtn == null && PrevBtn == null && BackBtn != null)
+            if (NextBtn != null && PrevBtn != null && BackBtn != null && RowBtns != null)
+            {
+                return new InlineKeyboardMarkup(
+                new[]{
+                            RowBtns,
+                new[]
+                        {
+                            PrevBtn,
+                            NextBtn
+                        },
+                new[]
+                        {
+                            BackBtn
+                        }
+
+
+
+                });
+            }
+
+            if (NextBtn == null && PrevBtn == null && BackBtn != null && RowBtns==null)
             {
                 return new InlineKeyboardMarkup(
                 new[]{
@@ -429,6 +449,18 @@ namespace MyTelegramBot.Bot.Core
                 });
             }
 
+            if (NextBtn == null && PrevBtn == null && BackBtn != null && RowBtns != null)
+            {
+                return new InlineKeyboardMarkup(
+                new[]{
+                            RowBtns,
+                new[]
+                        {
+                            BackBtn
+                        },
+
+                });
+            }
 
             else
                 return null;

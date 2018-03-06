@@ -10,6 +10,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot.Core;
+using Telegram.Bot.Types.InlineKeyboardButtons;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -21,6 +22,8 @@ namespace MyTelegramBot.Messages.Admin
         Dictionary<int, List<Orders>> Pages { get; set; }
 
         MarketBotDbContext db { get; set; }
+
+        private InlineKeyboardButton SearchOrdersBtn { get; set; }
 
         public OrdersListMessage(int PageNumber=1)
         {
@@ -35,6 +38,8 @@ namespace MyTelegramBot.Messages.Admin
 
             OrderList = db.Orders.Include(o => o.CurrentStatusNavigation).Include(o=>o.OrderProduct).OrderByDescending(o => o.Id).ToList();
 
+            SearchOrdersBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск" + base.SearchEmodji, InlineFind.FindOrder + "|");
+
             Pages = BuildDataPage<Orders>(OrderList, base.PageSize);
           
 
@@ -42,7 +47,11 @@ namespace MyTelegramBot.Messages.Admin
             {
                 var page = Pages[base.SelectPageNumber];
 
-                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Orders>(Pages, AdminBot.ViewOrdersListCmd, AdminBot.ModuleName, base.BackToAdminPanelBtn());
+                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Orders>(Pages, 
+                    AdminBot.ViewOrdersListCmd, 
+                    AdminBot.ModuleName, 
+                    base.BackToAdminPanelBtn(),
+                    new InlineKeyboardButton[] { SearchOrdersBtn });
 
                 base.TextMessage = "Список заказов (Всего заказов в системе " + OrderList.Count.ToString() + ")" + NewLine() +
                     "Страница " + base.SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();

@@ -109,6 +109,14 @@ namespace MyTelegramBot.Messages
                 BitCoinCore = new Services.BitCoinCore.BitCoin(config.Login, config.Pass, config.Host, config.Port);
                 var TxList = BitCoinCore.GetListTransactions(invoice.AccountNumber);
 
+                var balance= BitCoinCore.GetBalance(invoice.AccountNumber);
+
+                //
+
+                var txid = TxList.Where(t => t.category == "recieve").Last().txid;
+
+                var txinfo = BitCoinCore.GetTxnInfo<Services.BitCoinCore.TransactionInfo>(txid).result.details.Where(t=>t.address==invoice.AccountNumber && t.category=="receive");
+
                 //Найден платеж с нужным кол-во монет
                 if (TxList != null && TxList.Count > 0 && TxList[TxList.Count - 1].amount >= invoice.Value)
                 {

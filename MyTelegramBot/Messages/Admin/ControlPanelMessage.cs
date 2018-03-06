@@ -19,7 +19,7 @@ namespace MyTelegramBot.Messages.Admin
     /// </summary>
     public class ControlPanelMessage:BotMessage
     {
-        private InlineKeyboardCallbackButton EditProductBtn { get; set; }
+        private InlineKeyboardButton EditProductBtn { get; set; }
 
         private InlineKeyboardCallbackButton EditCategoryBtn { get; set; }
 
@@ -58,7 +58,8 @@ namespace MyTelegramBot.Messages.Admin
         {
 
 
-                EditProductBtn = new InlineKeyboardCallbackButton("Изм. товар"+ " \ud83d\udd8a", BuildCallData(ProductEditBot.ProductEditorCmd, ProductEditBot.ModuleName));
+                EditProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Редактор", InlineFind.EditProduct + "|");
+
                 EditCategoryBtn = new InlineKeyboardCallbackButton("Изм. категорию"+ " \ud83d\udd8a", BuildCallData(CategoryEditBot.CategoryEditorCmd, CategoryEditBot.ModuleName));
                 StockViewBtn = BuildInlineBtn("Остатки", BuildCallData("ViewStock", AdminBot.ModuleName),base.Depth2Emodji);
                 

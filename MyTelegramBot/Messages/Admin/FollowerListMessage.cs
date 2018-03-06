@@ -23,6 +23,8 @@ namespace MyTelegramBot.Messages.Admin
         Dictionary<int, List<Follower>> Pages { get; set; }
 
         MarketBotDbContext db { get; set; }
+
+        private InlineKeyboardButton SearchFollowerBtn { get; set; }
         public FollowerListMessage(int PageNumber=1)
         {
             base.SelectPageNumber = PageNumber;
@@ -37,13 +39,20 @@ namespace MyTelegramBot.Messages.Admin
 
             Pages = base.BuildDataPage<Follower>(FollowerList, base.PageSize);
 
+            SearchFollowerBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск"+base.SearchEmodji, InlineFind.FindUsers + "|");
+
             db.Dispose();
 
             if (Pages != null && Pages.Count > 0 && Pages[SelectPageNumber] != null)
             {
                 var page = Pages[SelectPageNumber];
 
-                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Follower>(Pages, AdminBot.ViewFollowerListCmd, AdminBot.ModuleName, base.BackToAdminPanelBtn());
+                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Follower>
+                    (Pages, 
+                    AdminBot.ViewFollowerListCmd, 
+                    AdminBot.ModuleName, 
+                    base.BackToAdminPanelBtn(),
+                    new InlineKeyboardButton[] { SearchFollowerBtn });
 
                 base.TextMessage = "Список пользователей (всего " + FollowerList.Count.ToString() + ")" + NewLine() +
                     "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();

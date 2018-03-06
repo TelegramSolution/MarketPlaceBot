@@ -48,8 +48,6 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton UnitBtn { get; set; }
 
-        private InlineKeyboardCallbackButton InlineImageBtn { get; set; }
-
         private InlineKeyboardCallbackButton ViewAdditionalPhotosBtn { get; set; }
 
         private InlineKeyboardCallbackButton InsertAdditionalPhotosBtn { get; set; }
@@ -198,7 +196,6 @@ namespace MyTelegramBot.Messages.Admin
 
             BackBtn = BuildInlineBtn("Назад", BuildCallData(ProductEditBot.BackToProductEditorCmd, ProductEditBot.ModuleName, ProductId), base.Previuos2Emodji, false);
 
-            InlineImageBtn = BuildInlineBtn("Фото для поиска", BuildCallData(ProductEditBot.ProductInlineImageCmd, ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
 
             InsertAdditionalPhotosBtn = BuildInlineBtn("Добавить доп. фото", BuildCallData(ProductEditBot.InsertAdditionalPhotosCmd, ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
 
@@ -211,11 +208,7 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            InlineImageBtn, ViewAdditionalPhotosBtn
-                        },
-                new[]
-                        {
-                                InsertAdditionalPhotosBtn
+                             ViewAdditionalPhotosBtn,InsertAdditionalPhotosBtn
                         },
 
                 new[]

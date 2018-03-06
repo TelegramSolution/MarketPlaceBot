@@ -19,10 +19,13 @@ namespace MyTelegramBot.Messages.Admin
     {
         private InlineKeyboardCallbackButton NewOperatorBtn { get; set; }
 
+        private InlineKeyboardButton SearchOperatorBtn { get; set; }
+
         public override BotMessage BuildMsg()
         {
             base.TextMessage =Bold("Список операторов системы:");
             string OperatorsList = "";
+            SearchOperatorBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск" + base.SearchEmodji, InlineFind.FindOperators+"|");
             using (MarketBotDbContext db=new MarketBotDbContext())
             {
                var operators= db.Admin.Where(a => a.Enable).Include(a=>a.Follower).ToList();            
@@ -46,11 +49,15 @@ namespace MyTelegramBot.Messages.Admin
                 new[]{
                 new[]
                         {
-                            BackToAdminPanelBtn()
+                            SearchOperatorBtn
                         },
                 new[]
                         {
                             NewOperatorBtn
+                        },
+                new[]
+                        {
+                            BackToAdminPanelBtn()
                         },
 
 

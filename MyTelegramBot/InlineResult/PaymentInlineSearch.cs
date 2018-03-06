@@ -16,5 +16,6 @@ namespace MyTelegramBot.InlineResult
 {
     public class PaymentInlineSearchInline
     {
+        //https://cdn2.iconfinder.com/data/icons/shop-payment-vol-6/128/shop-01-256.png
     }
 }

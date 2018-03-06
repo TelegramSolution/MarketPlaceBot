@@ -37,15 +37,20 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton MethodOfObtainingInfoBtn { get; set; }
 
+        private InlineKeyboardButton PhotoCatalogBtn { get; set; }
+
+        private InlineKeyboardButton SearchProductBtn { get; set; }
 
         public override BotMessage BuildMsg()
         {
-            MenuBtn = new InlineKeyboardCallbackButton("Каталог товаров"+ " \ud83d\udcc3", BuildCallData("Menu",Bot.CategoryBot.ModuleName));
+            MenuBtn = new InlineKeyboardCallbackButton("Каталог (текстовая версия)"+ " \ud83d\udcc3", BuildCallData("Menu",Bot.CategoryBot.ModuleName));
             ContactBtn = new InlineKeyboardCallbackButton("О нас" + " \u260e\ufe0f", BuildCallData("Contact", Bot.MainMenuBot.ModuleName));
             ViewBasketBtn = new InlineKeyboardCallbackButton("Корзина" + " \ud83d\uded2", BuildCallData(Bot.BasketBot.ViewBasketCmd,Bot.BasketBot.ModuleName));
             MyOrdersBtn = new InlineKeyboardCallbackButton("Мои заказы"+ " \ud83d\udce6", BuildCallData(Bot.OrderBot.MyOrdersListCmd,Bot.OrderBot.ModuleName));
             HelpBtn = new InlineKeyboardCallbackButton("Техническая поддержка", BuildCallData("Help", Bot.HelpDeskBot.ModuleName));
             OpenSourceBtn = new InlineKeyboardCallbackButton("Исходный код", BuildCallData("OpenSource", Bot.MainMenuBot.ModuleName));
+            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог", InlineFind.PhotoCatalog + "|");
+            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск", InlineFind.SearchProduct + "|");
 
             SetInlineKeyBoard();
             base.TextMessage = "Выберите действие";
@@ -61,7 +66,11 @@ namespace MyTelegramBot.Messages
                 new[]{
                 new[]
                         {
-                            MenuBtn
+                            PhotoCatalogBtn
+                        },
+                new[]
+                        {
+                            SearchProductBtn
                         },
                 new[]
                         {
@@ -75,10 +84,13 @@ namespace MyTelegramBot.Messages
 
                 new[]
                         {
-                        OpenSourceBtn,
+                                MenuBtn,
                         },
-                    new [] { InlineKeyboardButton.WithSwitchInlineQuery("Поделиться товаром с другом" + base.SenderEmodji), },
-                    new [] { InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск товаров" + base.SearchEmodji), },
+                    new [] 
+                        {
+                                OpenSourceBtn
+                        },
+
                  });
 
 
