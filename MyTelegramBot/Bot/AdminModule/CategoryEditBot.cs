@@ -129,7 +129,7 @@ namespace MyTelegramBot.Bot
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         private async Task<IActionResult> SendCategoryPage(int PageNumber=1)
@@ -141,7 +141,7 @@ namespace MyTelegramBot.Bot
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         private async Task<IActionResult> AddNewCategory()
@@ -171,7 +171,7 @@ namespace MyTelegramBot.Bot
                         return OkResult;
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
 
                 }
             }
@@ -203,7 +203,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
         }
 
@@ -231,7 +231,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
         }
 
@@ -241,7 +241,7 @@ namespace MyTelegramBot.Bot
                 return await SendForceReplyMessage(ForceReplyText);
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
     }
 }

@@ -66,126 +66,135 @@ namespace MyTelegramBot.Controllers
             OkResult = this.Ok();
             NotFoundResult = this.NotFound();
 
-            if (Result == null && update.CallbackQuery == null)
+            if (Result == null && update.CallbackQuery == null && update.InlineQuery==null)
             {
                 ProductAddBot = new ProductAddBot(update);
                 Result = await ProductAddBot.Response();
 
             }
 
-            if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null)
+            if (update.InlineQuery != null)
+            {
+                InlineFind find = new InlineFind(update.InlineQuery);
+                await find.Response();
+                return Ok();
+            }
+
+
+            if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.InlineQuery == null)
             {
                 ModuleName = JsonConvert.DeserializeObject<BotCommand>(update.CallbackQuery.Data).M;
             }
 
-            if (Result == null && ModuleName != null && ModuleName == MoreSettingsBot.ModuleName || Result == null && ModuleName == null)
+            if(update.InlineQuery == null)
             {
-                MoreSettingsBot = new MoreSettingsBot(update);
-                Result = await MoreSettingsBot.Response();
+                if (Result == null && ModuleName != null && ModuleName == MoreSettingsBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    MoreSettingsBot = new MoreSettingsBot(update);
+                    Result = await MoreSettingsBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == HelpDeskProccessingBot.ModuleName || Result == null && ModuleName == null && update.InlineQuery == null)
+                {
+                    HelpDeskProccessingBot = new HelpDeskProccessingBot(update);
+                    Result = await HelpDeskProccessingBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == OrderProccesingBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    OrderProccesingBot = new OrderProccesingBot(update);
+                    Result = await OrderProccesingBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == CategoryBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    Category = new CategoryBot(update);
+                    Result = await Category.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == ProductBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    Product = new ProductBot(update);
+                    Result = await Product.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == BasketBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    Basket = new BasketBot(update);
+                    Result = await Basket.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == AddressBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    Address = new AddressBot(update);
+                    Result = await Address.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == OrderBot.ModuleName || Result == null && ModuleName == null
+                || Result == null && update.PreCheckoutQuery != null)
+                {
+                    OrderBot = new OrderBot(update);
+                    Result = await OrderBot.Response();
+                }
+
+                if (update.Message != null && Result == null)
+                {
+                    FollowerBot = new FollowerBot(update);
+                    Result = await FollowerBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == OrderPositionBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    PositionBot = new OrderPositionBot(update);
+                    Result = await PositionBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == AdminBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    AdminBot = new AdminBot(update);
+                    Result = await AdminBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == ProductEditBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    ProductEditBot = new ProductEditBot(update);
+                    Result = await ProductEditBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == CategoryEditBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    CategoryEditBot = new CategoryEditBot(update);
+                    Result = await CategoryEditBot.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == MainMenuBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    MainMenuBot = new MainMenuBot(update);
+                    Result = await MainMenuBot.Response();
+                }
+
+
+                if (Result == null && ModuleName != null && ModuleName == HelpDeskBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    HelpDeskBot = new HelpDeskBot(update);
+                    Result = await HelpDeskBot.Response();
+                }
             }
 
-            if (Result == null && ModuleName != null && ModuleName == HelpDeskProccessingBot.ModuleName || Result == null && ModuleName == null)
-            {
-                HelpDeskProccessingBot = new HelpDeskProccessingBot(update);
-                Result = await HelpDeskProccessingBot.Response();
-            }
+            //делаем так что бы наше приложние всегда отвечало телеграму ОК. 
+            //В противном случаем телеграм так и будет слать нам это сообщения в ожиданиее ответа ОК
+            if (Result == null || Result != null)
+                Result = Ok();
 
-            if (Result == null && ModuleName != null && ModuleName == OrderProccesingBot.ModuleName || Result == null && ModuleName == null)
-            {
-                OrderProccesingBot = new OrderProccesingBot(update);
-                Result = await OrderProccesingBot.Response();
-            }
+            if (update.Message != null)
+                 UpdateFollowerInfo(update.Message.Chat);
 
-            if (Result == null && ModuleName != null && ModuleName == CategoryBot.ModuleName || Result == null && ModuleName == null)
-            {
-                Category = new CategoryBot(update);
-                Result = await Category.Response();
-            }
+            if (update.CallbackQuery != null && update.CallbackQuery.Message != null)
+                 UpdateFollowerInfo(update.CallbackQuery.Message.Chat);
 
-            if (Result == null && ModuleName != null && ModuleName == ProductBot.ModuleName || Result == null && ModuleName == null)
-            {
-                Product = new ProductBot(update);
-                Result = await Product.Response();
-            }
+             AddUpdateMsgToDb(update);
 
-            if (Result == null && ModuleName != null && ModuleName == BasketBot.ModuleName || Result == null && ModuleName == null)
-            {
-                Basket = new BasketBot(update);
-                Result = await Basket.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == AddressBot.ModuleName || Result == null && ModuleName == null)
-            {
-                Address = new AddressBot(update);
-                Result = await Address.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == OrderBot.ModuleName || Result == null && ModuleName == null
-            || Result == null && update.PreCheckoutQuery != null)
-            {
-                OrderBot = new OrderBot(update);
-                Result = await OrderBot.Response();
-            }
-
-            if (update.Message != null && Result == null)
-            {
-                FollowerBot = new FollowerBot(update);
-                Result = await FollowerBot.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == OrderPositionBot.ModuleName || Result == null && ModuleName == null)
-            {
-                PositionBot = new OrderPositionBot(update);
-                Result = await PositionBot.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == AdminBot.ModuleName || Result == null && ModuleName == null)
-            {
-                AdminBot = new AdminBot(update);
-                Result = await AdminBot.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == ProductEditBot.ModuleName || Result == null && ModuleName == null)
-            {
-                ProductEditBot = new ProductEditBot(update);
-                Result = await ProductEditBot.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == CategoryEditBot.ModuleName || Result == null && ModuleName == null)
-            {
-                CategoryEditBot = new CategoryEditBot(update);
-                Result = await CategoryEditBot.Response();
-            }
-
-            if (Result == null && ModuleName != null && ModuleName == MainMenuBot.ModuleName || Result == null && ModuleName == null)
-            {
-                MainMenuBot = new MainMenuBot(update);
-                Result = await MainMenuBot.Response();
-            }
-
-
-            if (Result == null && ModuleName != null && ModuleName == HelpDeskBot.ModuleName || Result == null && ModuleName == null)
-            {
-                HelpDeskBot = new HelpDeskBot(update);
-                Result = await HelpDeskBot.Response();
-            }
-
-
-
-                await AddUpdateMsgToDb(update);
-
-                if (update.Message != null)
-                    await UpdateFollowerInfo(update.Message.Chat);
-
-                if (update.CallbackQuery != null && update.CallbackQuery.Message != null)
-                    await UpdateFollowerInfo(update.CallbackQuery.Message.Chat);
-
-                //делаем так что бы наше приложние всегда отвечало телеграму ОК. В противном случаем телеграм так и будет слать нам это сообщения в ожиданиее ответа ОК
-                if (Result == null || Result != null)
-                    Result = Ok();
-
-
-                return Result;
+             return Result;
             }
 
             async Task<int> AddUpdateMsgToDb(Update _update)
@@ -202,6 +211,8 @@ namespace MyTelegramBot.Controllers
                         if (_update.CallbackQuery != null && _update.InlineQuery == null)
                         {
                             follower = await db.Follower.Where(f => f.ChatId == _update.CallbackQuery.From.Id).FirstOrDefaultAsync();
+
+                        if(_update.CallbackQuery.Message!=null)
                             MessageId = _update.CallbackQuery.Message.MessageId.ToString();
 
 

@@ -67,23 +67,24 @@ namespace MyTelegramBot.Messages
         private void GetPhotoList()
         {
             //Ищем фотографии для этого бота
-            var photo = db.ProductPhoto.Where(p => p.ProductId==ProductId && p.MainPhoto==false).ToList();
+            var photo = db.ProductPhoto.Where(p => p.ProductId==ProductId).OrderByDescending(o=>o.AttachmentFsId).Take(10);
 
             
 
             //Проверяем загружены ли фотографии на сервер телеграм 
             foreach(ProductPhoto pp in photo)
             {
-                var TelegramAttach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == pp.AttachmentFsId && a.BotInfoId == BotId).FirstOrDefault();
+                var TelegramAttach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == pp.AttachmentFsId && a.BotInfoId == BotId).LastOrDefault();
 
                 //файл уже загружен на сервер. Вытаскиваем FileID
-                if (TelegramAttach != null)
+                if (TelegramAttach != null && TelegramAttach.FileId!=null && TelegramAttach.FileId!="")
                 {
                     string Caption = db.AttachmentFs.Find(TelegramAttach.AttachmentFsId).Caption;
                     
                     InputMediaType inputMediaType = new InputMediaType(TelegramAttach.FileId);
 
-                    InputMediaPhoto mediaPhoto = new InputMediaPhoto { Media = inputMediaType, Caption= Caption };
+
+                    InputMediaPhoto mediaPhoto = new InputMediaPhoto { Media = inputMediaType, Caption= Caption};
 
                     PhotoListMedia.Add(mediaPhoto);
 

@@ -203,7 +203,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -272,7 +272,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -302,13 +302,13 @@ namespace MyTelegramBot.Bot.AdminModule
                     }
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
                 }
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -374,13 +374,13 @@ namespace MyTelegramBot.Bot.AdminModule
 
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
                 }
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -406,14 +406,14 @@ namespace MyTelegramBot.Bot.AdminModule
                     }
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
                             
                 }
                 }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 

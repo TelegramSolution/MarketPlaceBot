@@ -56,7 +56,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> SendContactList()
@@ -65,7 +65,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private void AddUser()

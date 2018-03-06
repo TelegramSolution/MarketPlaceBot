@@ -129,7 +129,7 @@ namespace MyTelegramBot.Bot
             
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> GetAllProduct()
@@ -139,7 +139,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
     }
 }

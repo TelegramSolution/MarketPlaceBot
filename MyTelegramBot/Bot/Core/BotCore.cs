@@ -68,14 +68,10 @@ namespace MyTelegramBot.Bot.Core
         protected int MessageId { get; set; }
 
         /// <summary>
-        /// 200 ответ
+        /// 200 ответ. На любоемое сообщение отвечаем боту Ок. В противном случаем он будет долбить это сообщение пока не получит ок
         /// </summary>
         protected OkResult OkResult { get; set; }
 
-        /// <summary>
-        /// 404 ответ
-        /// </summary>
-        protected NotFoundResult NotFoundResult { get; set; }
 
         /// <summary>
         /// Объект описывающий событие нажатой Inline кнопки
@@ -154,7 +150,6 @@ namespace MyTelegramBot.Bot.Core
 
                 this.Argumetns = new List<int>();
                 this.OkResult = new OkResult();
-                this.NotFoundResult = new NotFoundResult();
                 OriginalMessage = String.Empty;
                 ReplyToMessageText = String.Empty;
                 this.CommandName = String.Empty;
@@ -503,7 +498,7 @@ namespace MyTelegramBot.Bot.Core
                 return true;
             }
 
-            catch
+            catch (Exception e)
             {
                 return false;
             }
@@ -859,6 +854,7 @@ namespace MyTelegramBot.Bot.Core
             }
         }
 
+
         private int HowMediaType(Message message)
         {
 
@@ -1039,7 +1035,7 @@ namespace MyTelegramBot.Bot.Core
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         protected async Task<IActionResult> SendTextMessageAndForceReply(string TextMesage, string ForceReplyMessage)
@@ -1054,12 +1050,12 @@ namespace MyTelegramBot.Bot.Core
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 

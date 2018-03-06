@@ -57,7 +57,7 @@ namespace MyTelegramBot.Bot
 
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         protected override void Constructor()
@@ -121,7 +121,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                  return NotFoundResult;
+                  return OkResult;
                 
             }
         }
@@ -248,7 +248,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
         }
     }

@@ -50,7 +50,9 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton InlineImageBtn { get; set; }
 
-        private InlineKeyboardCallbackButton AdditionalPhotosBtn { get; set; }
+        private InlineKeyboardCallbackButton ViewAdditionalPhotosBtn { get; set; }
+
+        private InlineKeyboardCallbackButton InsertAdditionalPhotosBtn { get; set; }
 
         private Product Product { get; set; }
 
@@ -186,7 +188,7 @@ namespace MyTelegramBot.Messages.Admin
 
         public InlineKeyboardMarkup MoreBtn()
         {
-            AdditionalPhotosBtn = BuildInlineBtn("Доп. фотографии", BuildCallData("AdditionalPhotosEditor", ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
+            ViewAdditionalPhotosBtn = BuildInlineBtn("Доп. фотографии", BuildCallData("AdditionalPhotosEditor", ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
 
             ProductEditUrlBtn = BuildInlineBtn("Заметка", BuildCallData(ProductEditBot.ProductEditUrlCmd, ProductEditBot.ModuleName, ProductId), base.PenEmodji);
 
@@ -198,6 +200,8 @@ namespace MyTelegramBot.Messages.Admin
 
             InlineImageBtn = BuildInlineBtn("Фото для поиска", BuildCallData(ProductEditBot.ProductInlineImageCmd, ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
 
+            InsertAdditionalPhotosBtn = BuildInlineBtn("Добавить доп. фото", BuildCallData(ProductEditBot.InsertAdditionalPhotosCmd, ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
+
 
             return new InlineKeyboardMarkup(
                 new[]{
@@ -207,9 +211,12 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            InlineImageBtn, AdditionalPhotosBtn
+                            InlineImageBtn, ViewAdditionalPhotosBtn
                         },
-
+                new[]
+                        {
+                                InsertAdditionalPhotosBtn
+                        },
 
                 new[]
                          {

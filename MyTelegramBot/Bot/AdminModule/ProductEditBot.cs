@@ -129,6 +129,8 @@ namespace MyTelegramBot.Bot
 
         public const string ProductEditCategoryReply = "Изменить категорию для товара:";
 
+        public const string ProductAdditionallyPhotoReply = "Добавить доп. фото:";
+
         /// <summary>
         /// Выбрать товар для редактирования
         /// </summary>
@@ -158,6 +160,11 @@ namespace MyTelegramBot.Bot
         /// Кнопка изменить Валюту
         /// </summary>
         public const string ProudctCurrencyCmd = "ProdCurrency";
+
+        /// <summary>
+        /// добавить доп фото
+        /// </summary>
+        public const string InsertAdditionalPhotosCmd = "InsertAdditionalPhotos";
 
         /// <summary>
         /// кнопка изменить Inline фото
@@ -308,6 +315,9 @@ namespace MyTelegramBot.Bot
                     case MoreProdFuncCmd:
                         return await SendMoreFunctionButton();
 
+                    case InsertAdditionalPhotosCmd:
+                        return await SendForceReplyMessage(ProductAdditionallyPhotoReply);
+
                     default:
                         break;
                 }
@@ -346,6 +356,8 @@ namespace MyTelegramBot.Bot
                 if (base.CommandName.Contains(SetProductCmd)) // админская командка для быстрого отрытия панели упраления товаро
                     return await SendProductFunc(Convert.ToInt32(base.CommandName.Substring(SetProductCmd.Length)));
 
+                if (base.OriginalMessage.Contains(ProductAdditionallyPhotoReply))
+                    return await InsertAdditionallyPhoto();
 
                 else
                     return null;
@@ -417,7 +429,7 @@ namespace MyTelegramBot.Bot
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -433,12 +445,12 @@ namespace MyTelegramBot.Bot
                     return OkResult;
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -465,7 +477,7 @@ namespace MyTelegramBot.Bot
 
             catch
             {
-                return  NotFoundResult;
+                return  OkResult;
             }
         }
 
@@ -526,7 +538,7 @@ namespace MyTelegramBot.Bot
                 return OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -594,7 +606,7 @@ namespace MyTelegramBot.Bot
                         return await SendProductFunc(product);
                     }
 
-                    else return base.NotFoundResult;
+                    else return base.OkResult;
                 }
 
                 else
@@ -671,6 +683,73 @@ namespace MyTelegramBot.Bot
                 }
             }
 
+        }
+
+        private async Task<IActionResult> InsertAdditionallyPhoto()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var product = db.Product.Where(p => p.Id == ProductGet(ProductAdditionallyPhotoReply)).Include(p => p.CurrentPrice).Include(p => p.Category).FirstOrDefault();
+
+            byte[] PhotoByte=null;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                if (base.PhotoId != null)
+                {
+                    var input = await base.GetFileAsync(base.PhotoId);
+                    input.FileStream.CopyTo(ms);
+                    PhotoByte = ms.ToArray();
+                }
+            }
+
+            try
+            {
+                if (PhotoByte != null)
+                {
+                    AttachmentFs attachmentFs = new AttachmentFs
+                    {
+                        AttachmentTypeId = ConstantVariable.MediaTypeVariable.Photo,
+                        GuId = Guid.NewGuid(),
+                        Caption = base.Caption,
+                        Fs = PhotoByte,
+                        Name = "Photo.jpg"
+                    };
+
+                    db.AttachmentFs.Add(attachmentFs);
+                    db.SaveChanges();
+
+                    ProductPhoto productPhoto = new ProductPhoto
+                    {
+                        AttachmentFsId = attachmentFs.Id,
+                        ProductId = product.Id
+                    };
+
+                    db.ProductPhoto.Add(productPhoto);
+
+                    AttachmentTelegram attachmentTelegram = new AttachmentTelegram
+                    {
+                        AttachmentFsId = attachmentFs.Id,
+                        BotInfoId = BotInfo.Id,
+                        FileId = base.PhotoId
+
+                    };
+
+                    db.AttachmentTelegram.Add(attachmentTelegram);
+                    db.SaveChanges();
+
+
+                    if (attachmentFs.Id > 0 && attachmentTelegram.Id > 0)
+                        await SendMessage(new BotMessage { TextMessage = "Добавлено" });
+                }
+            }
+
+            catch (Exception e)
+            {
+                await SendMessage(new BotMessage { TextMessage = "Ошибка, не удалось добавить фотографию" });
+            }
+
+                return await SendProductFunc(product);
         }
 
         /// <summary>
@@ -849,7 +928,7 @@ namespace MyTelegramBot.Bot
             }
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         private async Task<IActionResult> SendProductFunc(Product product, int MessageId = 0)
@@ -865,7 +944,7 @@ namespace MyTelegramBot.Bot
             }
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         /// <summary>
@@ -879,7 +958,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -894,7 +973,7 @@ namespace MyTelegramBot.Bot
                 return await SendForceReplyMessage(ForceReplyText);
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
     }
 }

@@ -550,7 +550,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -590,7 +590,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -620,7 +620,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -645,7 +645,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
 
 
@@ -674,12 +674,12 @@ namespace MyTelegramBot.Bot.AdminModule
                     }
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
 
                 }
             }
 
-            else return NotFoundResult;
+            else return OkResult;
            
         }
 
@@ -695,12 +695,12 @@ namespace MyTelegramBot.Bot.AdminModule
                     return OkResult;
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -718,7 +718,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -736,7 +736,7 @@ namespace MyTelegramBot.Bot.AdminModule
             }
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -754,7 +754,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult; 
+                return OkResult; 
             }
         }
 
@@ -789,7 +789,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -922,7 +922,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -1087,7 +1087,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch (Exception exp)
             {
-                return base.NotFoundResult;
+                return base.OkResult;
             }
         }
 
@@ -1224,7 +1224,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
 
@@ -1254,7 +1254,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         /// <summary>
@@ -1322,7 +1322,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch (Exception e)
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 

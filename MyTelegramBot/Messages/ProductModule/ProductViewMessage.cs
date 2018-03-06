@@ -38,9 +38,9 @@ namespace MyTelegramBot.Messages
         /// </summary>
         private InlineKeyboardCallbackButton ViewFeedBackBtn { get; set; }
 
-        private int NextProductId { get; set; }
+        //private int NextProductId { get; set; }
 
-        private int PreviousProductId { get; set; }
+        //private int PreviousProductId { get; set; }
 
         private int CategoryId { get; set; }
 
@@ -52,6 +52,11 @@ namespace MyTelegramBot.Messages
 
         private int BotId { get; set; }
 
+
+        public ProductViewMessage (Product product)
+        {
+            Product = product;
+        }
 
         public ProductViewMessage(Category category, int BotId)
         {
@@ -97,36 +102,8 @@ namespace MyTelegramBot.Messages
 
                 if (Product != null && Product.Id > 0)
                 {
-                    NextProductId = GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId));
 
-                    PreviousProductId = GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId));
-
-                    Url = Product.TelegraphUrl;
-
-                    NextProductBtn = ListingProduct(NextProductId, "\u27a1\ufe0f");
-
-                    PreviousProductBtn = ListingProduct(PreviousProductId, "\u2b05\ufe0f");
-
-                    ReturnToCatalogListBtn = ReturnToCatalogList();
-
-                    ViewBasketBtn = base.BuildInlineBtn("Перейти в корзину", base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName), base.BasketEmodji);
-
-                    ViewAllPhotoBtn = base.BuildInlineBtn("Все фотографии", BuildCallData("ViewAllPhotoProduct", ProductBot.ModuleName, Product.Id),base.PictureEmodji);
-
-                    ViewFeedBackBtn = BuildInlineBtn("Отзывы", BuildCallData(ProductBot.CmdViewFeedBack, ProductBot.ModuleName, Product.Id), base.StartEmodji);
-
-
-                    if (Product.TelegraphUrl!=null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
-                        InfoProductBtn = MoreInfoProduct(Product.Id);
-
-                    if (Product.Stock.Count > 0 && Product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
-                    {
-                        AddToBasketBtn = AddProductToBasket(Product.Id);
-                        RemoveFromBasketBtn = RemoveFromBasket(Product.Id);
-                    }
-
-               
-                                       
+                    Url = Product.TelegraphUrl;                                     
 
                     base.TextMessage = Product.ToString();
 
@@ -134,7 +111,7 @@ namespace MyTelegramBot.Messages
 
                     GetMainPhoto(db, base.TextMessage);
 
-                    SetInlineKeyBoard();
+                    base.MessageReplyMarkup = SetInlineKeyBoard();
 
 
                 }
@@ -183,10 +160,33 @@ namespace MyTelegramBot.Messages
             }
         }
 
-        private void SetInlineKeyBoard()
+
+        public InlineKeyboardMarkup SetInlineKeyBoard()
         {
-            if(InfoProductBtn!=null&&AddToBasketBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+            NextProductBtn = ListingProduct(GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId)), "\u27a1\ufe0f");
+
+            PreviousProductBtn = ListingProduct(GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId)), "\u2b05\ufe0f");
+
+            ReturnToCatalogListBtn = ReturnToCatalogList();
+
+            ViewBasketBtn = base.BuildInlineBtn("Перейти в корзину", base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName), base.BasketEmodji);
+
+            ViewAllPhotoBtn = base.BuildInlineBtn("Все фотографии", BuildCallData("ViewAllPhotoProduct", ProductBot.ModuleName, Product.Id), base.PictureEmodji);
+
+            ViewFeedBackBtn = BuildInlineBtn("Отзывы", BuildCallData(ProductBot.CmdViewFeedBack, ProductBot.ModuleName, Product.Id), base.StartEmodji);
+
+            if (Product.TelegraphUrl != null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
+                InfoProductBtn = MoreInfoProduct(Product.Id);
+
+            if (Product.Stock.Count > 0 && Product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
+            {
+                AddToBasketBtn = AddProductToBasket(Product.Id);
+                RemoveFromBasketBtn = RemoveFromBasket(Product.Id);
+            }
+
+
+            if (InfoProductBtn != null && AddToBasketBtn != null)
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -211,8 +211,8 @@ namespace MyTelegramBot.Messages
 
                  });
 
-            if(InfoProductBtn==null&&AddToBasketBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+            if (InfoProductBtn == null && AddToBasketBtn != null)
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -239,7 +239,7 @@ namespace MyTelegramBot.Messages
                 });
 
             if (InfoProductBtn != null && AddToBasketBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -262,7 +262,7 @@ namespace MyTelegramBot.Messages
 
 
             if (InfoProductBtn == null && AddToBasketBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -282,6 +282,9 @@ namespace MyTelegramBot.Messages
                         }
 
                 });
+
+            else
+                return null;
         }
 
         private InlineKeyboardCallbackButton AddProductToBasket(int ProductId)

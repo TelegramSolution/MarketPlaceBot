@@ -107,10 +107,6 @@ namespace MyTelegramBot.Bot
                     return await SendFeedBack();
             }
 
-            //inlene поиск
-            if (Update.InlineQuery != null && Update.InlineQuery.Query != "")
-                await ProductInlineSearch(Update.InlineQuery.Query);
-
             //ПОльзователь через инлай режим отправил в чат навзание 
             //товара. Отправляем пользователю сообщение с этим товаром
             if (Update.Message != null && Update.Message.Text != null && Update.Message.Text.Length > 0 && Connection.getConnection().Product.Where(p => p.Name == CommandName).FirstOrDefault() != null)
@@ -197,21 +193,11 @@ namespace MyTelegramBot.Bot
             }
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
 
         }
 
-        private async Task<IActionResult> ProductInlineSearch(string Query)
-        {
-            ProductSearchInline productSearchInline = new ProductSearchInline(Query);
-
-            if (await base.AnswerInlineQueryAsync(productSearchInline.ProductInlineSearch()))
-                return OkResult;
-
-            else
-                return base.NotFoundResult;
-        }
 
         /// <summary>
         /// Добавить позицию в корзину после нажатия кнопки с плюсом (+)
@@ -246,7 +232,7 @@ namespace MyTelegramBot.Bot
 
             catch
             {
-                return base.NotFoundResult;
+                return base.OkResult;
             }
         }
 
@@ -258,10 +244,10 @@ namespace MyTelegramBot.Bot
                 if (mess != null && await SendPhoto(mess) != null)
                     return base.OkResult;
                 else
-                    return base.NotFoundResult;
+                    return base.OkResult;
             }
             else
-                return base.NotFoundResult;
+                return base.OkResult;
 
         }
 
@@ -272,7 +258,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
 
         }
 

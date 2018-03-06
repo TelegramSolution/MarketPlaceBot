@@ -188,7 +188,7 @@ namespace MyTelegramBot.Bot
                 return await SendForceReplyMessage(AddCommentFeedBackForce + Argumetns[1].ToString());
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -357,7 +357,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         /// <summary>
@@ -372,7 +372,7 @@ namespace MyTelegramBot.Bot
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         private async Task<IActionResult> SelectPickupPoint(int PickupPointId)
@@ -420,13 +420,13 @@ namespace MyTelegramBot.Bot
                     }
 
                     else 
-                        return NotFoundResult;
+                        return OkResult;
                  }
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -463,7 +463,7 @@ namespace MyTelegramBot.Bot
 
             catch
             {
-                return base.NotFoundResult;
+                return base.OkResult;
             }
         }
 
@@ -498,7 +498,7 @@ namespace MyTelegramBot.Bot
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -608,7 +608,7 @@ namespace MyTelegramBot.Bot
                     return base.OkResult;
 
                 else
-                    return base.NotFoundResult;
+                    return base.OkResult;
             }
 
             else // Номер телефона есть в базе. ПОказываем превью заказа
@@ -713,7 +713,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -733,7 +733,7 @@ namespace MyTelegramBot.Bot
                         return base.OkResult;
 
                     else
-                        return base.NotFoundResult;
+                        return base.OkResult;
                 }
 
                 else
@@ -791,7 +791,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -880,7 +880,7 @@ namespace MyTelegramBot.Bot
 
                 catch
                 {
-                    return base.NotFoundResult;
+                    return base.OkResult;
                 }
             }
 
@@ -938,7 +938,7 @@ namespace MyTelegramBot.Bot
 
                 catch
                 {
-                    return base.NotFoundResult;
+                    return base.OkResult;
                 }
             }
         }

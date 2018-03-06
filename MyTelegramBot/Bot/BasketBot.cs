@@ -126,7 +126,7 @@ namespace MyTelegramBot.Bot
                     return base.OkResult;
 
                 else
-                    return base.NotFoundResult;
+                    return base.OkResult;
             }
         }
 
@@ -136,7 +136,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
 
         }
 
@@ -146,7 +146,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
 
         }
 

@@ -506,7 +506,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -608,14 +608,10 @@ namespace MyTelegramBot.Bot.AdminModule
                 }
 
                 if (order.Follower != null && order.Follower.UserName != null && order.Follower.UserName != "")
-                {
+                    await SendUrl("https://t.me/" + order.Follower.UserName);
+  
 
-                    await SendUrl(BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName));
-                    return OkResult;
-                }
-
-                else
-                    return base.OkResult;
+                return OkResult;
             }
         }
 
@@ -640,7 +636,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     return OkResult;
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
 
         }
@@ -656,7 +652,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -669,7 +665,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> TakeOrder()
@@ -720,7 +716,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -734,7 +730,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
 
 
         }
