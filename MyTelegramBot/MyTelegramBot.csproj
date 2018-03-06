@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Remove="Bot\AdminModule\ImportCSVBot.cs" />
+    <Compile Remove="Controllers\OrderController.cs" />
     <Compile Remove="InlineResult\AdditionalProductPhotoSearchInline.cs" />
     <Compile Remove="Messages\MethodOfObtainingInfoMessage.cs" />
     <Compile Remove="Model\CustomExceptionFilterAttribute.cs" />

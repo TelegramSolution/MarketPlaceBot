@@ -21,7 +21,7 @@
         <tr><td>@item.Name</td>
             <td>@item.Text</td>
             <td>@item.Category.Name</td>
-            <td>@item.ProductPrice.FirstOrDefault().Value @item.ProductPrice.FirstOrDefault().Currency.ShortName</td>
+            <td>@item.CurrentPrice.Value @item.CurrentPrice.Currency.ShortName</td>
             <td><a href="~/Product/Editor/@item.Id">Изменить</a></td>
 
         </tr>

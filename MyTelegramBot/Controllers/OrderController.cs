@@ -100,11 +100,10 @@ namespace MyTelegramBot.Controllers
                 db = new MarketBotDbContext();
 
             if(Number>0)
-            Order = db.Orders.Where(o => o.Number == Number).Include(o=>o.Invoice).Include(o => o.Confirm).
-                Include(o => o.Delete).Include(o => o.Done).Include(o => o.OrderProduct)
+            Order = db.Orders.Where(o => o.Number == Number).Include(o=>o.Invoice).Include(o => o.OrderProduct)
                 .Include(o=>o.FeedBack).Include(o => o.OrderAddress)
                 .Include(o => o.FeedBack).Include(o=>o.OrdersInWork).Include(o=>o.PickupPoint)
-                .Include(o => o.Follower).FirstOrDefault();
+                .Include(o => o.Follower).Include(o=>o.CurrentStatusNavigation).FirstOrDefault();
 
             if (Order != null)
             {
@@ -125,9 +124,9 @@ namespace MyTelegramBot.Controllers
 
                 }
 
-                var HistoryList = db.OrderHistory.Where(h => h.OrderId == Order.Id).Include(h => h.Follower).Include(h=>h.Action).ToList();
+                var HistoryList = db.OrderStatus.Where(h => h.OrderId == Order.Id).Include(h=>h.Status).ToList();
 
-                Tuple<Orders,List<OrderHistory>> model = new Tuple<Orders,List<OrderHistory>>(Order, HistoryList);
+                Tuple<Orders,List<OrderStatus>> model = new Tuple<Orders,List<OrderStatus>>(Order, HistoryList);
 
                 if (Order.OrderAddress != null)
                     ViewBag.TotalPrice = model.Item1.TotalPrice() + Order.OrderAddress.ShipPriceValue;
