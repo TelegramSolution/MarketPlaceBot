@@ -116,6 +116,21 @@ namespace MyTelegramBot.Services.BitCoinCore
             }
         }
 
+        public GetInfo GetInfo<GetInfo>()
+        {
+            try
+            {
+                var res= RequestRpcServer<GetInfo>("getinfo");
+                return res;
+
+            }
+
+            catch (Exception e)
+            {
+                return default (GetInfo);
+            }
+        }
+
         private T RequestRpcServer<T>(string methodName, params string [] parameters)
         {
             string respVal = string.Empty;

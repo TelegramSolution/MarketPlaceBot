@@ -15,5 +15,7 @@ namespace MyTelegramBot.Services
         IList<string> GetAddressByAccount(string Account=null);
 
         double GetBalance(string Account);
+
+        T GetInfo<T>();
     }
 }

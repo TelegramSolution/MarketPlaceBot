@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot
 {
@@ -20,7 +21,7 @@ namespace MyTelegramBot.Bot
         }
         protected override void Constructor()
         {
-            RequestPhoneNumberMessageMsg = new RequestPhoneNumberMessage(base.FollowerId);
+            RequestPhoneNumberMessageMsg = new RequestPhoneNumberMessage();
             OrderPreviewMsg = new OrderTempMessage(base.FollowerId,BotInfo.Id);
         }
 
@@ -30,7 +31,7 @@ namespace MyTelegramBot.Bot
 
             //Пользователь отрпвил СВОЙ номер телефона
             if (Update.Message != null && Update.Message.Contact != null && Update.Message.From.Id == Update.Message.Contact.UserId)
-                return await PreviewOrder();
+                return await InsertTelephoneNumber();
 
 
 
@@ -43,19 +44,19 @@ namespace MyTelegramBot.Bot
                 return null;
         }
 
-        private async Task<IActionResult> PreviewOrder()
+        /// <summary>
+        /// Добавить номер телефона клиента
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> InsertTelephoneNumber()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var follower =db.Follower.Where(f => f.ChatId == ChatId).FirstOrDefault();
-                follower.Telephone = Update.Message.Contact.PhoneNumber;
+            if (FollowerFunction.AddTelephoneNumber(FollowerId, Update.Message.Contact.PhoneNumber) != null)
+                await SendMessage(OrderPreviewMsg.BuildMessage());
 
-                if (db.SaveChanges()>0 && await SendMessage(OrderPreviewMsg.BuildMessage()) != null)
-                    return base.OkResult;
+            else
+                await SendMessage(new BotMessage { TextMessage = "Ошибка!" });
 
-                else
-                    return base.OkResult;
-            }
+            return OkResult;
         }
 
         private async Task<IActionResult> Error()

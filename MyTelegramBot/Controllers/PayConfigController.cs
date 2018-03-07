@@ -42,8 +42,8 @@ namespace MyTelegramBot.Controllers
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "9332",
                     Enable = true,
                     PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin
@@ -70,8 +70,8 @@ namespace MyTelegramBot.Controllers
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "8332",
                     Enable = true,
                     PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.BitcoinCash
@@ -99,8 +99,8 @@ namespace MyTelegramBot.Controllers
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "8332",
                     Enable = true,
                     PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Bitcoin
@@ -128,8 +128,8 @@ namespace MyTelegramBot.Controllers
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "8332",
                     Enable = true,
                     PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Doge
@@ -364,22 +364,10 @@ namespace MyTelegramBot.Controllers
             {
                 string FirstBlockHash = String.Empty;
 
-                if (config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin)
-                    FirstBlockHash = "80ca095ed10b02e53d769eb6eaf92cd04e9e0759e5be4a8477b42911ba49c78f";
-
-                if (config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.BitcoinCash)
-                    FirstBlockHash = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048";
-
-                if (config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Doge)
-                    FirstBlockHash = "82bc68038f6034c0596b6e313729793a887fded6e92a31fbdf70863f89d9bea2";
-
-                if(config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Bitcoin)
-                    FirstBlockHash = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048";
-
                 Services.BitCoinCore.BitCoin ltc = new Services.BitCoinCore.BitCoin(config.Login, config.Pass, config.Host, config.Port);
-                var block = ltc.GetBlockInfo<Services.BitCoinCore.BlockInfo>(FirstBlockHash);
+                var block = ltc.GetInfo<Services.BitCoinCore.GetInfo>();
 
-                if (block != null)
+                if (block != null && block.result!=null && block.result.blocks>0)
                     return new JsonResult("Успех");
 
                 else

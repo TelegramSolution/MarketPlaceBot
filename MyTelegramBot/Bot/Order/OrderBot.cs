@@ -9,12 +9,15 @@ using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot
 {
     public partial class OrderBot:BotCore
     {
         public const string ModuleName = "Order";
+
+        public OrderFunction OrderFunction { get; set; }
 
         /// <summary>
         /// Сообщение с просибой отправить свой номер телефона
@@ -178,6 +181,7 @@ namespace MyTelegramBot.Bot
 
         public const string CmdDebitCardСheckout = "DebitCardСheckout";
 
+
         int AddressId { get; set; }
 
         /// <summary>
@@ -211,7 +215,7 @@ namespace MyTelegramBot.Bot
 
                 }
 
-                RequestPhoneNumberMsg = new RequestPhoneNumberMessage(base.FollowerId);
+                RequestPhoneNumberMsg = new RequestPhoneNumberMessage();
                 ViewShipAddressMsg = new AddressListMessage(base.FollowerId);
                 OrderPreviewMsg = new OrderTempMessage(base.FollowerId,BotInfo.Id);
 
@@ -250,13 +254,13 @@ namespace MyTelegramBot.Bot
 
                 ///Пользвовательно нажал на кнопку "Комментарий к заказу"
                 case CmdOrderDesc:
-                    return await SendForceReplyAddDesc();
+                    return await base.SendForceReplyMessage(CmdEnterDesc);
 
                 /// Поользователь присал новый комментриай к заказу процитировав сообщение бота "Введите комментарий".
                 /// Коммент сохрнаятеся в бд,а После этого бот присылает
                 /// обновелнное описание заказа
                 case CmdEnterDesc:
-                    return await AddOrderTempDesc();
+                    return await AddCommentToOrderTmp();
 
                 //Пользователь нажал на кнопку "Отправить заказ"
                 case CmdOrderSave:
@@ -276,7 +280,7 @@ namespace MyTelegramBot.Bot
 
                 //Пользователь записал свой ник в настройках, и нажал далее на картинке
                 case "VerifyUserName":
-                    return await UserNameCheck();
+                    return await AddUserName();
 
                 case "BackToMyOrder":
                    return await BackToOrder();

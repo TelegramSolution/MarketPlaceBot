@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot.Order
 {
@@ -14,7 +15,7 @@ namespace MyTelegramBot.Bot.Order
 
         private MarketBotDbContext db { get; set; }
 
-        private List<IGrouping<int, Basket>> Basket { get; set; }
+        private List<Basket> Basket { get; set; }
 
         private OrderTemp OrderTmp { get; set; }
 
@@ -26,6 +27,8 @@ namespace MyTelegramBot.Bot.Order
         private Invoice Invoice { get; set; }
 
         private PaymentTypeConfig PaymentConfig { get; set; }
+
+        private OrderFunction OrderFunction { get; set; }
 
         public InsertNewOrder(int FollowerId, BotInfo BotInfo)
         {
@@ -42,12 +45,14 @@ namespace MyTelegramBot.Bot.Order
             double ShipPrice =0;
             int Number = 0;
 
-            Basket = db.Basket.Where(b => b.FollowerId == FollowerId && b.Enable && b.BotInfoId == BotInfo.Id).Include(b=>b.Product).GroupBy(b => b.ProductId).ToList();
+            OrderFunction = new OrderFunction();
+
+            Basket = db.Basket.Where(b => b.FollowerId == FollowerId && b.Enable && b.BotInfoId == BotInfo.Id).Include(b=>b.Product.CurrentPrice).ToList();
             OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotInfo.Id).FirstOrDefault();
             var LastOrder = db.Orders.OrderByDescending(o => o.Id).FirstOrDefault();
 
             //Общая строимость корзины
-            total = BasketTotalPrice(Basket);
+            total = BusinessLayer.BasketFunction.BasketTotalPrice(Basket);
 
             if (LastOrder != null)  // Узнаем последний номер заказа в БД
                 Number =Convert.ToInt32(LastOrder.Number);
@@ -70,29 +75,9 @@ namespace MyTelegramBot.Bot.Order
                 if (OrderTmp.PickupPointId != null)// самовывоз
                     NewOrder.PickupPointId = OrderTmp.PickupPointId;
 
-                // Определям стоимость заказа с учетом доставки 
-                // Заказ НЕ подходит под условия бесплатной доставки. Доставка платная
-                if (OrderTmp.AddressId != null && BotInfo.Configuration.ShipPrice > 0 && total < BotInfo.Configuration.FreeShipPrice)
-                {
-                    ShipPrice = BotInfo.Configuration.ShipPrice;
-                    total += BotInfo.Configuration.ShipPrice;
-                }
 
-                // создаем инвойс для оплаты в через КИВИ
-                if (OrderTmp.PaymentTypeId == Core.ConstantVariable.PaymentTypeVariable.QIWI)
-                    Invoice= AddQiwiInvoice(NewOrder, total);
 
-                // создаем инвойс для оплаты в криптовалюте
-                if (OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.PaymentOnReceipt 
-                    && OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.QIWI && 
-                    OrderTmp.PaymentTypeId != Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa) 
-                    Invoice= AddCryptoCurrencyInvoice(NewOrder,Convert.ToInt32(OrderTmp.PaymentTypeId), total);
-
-                //Оплата банковской картой через яндекс кассу внутри бота
-                if (OrderTmp.PaymentTypeId == Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
-                    Invoice = AddDibitCardInvoice(NewOrder, total);
-
-                if (Invoice!=null)
+                if (Invoice!=null) // проверяем создался ли инвойс. Если нет то у пользователя будет способ оплаты при получении
                     NewOrder.InvoiceId = Invoice.Id;
 
                 db.Orders.Add(NewOrder);
@@ -104,16 +89,18 @@ namespace MyTelegramBot.Bot.Order
                     AddAddressToOrder(NewOrder.Id, OrderTmp.AddressId, ShipPrice);
 
                 // переносим из корзины в Состав заказа
-                foreach (var group in Basket)
-                    NewOrder.OrderProduct.Concat(FromBasketToOrderPosition(group.ElementAt(0).ProductId, NewOrder.Id, group));
+                NewOrder.OrderProduct= BusinessLayer.BasketFunction.FromBasketToOrderPosition(NewOrder.Id, Basket);
 
+                var CurrentStarus= OrderFunction.InsertOrderStatus(NewOrder.Id,FollowerId);
 
+                NewOrder =OrderFunction.UpdCurrentStatus(NewOrder,CurrentStarus);
 
-                var CurrentStarus= InsertOrderStatus(NewOrder.Id);
-                NewOrder.CurrentStatusNavigation = CurrentStarus;
-                RemoveOrderTmp();
+                OrderFunction.RemoveOrderTmp(FollowerId,BotInfo.Id);
+
                 db.SaveChanges();
+
                 db.Dispose();
+
                 return NewOrder;
             }
 
@@ -122,216 +109,9 @@ namespace MyTelegramBot.Bot.Order
             
         }
 
-        private int RemoveOrderTmp()
-        {
-            var list = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotInfo.Id).ToList();
-
-            foreach (var value in list)
-                db.OrderTemp.Remove(value);
-
-            return db.SaveChanges();
-        }
-
-        /// <summary>
-        /// Общая стоимость всех товаров в корзине
-        /// </summary>
-        /// <param name="Basket"></param>
-        /// <returns></returns>
-        private double BasketTotalPrice(List<IGrouping<int, Basket>> Basket)
-        {
-            double total = 0.0;
-            foreach (var list in Basket) // Общая стоимость корзины
-            {
-                foreach (var position in list)
-                {
-                    var price = db.ProductPrice.Where(p => p.ProductId == position.ProductId && p.Enabled).OrderByDescending(p => p.Id).Include(p => p.Currency).FirstOrDefault();
-                    if (price != null)
-                    {
-                        total += price.Value;
-                        Currency = price.Currency;
-                    }
-                }
-            }
-
-            return total;
-        }
-
-        /// <summary>
-        /// Перенести данные из таблицы Basket в таблицу ORderProduct
-        /// </summary>
-        /// <param name="ProductId"></param>
-        /// <param name="OrderId"></param>
-        /// <param name="group">Группа записей одного товара из таблицы  Basket</param>
-        /// <returns></returns>
-        private List<OrderProduct> FromBasketToOrderPosition(int ProductId, int OrderId, IGrouping<int, Basket> group)
-        {
-            ProductPrice price = db.ProductPrice.Where(p => p.ProductId == ProductId && p.Enabled).Include(p=>p.Currency).FirstOrDefault();
-
-            List<OrderProduct> list = new List<OrderProduct>();
-
-            if (price != null)
-            {
-                foreach (var product in group)
-                {
-                    OrderProduct orderProduct = new OrderProduct
-                    {
-                        ProductId = ProductId,
-                        OrderId = OrderId,
-                        DateAdd = DateTime.Now,
-                        Count = 1,
-                        PriceId = price.Id,
-
-                    };
-
-                    db.Basket.Remove(product); // удаляем из корзины
-
-                    db.OrderProduct.Add(orderProduct); // вставляем в заказ
-
-                    db.SaveChanges();
-
-                    orderProduct.Price = price;
-
-                    list.Add(orderProduct);
-                }
-
-                return list;
-            }
-
-            else
-                return null;
-
-            
-        }
-
-        /// <summary>
-        /// Создать счет на оплату для Киви
-        /// </summary>
-        /// <param name="order">Заказ</param>
-        /// <param name="PaymentType">Тип оплаты. Киви</param>
-        /// <param name="Total">Сумма в рублях</param>
-        /// <param name="LifeTimeDuration">Время жизни счета</param>
-        /// <returns></returns>
-        private Invoice AddQiwiInvoice(Orders order,double Total, int LifeTimeDuration=30)
-        {
-            var ListQiwi = db.PaymentTypeConfig.Where(q => q.PaymentId == Core.ConstantVariable.PaymentTypeVariable.QIWI && q.Enable == true && q.Pass!="").
-                OrderByDescending(q => q.Id).ToList();
-
-            Random random = new Random();
-
-            var qiwi = ListQiwi[random.Next(0, ListQiwi.Count - 1)];
-
-            if (qiwi != null && qiwi.Login!=null)
-            {
-                Invoice invoice = new Invoice
-                {
-                    CreateTimestamp = DateTime.Now,
-                    AccountNumber = qiwi.Login,
-                    Comment = GeneralFunction.BuildPaymentComment(BotInfo.Name, order.Number.ToString()),
-                    InvoiceNumber = GenerateInvoiceNumber(),
-                    LifeTimeDuration = System.TimeSpan.FromMinutes(LifeTimeDuration),
-                    PaymentTypeId = Core.ConstantVariable.PaymentTypeVariable.QIWI,
-                    Value = Total,
-                    Paid=false
-
-                };
-
-                db.Invoice.Add(invoice);
-
-                if (db.SaveChanges() > 0)
-                    return invoice;
-
-                else
-                    return null;
-            }
-
-            else
-                return null;
-        }
 
 
-        /// <summary>
-        /// Создать счет на оплату в Криптовалюте
-        /// </summary>
-        /// <param name="order">Заказ</param>
-        /// <param name="paymentTypeId">Тип платежа. Лайткоин, БиткоинКэш и т.д</param>
-        /// <param name="Total">Сумма в фиате.</param>
-        /// <param name="LifeTimeDuration">Время жизни счета в минутах</param>
-        /// <returns></returns>
-        private Invoice AddCryptoCurrencyInvoice (Orders order,int paymentTypeId, double Total, int LifeTimeDuration = 30)
-        {
-            double Summa = 0.0;
 
-         
-            var type = db.PaymentType.Where(p => p.Id == paymentTypeId).FirstOrDefault();
-
-            PaymentConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == paymentTypeId && p.Enable==true).OrderByDescending(p => p.Id).FirstOrDefault();
-
-            if (PaymentConfig != null)
-                    CryptoCurrency = new Services.BitCoinCore.BitCoin(PaymentConfig.Login, PaymentConfig.Pass, PaymentConfig.Host, PaymentConfig.Port);                                          
-
-            if (type != null && Currency != null) // конвертируем из фиата в крипту
-                Summa = MoneyConvert(Total, type.Code, Currency.Code);
-
-            string AccountNumber = CryptoCurrency.GetNewAddress(); // Генерируем адрес куда необходимо перевести деньги
-
-            if (type!=null && CryptoCurrency != null && AccountNumber!=null && AccountNumber!=null && Summa>0)
-            {
-                Invoice invoice = new Invoice
-                {
-                    AccountNumber = AccountNumber,
-                    CreateTimestamp = DateTime.Now,
-                    InvoiceNumber = GenerateInvoiceNumber(),
-                    LifeTimeDuration = System.TimeSpan.FromMinutes(LifeTimeDuration),
-                    PaymentTypeId = type.Id,
-                    Value = Summa,
-                    Comment="-",
-                    Paid=false
-                };
-
-                db.Invoice.Add(invoice);
-                db.SaveChanges();
-                return invoice;
-          
-            }
-
-            else
-                return null;
-        }
-
-
-        private Invoice AddDibitCardInvoice(Orders order, double Total, int LifeTimeDuration = 30)
-        {
-            var YandexKassa = db.PaymentTypeConfig.Where(p=>p.PaymentId==Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa).FirstOrDefault();
-
-            if (YandexKassa != null && order!=null && Total>0)
-            {
-
-                Invoice invoice = new Invoice
-                {
-                    CreateTimestamp = DateTime.Now,
-                    AccountNumber = YandexKassa.Login + " идентификатор магазина в ЯндексКассе",
-                    Comment = "",
-                    InvoiceNumber = GenerateInvoiceNumber(),
-                    LifeTimeDuration = System.TimeSpan.FromMinutes(LifeTimeDuration),
-                    PaymentTypeId = Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa,
-                    Value = Total,
-                    Paid = false
-
-                };
-
-                db.Invoice.Add(invoice);
-
-                if (db.SaveChanges() > 0)
-                    return invoice;
-
-                else
-                    return null;
-            }
-
-            else
-                return null;
-
-        }
 
         /// <summary>
         /// Добавить адрес доставки к заказу
@@ -360,75 +140,5 @@ namespace MyTelegramBot.Bot.Order
         }
 
 
-        /// <summary>
-        /// Создаем номер счета на опталу. Берем последний номер и прибавляем один
-        /// </summary>
-        /// <returns></returns>
-        private int GenerateInvoiceNumber()
-        {
-            try
-            {
-                var last = db.Invoice.OrderByDescending(i => i.Id).FirstOrDefault();
-
-                if (last != null)
-                    return Convert.ToInt32(last.InvoiceNumber) + 1;
-
-                else
-                    return 1;
-            }
-            catch
-            {
-                return 1;
-            }
-                    
-        }
-
-
-        private OrderStatus InsertOrderStatus(int OrderId,int StatusId = Bot.Core.ConstantVariable.OrderStatusVariable.PendingProcessing)
-        {
-            OrderStatus orderStatus = new OrderStatus
-            {
-                OrderId = OrderId,
-                StatusId = StatusId,
-                Timestamp = DateTime.Now,
-                Enable=true,
-                FollowerId=FollowerId
-            };
-
-            db.OrderStatus.Add(orderStatus);
-            db.SaveChanges();
-            return orderStatus;
-        }
-
-        /// <summary>
-        /// Конвертируем из фиата в крипту
-        /// </summary>
-        /// <param name="value">Сумма денег в фиате</param>
-        /// <param name="bases">В какую валюту конвертируем (LTC например)</param>
-        /// <param name="target">Что конвертируем (RUR- рубль например)</param>
-        /// <returns></returns>
-        private double MoneyConvert(double value, string bases, string target="RUR")
-        {
-            var Cryptonator = Services.CryptonatorConvert.GetCryptonator(bases, target);
-
-            try
-            {
-                if (Cryptonator != null && Cryptonator.ticker != null && value > 0)
-                {
-                    double price=Convert.ToDouble(Cryptonator.ticker.price.Replace('.',','));
-                    double convert = value / price;
-                    return Math.Round(convert,6);
-                }
-
-
-                else
-                    return -1;
-            }
-            catch (Exception e)
-            {
-                return -1;
-            }
-
-        }
     }
 }

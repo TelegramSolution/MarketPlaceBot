@@ -34,7 +34,7 @@ namespace MyTelegramBot.Messages
         {
             this.Order = Order;
 
-            db = new MarketBotDbContext();
+            
         }
 
         private Orders GetOrder(int OrderId)
@@ -44,7 +44,10 @@ namespace MyTelegramBot.Messages
 
         public async Task<CheckPayMessage> BuildMessage()
         {
-            if(this.Order==null)
+
+            db = new MarketBotDbContext();
+
+            if (this.Order==null)
                 this.Order = GetOrder(this.OrderId);
 
             if (Order.Paid==false && Order.Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
@@ -83,7 +86,7 @@ namespace MyTelegramBot.Messages
 
                         this.Order.Invoice = invoice;
 
-                        return "Платеж найден. Заказ отправлен на обработку!";
+                        return "Платеж поступил.";
                     }
 
                     
@@ -110,36 +113,19 @@ namespace MyTelegramBot.Messages
                 var TxList = BitCoinCore.GetListTransactions(invoice.AccountNumber);
 
                 var balance= BitCoinCore.GetBalance(invoice.AccountNumber);
-
-                //
-
                 var txid = TxList.Where(t => t.category == "recieve").Last().txid;
 
                 var txinfo = BitCoinCore.GetTxnInfo<Services.BitCoinCore.TransactionInfo>(txid).result.details.Where(t=>t.address==invoice.AccountNumber && t.category=="receive");
 
-                //Найден платеж с нужным кол-во монет
-                if (TxList != null && TxList.Count > 0 && TxList[TxList.Count - 1].amount >= invoice.Value)
+
+                if (balance >= invoice.Value)
                 {
-                    DateTime pDate = (new DateTime(1970, 1, 1, 0, 0, 0, 0)).AddSeconds(TxList[TxList.Count - 1].timereceived);
-
-                    if (pDate > invoice.CreateTimestamp.Value.AddMinutes(invoice.LifeTimeDuration.Value.Minutes))
-                        return "Вы оплатили позже положеного времени. Свяжитесь с технической поддержкой!";
-
-                    else
-                    {
-                        if (invoice.Paid == false)
-                            InvoicePaid(this.Order.Id);
-
-                        invoice.Payment.Add(AddPayment(invoice.Id, TxList[TxList.Count - 1].txid, TxList[TxList.Count - 1].amount, pDate));
-
-                        return "Платеж найден. Заказ отправлен на обработку!";
-                    }
+                    AddPayment(invoice.Id, txid, balance, DateTime.Now);
+                    return "Платеж поступил";
                 }
 
                 else
-                    return "Платеж не найден.";
-
-
+                    return "Платеж не найден!";
             }
 
             else

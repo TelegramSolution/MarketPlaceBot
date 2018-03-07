@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot
 {
@@ -75,13 +76,13 @@ namespace MyTelegramBot.Bot
                     return await ClearBasket();
 
                 case BasketEditCmd:
-                    return await PositionList();
+                    return await SendPositionList();
 
                 case BackToBasketCmd:
                     return await ViewBasket(base.MessageId);
 
                 case EditBasketProductCmd:
-                    return await EditPositionMsg();
+                    return await SendEditorPositionMsg();
 
                 case AddProductToBasketCmd:
                     return await AddToBasket();
@@ -90,7 +91,7 @@ namespace MyTelegramBot.Bot
                     return await RemoveFromBasket();
 
                 case BackToBasketPositionCmd:
-                    return await PositionList();
+                    return await SendPositionList();
 
                 default:
                     return null;
@@ -99,6 +100,11 @@ namespace MyTelegramBot.Bot
                
         }
 
+        /// <summary>
+        /// отправить сообщение с содержанием корзины
+        /// </summary>
+        /// <param name="Message"></param>
+        /// <returns></returns>
         private async Task<IActionResult> ViewBasket(int Message=0)
         {
             ViewBasketMsg.BuildMsg();
@@ -113,24 +119,23 @@ namespace MyTelegramBot.Bot
             return OkResult;
         }
 
+        /// <summary>
+        /// очистить корзину
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> ClearBasket()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var basket = db.Basket.Where(b => b.FollowerId == FollowerId);
+            if (BasketFunction.ClearBasket(FollowerId, BotInfo.Id) > 0)
+                await EditMessage(new BotMessage { TextMessage = "Корзина пуста" });
 
-                foreach (var product in basket)
-                    db.Remove(product);
-
-                if (db.SaveChanges()>0 && await EditMessage(new BotMessage { TextMessage="Корзина пуста"}) != null)
-                    return base.OkResult;
-
-                else
-                    return base.OkResult;
-            }
+            return base.OkResult;
         }
 
-        private async Task<IActionResult> PositionList()
+        /// <summary>
+        /// отправить сообщение с позициями в корзине в виде кнопок
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendPositionList()
         {
             if (await EditMessage(BasketPositionListMsg.BuildMsg()) != null)
                 return base.OkResult;
@@ -140,7 +145,11 @@ namespace MyTelegramBot.Bot
 
         }
 
-        private async Task<IActionResult> EditPositionMsg()
+        /// <summary>
+        /// Отправить редактор позиции товара
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendEditorPositionMsg()
         {
             if (await EditMessage(BasketPositionEditMsg.BuildMsg()) != null)
                 return base.OkResult;
@@ -150,63 +159,42 @@ namespace MyTelegramBot.Bot
 
         }
 
+        /// <summary>
+        /// Добавить одну позицию товара в корзину
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> AddToBasket()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var list = db.Basket.Where(b => b.ProductId == ProductId && b.BotInfoId == BotInfo.Id && b.FollowerId == FollowerId).ToList();
 
-                var CurrentStock = db.Stock.Where(s => s.ProductId == ProductId).LastOrDefault();
+                var CurrentStock = StockFunction.CurrentBalance(ProductId);
 
-                if (CurrentStock != null && CurrentStock.Balance >= list.Count+1)
+                int CountInBasket = BasketFunction.ProductBasketCount(FollowerId, ProductId, BotInfo.Id);
+
+                if (CurrentStock >= CountInBasket + 1)
                 {
 
-                    Basket basket = new Basket
-                    {
-                        FollowerId = FollowerId,
-                        ProductId = ProductId,
-                        Enable = true,
-                        DateAdd = DateTime.Now,
-                        Amount = 1,
-                        BotInfoId = BotInfo.Id
-                    };
-
-                    db.Add(basket);
-
-                    db.SaveChanges();
-
-                    return await EditPositionMsg();
+                    BasketFunction.AddPositionToBasker(FollowerId, ProductId, BotInfo.Id);
+                    return await SendEditorPositionMsg();
                 }
 
-                if (CurrentStock != null && CurrentStock.Balance < list.Count + 1)
+                if (CurrentStock < CountInBasket + 1)
                 {
-                    await AnswerCallback("В наличии только " + CurrentStock.Balance.ToString(), true);
+                    await AnswerCallback("В наличии только " + CurrentStock.ToString(), true);
                     return OkResult;
                 }
 
-                else
                     return OkResult;
-            }
         }
 
+        /// <summary>
+        /// Удалить одну позицию товара из корзины
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> RemoveFromBasket()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var basket = db.Basket.Where(b => b.ProductId == ProductId && b.FollowerId == FollowerId && b.BotInfoId==BotInfo.Id).FirstOrDefault();
+             BasketFunction.RemovePositionFromBasket(FollowerId, ProductId, BotInfo.Id);
+             return await SendEditorPositionMsg();    
 
-                if (basket != null)
-                {
-                    db.Remove(basket);
-
-                    db.SaveChanges();
-
-                    return await EditPositionMsg();
-                }
-
-                else
-                    return base.OkResult;
-            }
         }
     }
 }

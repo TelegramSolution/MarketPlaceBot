@@ -34,7 +34,7 @@ namespace MyTelegramBot.Messages
             NextBtn = new InlineKeyboardCallbackButton("Далее", BuildCallData("VerifyUserName",Bot.OrderBot.ModuleName));
 
             // файл еще не разу не отправлялся. Считываем его из папки 
-            if (Configuration.UserNameFaqFileId==null || Configuration.UserNameFaqFileId!=null && Configuration.UserNameFaqFileId=="")
+            if (Configuration!=null && Configuration.UserNameFaqFileId==null || Configuration==null)
             base.MediaFile = new MediaFile
             {
                 Caption = "Для того что бы мы могли связаться с вами, в настройках Телеграм укажите свой ник-нейм. Потом нажмите далее." + NewLine() +

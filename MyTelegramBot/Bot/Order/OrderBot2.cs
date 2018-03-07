@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.Core;
-
+using MyTelegramBot.BusinessLayer;
 namespace MyTelegramBot.Bot
 {
     public partial class OrderBot
@@ -20,37 +20,22 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SuccessfulPaymentCreditCard()
         {
-            MarketBotDbContext db = new MarketBotDbContext();
-
             var id =Convert.ToInt32(this.Update.Message.SuccessfulPayment.InvoicePayload);
 
             this.OrderId = Convert.ToInt32(id);
 
-            this.Order= this.Order = db.Orders.Where(o => o.Id == OrderId).Include(o => o.Invoice).Include(o => o.CurrentStatusNavigation).FirstOrDefault();
+            OrderFunction = new BusinessLayer.OrderFunction();
 
-            if (this.Order.Paid==false && db.Payment.Where(p => p.TxId == this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId).FirstOrDefault() == null)
-            {
+            OrderFunction.OpenConnection();
 
-                Payment payment = new Payment
-                {
-                    DataAdd = DateTime.Now,
-                    InvoiceId = Order.InvoiceId,
-                    Summ = (this.Update.Message.SuccessfulPayment.TotalAmount / 100),
-                    TxId = this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId,
-                    Comment = "идентификатор платежа в Telegram:"+this.Update.Message.SuccessfulPayment.TelegramPaymentChargeId
-                };
+            var Payment= OrderFunction.AddCreditCardPayment(this.OrderId,
+                (this.Update.Message.SuccessfulPayment.TotalAmount / 100),
+                this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId,
+                "идентификатор платежа в Telegram:" + this.Update.Message.SuccessfulPayment.TelegramPaymentChargeId);
 
-                this.Order.Paid = true;
-                db.Update<Orders>(this.Order);
-
-                this.Order.Invoice.Paid = true;
-                db.Update<Invoice>(this.Order.Invoice);
-
-                db.Payment.Add(payment);
-                db.SaveChanges();
-
+            if (Payment!=null)
                 await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Поступил новый платеж. Заказ /order" + Order.Number.ToString() });
-            }
+            
             return OkResult;
         }
 
@@ -98,8 +83,7 @@ namespace MyTelegramBot.Bot
                 await answerPreCheckoutQuery(false, "Вы должны были оплатить заказ до " +
                     (this.Order.Invoice.CreateTimestamp.Value.TimeOfDay + this.Order.Invoice.LifeTimeDuration).Value.ToString());
             }
-
-           
+   
 
             else
                 await answerPreCheckoutQuery(true);
@@ -113,25 +97,27 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SaveFeedback()
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
+            if (Argumetns.Count > 0)
             {
-                var feedback = db.FeedBack.Find(Argumetns[1]);
+                int FeedBackId = Argumetns[0];
 
-                if (feedback != null)
-                {
-                    feedback.DateAdd = DateTime.Now;
-                    feedback.Enable = true;
-                    db.SaveChanges();
+                var feedbak= FeedbackFunction.EnableFeedback(FeedBackId);
 
-                    FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedback.Id);
+                FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedbak);
 
-                    await EditMessage(FeedBackToProductEditorMsg.BuildMsg());
+                await EditMessage(FeedBackToProductEditorMsg.BuildMsg());
 
-                    await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Добавлен новый отзыв к заказу " + Order.Number.ToString() + " /order" + Order.Number.ToString() });
-                }
+                await SendMessageAllBotEmployeess(
+                    new BotMessage
+                    {
+                        TextMessage = "Добавлен новый отзыв к заказу " + 
+                                     Order.Number.ToString() + 
+                                     " /order" + Order.Number.ToString()
+                    });
 
-                    return OkResult;
             }
+
+            return OkResult;
         }
 
         /// <summary>
@@ -199,36 +185,16 @@ namespace MyTelegramBot.Bot
         {
             if (Argumetns.Count == 3)
             {
-                MarketBotDbContext db = new MarketBotDbContext();
+                int OrderId = Argumetns[0];
+                int ProductId = Argumetns[1];
+                int Raiting = Argumetns[2];
 
-                try
-                {
-                    FeedBack feedBack = new FeedBack
-                    {
-                        OrderId = Argumetns[0],
-                        ProductId = Argumetns[1],
-                        RaitingValue = Argumetns[2],
-                        Enable = false
-                    };
+                var feedBack= FeedbackFunction.InsertFeedBack(Raiting, ProductId, OrderId);
 
-                    db.FeedBack.Add(feedBack);
-                    db.SaveChanges();
-
-                    FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedBack.Id);
-                    var mess = FeedBackToProductEditorMsg.BuildMsg();
-                    await EditMessage(mess);
-                }
-
-                catch (Exception e)
-                {
-
-                }
-
-                finally
-                {
-                    db.Dispose();
-                }
-                
+                FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedBack);
+                var mess = FeedBackToProductEditorMsg.BuildMsg();
+                await EditMessage(mess);
+               
             }
 
             return OkResult;
@@ -244,16 +210,8 @@ namespace MyTelegramBot.Bot
             //он нажал назад и вернулся на сообщение с отображением отзыва ко всему заказу
             //проверяем добавил ли он уже оценку к товару из этого заказа. Если добавил,
             //то удаляем
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                if (Argumetns.Count == 2)
-                {
-                    var Feed = db.FeedBack.Find(Argumetns[1]);
-                    db.FeedBack.Remove(Feed);
-                    db.SaveChanges();
-                }
-            }
+            if (Argumetns.Count == 2)
+                FeedbackFunction.RemoveFeedBack(Argumetns[1]); 
 
             return await SendFeedBackMyOrder(Argumetns[0]);
         }
@@ -296,41 +254,27 @@ namespace MyTelegramBot.Bot
 
 
         /// <summary>
-        /// Пользователь выбрал адрес доставки. Сохраняем
+        /// Пользователь выбрал адрес доставки. Сохраняем и предлагаем выбрать способ оплаты
         /// </summary>
         /// <param name="AddressId"></param>
         /// <returns></returns>
         private async Task<IActionResult> SelectAddressDelivery(int AddressId)
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            OrderFunction = new OrderFunction();
+
+            OrderFunction.OpenConnection();
+
+            if (OrderFunction.AddAddressToOrderTmp(FollowerId, BotInfo.Id, AddressId) != null)
             {
-                var OrderTemp = db.OrderTemp.Where(o => o.BotInfoId == BotInfo.Id && o.FollowerId==FollowerId).Include(o=>o.PickupPoint).FirstOrDefault();
-
-                if (OrderTemp != null)
-                {
-                    OrderTemp.AddressId = AddressId;
-                    OrderTemp.PickupPoint = null;
-
-                }
-
-                else
-                {
-                    OrderTemp orderTemp = new OrderTemp
-                    {
-                        FollowerId = FollowerId,
-                        BotInfoId = BotInfo.Id,
-                        AddressId = AddressId,
-                    };
-
-                    db.OrderTemp.Add(orderTemp);
-                    int save = db.SaveChanges();
-                }
-
-               
-
+                OrderFunction.Dispose();
                 return await SendPaymentMethodsList();
             }
+            else
+                await AnswerCallback("Произошла ошибка при выборе адреса доставки", true);
+
+            return OkResult;
         }
+        
 
         /// <summary>
         /// ПОказать одним сообщеним все адреса пользователя
@@ -339,11 +283,10 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> SendAddressList(int MessageId = 0)
         {
             AddressListMessage ViewAddressListMsg = new AddressListMessage(base.FollowerId);
-            if (await SendMessage(ViewAddressListMsg.BuildMsg(), MessageId) != null)
-                return base.OkResult;
 
-            else
-                return base.OkResult;
+            await SendMessage(ViewAddressListMsg.BuildMsg(), MessageId);
+
+            return base.OkResult;
         }
 
         /// <summary>
@@ -353,11 +296,10 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> SendMethodOfObtainingList()
         {
             MethodOfObtainingMsg = new MethodOfObtainingMessage(base.BotInfo.Name);
-            if (await EditMessage(MethodOfObtainingMsg.BuildMsg()) != null)
-                return base.OkResult;
 
-            else
-                return OkResult;
+            await EditMessage(MethodOfObtainingMsg.BuildMsg());
+
+            return base.OkResult;
         }
 
         /// <summary>
@@ -368,41 +310,33 @@ namespace MyTelegramBot.Bot
         {
             PickupPointListMsg = new PickupPointListMessage();
 
-            if (await EditMessage(PickupPointListMsg.BuildMsg()) != null)
-                return OkResult;
+            await EditMessage(PickupPointListMsg.BuildMsg());
 
-            else
-                return OkResult;
+            return OkResult;
+
         }
 
+        /// <summary>
+        /// Пользователь выбрал пункт самовывоза. Сохраняем
+        /// </summary>
+        /// <param name="PickupPointId"></param>
+        /// <returns></returns>
         private async Task<IActionResult> SelectPickupPoint(int PickupPointId)
         {
-            using(MarketBotDbContext db=new MarketBotDbContext())
+            OrderFunction = new OrderFunction();
+
+            OrderFunction.OpenConnection();
+
+            if (OrderFunction.AddPickUpPointToOrderTmp(FollowerId, BotInfo.Id, PickupPointId) != null)
             {
-                var OrderTemp = db.OrderTemp.Where(o => o.BotInfoId == BotInfo.Id).Include(o=>o.Address).FirstOrDefault();
-
-                if (OrderTemp != null)
-                {
-                    OrderTemp.PickupPointId = PickupPointId;
-                    OrderTemp.Address = null;
-                }
-
-                else
-                {
-                    OrderTemp orderTemp = new OrderTemp
-                    {
-                        FollowerId = FollowerId,
-                        BotInfoId = BotInfo.Id,
-                        PickupPointId = PickupPointId,
-                    };
-
-                    db.OrderTemp.Add(orderTemp);
-                }
-
-                db.SaveChanges();
-
+                OrderFunction.Dispose();
                 return await SendPaymentMethodsList();
             }
+
+            else
+               await AnswerCallback("Произошла ошибка при выборе пункта самовывозы", true);
+
+            return OkResult;
         }
 
         private async Task<IActionResult> SendInvoice()
@@ -439,26 +373,21 @@ namespace MyTelegramBot.Bot
             try
             {
                 int number = Convert.ToInt32(base.CommandName.Substring(MyOrder.Length));
-                using (MarketBotDbContext db = new MarketBotDbContext())
+
+                OrderFunction = new OrderFunction();
+
+                OrderFunction.OpenConnection();
+
+                this.Order = OrderFunction.GetFollowerOrder(number, FollowerId);
+
+                if (this.Order != null)
                 {
-                    Orders order = new Orders();
-
-                    // Пользователь будет видеть заказы оформелнные через других ботов
-                    order = db.Orders.Where(o => o.Number == number && o.FollowerId == FollowerId).Include(o => o.Confirm)
-                       .Include(o => o.Delete).Include(o => o.Done).Include(o => o.FeedBack).
-                        Include(o => o.OrderProduct).Include(o => o.OrderAddress).Include(o=>o.PickupPoint).Include(o=>o.BotInfo).Include(o=>o.Invoice).FirstOrDefault();
-
-
-                    if (order != null)
-                    {
-                        OrderViewMsg = new OrderViewMessage(order);
-                        await SendMessage(OrderViewMsg.BuildMsg());
-                        return base.OkResult;
-                    }
-
-                    else
-                        return base.OkResult;
+                    OrderViewMsg = new OrderViewMessage(this.Order);
+                    await SendMessage(OrderViewMsg.BuildMsg());
                 }
+
+                return base.OkResult;
+                
             }
 
             catch
@@ -508,25 +437,69 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SelectPaymentMethod()
         {
-            int id= 0;
+            OrderFunction = new OrderFunction();
+
+            OrderFunction.OpenConnection();
+
+            int PaymentTypeId=0;
+
+            bool TestConnection = false;
+
+            bool ExistUserName = false;
+
+            bool ExistTelephone = false;
+
+            OrderTemp orderTemp = null;
+
+            ConfigurationBot=GetConfigurationBot(BotInfo.Id);
+
             if (Argumetns.Count > 0)
-                id = Argumetns[0];
-
-            base.ConfigurationBot = GetConfigurationBot(BotInfo.Id);
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var method = db.PaymentType.Where(p => p.Enable == true).FirstOrDefault();
-                //если включена верификация номера телефона, то проверяем есть ли БД номер телефона текущего пользователя
-                if (method != null && ConfigurationBot!=null && ConfigurationBot.VerifyTelephone)
-                    return await TelephoneCheck(id);
+                PaymentTypeId = Argumetns[0];
 
-                else // Если верификации номера телефона нет, то проверяем указан ли у пользователя UserName
-                    return await UserNameCheck(base.ConfigurationBot, id);
-
+                TestConnection = OrderFunction.PaymentTypeTestConnection(PaymentTypeId);
             }
 
+            if (TestConnection == false)
+            {
+                await AnswerCallback("Ошибка. Данный способ оплаты недоступен!", true);
+                OrderFunction.Dispose();
+                return OkResult;
+            }
+
+            if (TestConnection)
+            {
+                orderTemp = OrderFunction.AddPaymentMethodToOrderTmp(FollowerId, BotInfo.Id, PaymentTypeId);
+                OrderFunction.Dispose();
+            }
+
+
+            //Данные о выбраном способоне оплаты успешно занесены в БД.
+            //Если в настройках бота включена верификация по номеру телефона, то проверяем указан ли номер телефона у этого пользователя
+            //Если не указан то просим указать
+            ExistTelephone = FollowerFunction.ExistTelephone(FollowerId);
+            if (orderTemp!=null && ConfigurationBot != null && ConfigurationBot.VerifyTelephone && !ExistTelephone)
+                await SendMessage(RequestPhoneNumberMsg.BuildMsg());
+
+            //телефон указан
+            if (orderTemp != null && ConfigurationBot != null && ConfigurationBot.VerifyTelephone && ExistTelephone)
+                return await SendOrderTemp();
+
+
+            //Данные о выбраном способоне оплаты успешно занесены в БД.
+            //Если в настройках бота верификация по телефону отключена, проверяем указан ли у пользователя UserName 
+            ExistUserName = FollowerFunction.ExistUserName(FollowerId);
+            if (orderTemp!=null && ConfigurationBot != null && !ConfigurationBot.VerifyTelephone && !ExistUserName)
+                return await SendUserNameAddedFaq();
+
+            //UserName указан
+            if (orderTemp != null && ConfigurationBot != null && !ConfigurationBot.VerifyTelephone && ExistUserName)
+                return await SendOrderTemp();
+
+
+            return OkResult;
         }
+
 
         /// <summary>
         /// После того, как пользователь выбрал адрес доставки, Отправляем сообщение с выбором варианта оплаты
@@ -534,15 +507,6 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendPaymentMethodsList()
         {
-            int AddressId = 0;
-
-            //if (Argumetns.Count > 0)
-            //{ // сохраняем адрес
-            //    AddressId = Argumetns[0];
-
-            //    AddAddressToOrderTemp(AddressId);
-            //}
-
             var message = PaymentsMethodsListMsg.BuildMsg();
 
             if (message != null && await EditMessage(message)!=null)            
@@ -554,127 +518,48 @@ namespace MyTelegramBot.Bot
             {
                 await SendMessage(new BotMessage { TextMessage = "Нет досутпных способов оплаты. Свяжитесь с технической поддержкой /help" });
 
-                                    //using (MarketBotDbContext db = new MarketBotDbContext())
-                //{
-                //    var method = db.PaymentType.Where(p => p.Enable == true).FirstOrDefault();
-                //    base.ConfigurationBot = GetConfigurationBot(BotInfo.Id);
-
-                //    //если включена верификация номера телефона, то проверяем есть ли БД номер телефона текущего пользователя
-                //    if (method != null && ConfigurationBot.VerifyTelephone)
-                //        await TelephoneCheck(method.Id);
-
-                //    if(method != null && ConfigurationBot.VerifyTelephone==false) // Если верификации номера телефона нет, то проверяем указан ли у пользователя UserName
-                //        await UserNameCheck(base.ConfigurationBot, method.Id);
-
-                //    //Если Все методы оплаты выключены, то будет выбран метод оплаты "При получении"
-                //    if (method == null && ConfigurationBot.VerifyTelephone)
-                //        await TelephoneCheck(PaymentType.GetTypeId(Services.PaymentTypeEnum.PaymentOnReceipt));
-
-                //    //Если Все методы оплаты выключены, то будет выбран метод оплаты "При получении"
-                //    if (method == null && ConfigurationBot.VerifyTelephone==false)
-                //        await UserNameCheck(base.ConfigurationBot, PaymentType.GetTypeId(Services.PaymentTypeEnum.PaymentOnReceipt));
-
-                //}
-
                 return OkResult;
             }
 
            
         }
 
-
+ 
         /// <summary>
-        /// ПОльзователь выбрал вариант оплты из списка. Далее ему отправялется  сообщение с просьбой указать свой номер телефона,
-        /// если номер уже есть в базе, то отсылается сообщение с превью заказа.
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> TelephoneCheck(int PaymentType=0)
-        {
-            int PaymentTypeId = PaymentType;
-
-            if (Argumetns.Count > 0 && PaymentType==0)
-                PaymentTypeId = Argumetns[0];
-
-            if (PaymentTypeId > 0)
-                AddPaymentMethodToOrderTemp(PaymentTypeId);
-
-            //Сообщение с просьбой отрпвить свой номер телефон. Если сообщение пустое, значит номер телефона уже есть в БД
-            var message = RequestPhoneNumberMsg.BuildMsg(); // 
-
-
-            if (message != null) // Номера телефона нет в базе
-            {
-                if (await SendMessage(message) != null)
-                    return base.OkResult;
-
-                else
-                    return base.OkResult;
-            }
-
-            else // Номер телефона есть в базе. ПОказываем превью заказа
-                return await SendOrderTemp();
-
-        }
-
-        /// <summary>
-        /// Проверка юзер нейм пользователя в телеграме. 
-        /// Эта функция работает если выключена верификация телефона. Это нужно для того что бы с пользователем можно было выйти на связь
+        /// отправить сообщение с инструкцией о том как добавить userName в Telegram
         /// </summary>
         /// <param name="configuration">Конфигурация бота. Может быть пустым в случае когда пользователь нажал далее</param>
         /// <param name="PaymentType">Тип оплаты</param>
         /// <returns></returns>
-        private async Task<IActionResult> UserNameCheck(Configuration configuration=null, int PaymentType = 0)
+        private async Task<IActionResult> SendUserNameAddedFaq(Configuration configuration=null)
         {
+            UserNameImageMessage userNameImage = new UserNameImageMessage(BotInfo.Configuration);
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                string name;
+            var message = userNameImage.BuildMsg();
 
-                int PaymentTypeId = PaymentType;
-                
-                if (Argumetns.Count > 0 && PaymentType == 0)
-                    PaymentTypeId = Argumetns[0];
+            var PhotoSend= await SendPhoto(message);
 
-                if (PaymentTypeId > 0)
-                    AddPaymentMethodToOrderTemp(PaymentTypeId);
-
-                if (configuration==null)
-                    configuration = db.Configuration.Where(c => c.BotInfoId == BotInfo.Id).FirstOrDefault();
-
-                // Проверяем указан ли у пользователя UserName
-                if (Update.CallbackQuery != null && Update.CallbackQuery.Message != null
-                    && Update.CallbackQuery.Message.Chat != null && Update.CallbackQuery.Message.Chat.Username != null)
-                {
-                    name = Update.CallbackQuery.Message.Chat.Username;
-                    var follower = db.Follower.Where(f => f.Id == FollowerId).FirstOrDefault();
-                    follower.UserName = name;
-
-                    if(name!=follower.UserName)
-                        db.SaveChanges();
-
-                    await SendOrderTemp();
-                }
-
-                else // Если не указан Просим указать
-                {
-                    UserNameImageMessage userNameImage = new UserNameImageMessage(configuration);
-                    var message = userNameImage.BuildMsg();
-                    var PhotoSend= await SendPhoto(message);
-                    // добавляем ID файла в бд, что бы потом не отправлять сам файл,а только ID на сервере телегарм
-                    if (configuration != null && configuration.UserNameFaqFileId == null && PhotoSend != null)
-                    {
-                        configuration.UserNameFaqFileId = PhotoSend.Photo[PhotoSend.Photo.Length - 1].FileId;
-                        db.SaveChanges();
-                    }
-                }
-
-                
-            }
+            // добавляем ID файла в бд, что бы потом не отправлять сам файл,а только ID на сервере телегарм
+            if (BotInfo.Configuration != null && BotInfo.Configuration.UserNameFaqFileId == null && PhotoSend != null)
+               ConfigurationFunction.AddFileIdUserNameFaqImage(BotInfo.Configuration,PhotoSend.Photo[PhotoSend.Photo.Length - 1].FileId);
 
             return OkResult;
         }
 
+        /// <summary>
+        /// Добавить UserName для пользователя
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> AddUserName()
+        {
+            //Пользователь написал username в настройках Telegram  и нажал на кнопку
+            if (Update.CallbackQuery != null && Update.CallbackQuery.From != null &&
+                FollowerFunction.AddUserName(FollowerId, Update.CallbackQuery.From.Username) != null)
+                return await SendOrderTemp();
 
+            else // Не написал
+                return await SendUserNameAddedFaq();
+        }
         /// <summary>
         /// Сообщение с деталями Заказа из таблицы OrderTemp
         /// </summary>
@@ -696,86 +581,28 @@ namespace MyTelegramBot.Bot
 
         }
 
-        /// <summary>
-        /// Forcre Reply сообщение с просьбой отправить сообщение с комментарием для заказа
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendForceReplyAddDesc()
-        {
-            ForceReply forceReply = new ForceReply
-            {
-                Force = true,
-
-                Selective = true
-            };
-
-            if (await SendMessage(new BotMessage { TextMessage = CmdEnterDesc, MessageReplyMarkup = forceReply }) != null)
-                return base.OkResult;
-
-            else
-                return base.OkResult;
-        }
 
         /// <summary>
         /// Добавить комментарий к заказу. БД
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> AddOrderTempDesc()
+        private async Task<IActionResult> AddCommentToOrderTmp()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId).FirstOrDefault();
-                if (OrderTmp != null)
-                {
-                    OrderTmp.Text = Update.Message.Text;
+            OrderFunction = new OrderFunction();
 
-                    if (db.SaveChanges() > 0 && await SendMessage(OrderPreviewMsg.BuildMessage()) != null)
-                        return base.OkResult;
+            OrderFunction.OpenConnection();
 
-                    else
-                        return base.OkResult;
-                }
+            OrderFunction.AddCommentToOrderTmp(FollowerId,BotInfo.Id, Update.Message.Text);
 
-                else
-                    return base.OkResult;
-            }
+            OrderFunction.Dispose();
 
-        }
+            OrderPreviewMsg = new OrderTempMessage(FollowerId, BotInfo.Id);
 
-        /// <summary>
-        /// Показать номер телефона покупателя
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> GetContact()
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
+            await SendMessage(OrderPreviewMsg.BuildMessage());
 
-                var order = db.Orders.Where(o => o.Id == OrderId).Include(o => o.Follower).FirstOrDefault();
+            return base.OkResult;
 
-                if (order.Follower != null && order.Follower.Telephone != null && order.Follower.Telephone != "")
-                {
-                    Contact contact = new Contact
-                    {
-                        FirstName = order.Follower.FirstName,
-                        PhoneNumber = order.Follower.Telephone
 
-                    };
-
-                    await SendContact(contact);
-                   
-                }
-
-                if(order.Follower != null && order.Follower.UserName != null && order.Follower.UserName != "")
-                {
-                   string url= BotMessage.HrefUrl("https://t.me/" + order.Follower.UserName, order.Follower.UserName);
-                   await SendMessage(new BotMessage { TextMessage = url });
-                   return OkResult;
-                }
-
-                else
-                    return base.OkResult;
-            }
         }
 
 
@@ -803,13 +630,13 @@ namespace MyTelegramBot.Bot
             Orders new_order = null;
             bool blocked = false;
 
-            Bot.Order.InsertNewOrder insertNewOrder = new Bot.Order.InsertNewOrder(FollowerId, BotInfo);
+            OrderFunction orderFunction = new OrderFunction();
+
+            orderFunction.OpenConnection();
 
             ConfigurationBot = base.GetConfigurationBot(BotInfo.Id);
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
-                blocked = db.Follower.Find(FollowerId).Blocked;
-            
+            blocked = FollowerFunction.IsBlocked(FollowerId);
 
             if (blocked)
                 await AnswerCallback("Вы заблокированы администратором системы!", true);
@@ -820,12 +647,12 @@ namespace MyTelegramBot.Bot
                 ConfigurationBot.EndTime!=null && ConfigurationBot.StartTime.Value.Hours <=
                 DateTime.Now.Hour && ConfigurationBot.StartTime.Value<= DateTime.Now.TimeOfDay &&
                  ConfigurationBot.EndTime.Value>DateTime.Now.TimeOfDay)
-                      new_order= insertNewOrder.AddOrder();
+                      new_order= orderFunction.CreateOrder(FollowerId,BotInfo);
                 
 
             //Время работы магазина не указано.
             else if (!blocked && ConfigurationBot.EndTime==null && ConfigurationBot.StartTime==null)
-                new_order = insertNewOrder.AddOrder();
+                new_order = orderFunction.CreateOrder(FollowerId, BotInfo);
 
             else
                 await AnswerCallback("Мы обрабатываем заказы только в период с "+ConfigurationBot.StartTime.ToString()+ 
@@ -844,158 +671,25 @@ namespace MyTelegramBot.Bot
             }
 
             //то отправляем уведомление о новом заказке Админам
-            if (new_order!=null)
-                await OrderRedirectToAdmins(new_order.Id);
-            
+            if (new_order != null)
+            {
+                OrderAdminMsg = new AdminOrderMessage(new_order);
 
+                var message = OrderAdminMsg.BuildMsg();
+
+                await SendMessageAllBotEmployeess(message);
+            }
+
+
+            OrderFunction.Dispose();
 
             return OkResult;
-        }
-
-        /// <summary>
-        /// После того как пользователь нажал на кнопку "Отправить", информация о заказе пересылается Операторам в личку и в общий чат (если он есть)
-        /// </summary>
-        /// <param name="OrderId"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> OrderRedirectToAdmins(int OrderId, Orders order=null)
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                try
-                {
-                    var admins = db.Admin.Include(a => a.Follower).ToList();
-
-                    if(order==null)
-                        OrderAdminMsg = new AdminOrderMessage(OrderId);
-
-                    else
-                        OrderAdminMsg = new AdminOrderMessage(order);
-
-                    var message = OrderAdminMsg.BuildMsg();
-
-                    await SendMessageAllBotEmployeess(message);
-
-                    return base.OkResult;
-                }
-
-                catch
-                {
-                    return base.OkResult;
-                }
-            }
-
-        }
-
-
-        /// <summary>
-        /// Добавить отзыв к заказу
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> AddNewFeedBack()
-        {
-            int orderid = 0;
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                try
-                {
-                    int number = Convert.ToInt32(base.OriginalMessage.Substring(ForceReplyAddFeedBack.Length));
-
-                    var order = db.Orders.Where(o => o.Number == number).FirstOrDefault();
-
-                    if (order != null)
-                        orderid = order.Id;
-
-                    var feed = db.FeedBack.Where(f => f.OrderId == orderid);
-
-                    string text = base.ReplyToMessageText;
-
-                    if (feed != null && feed.Count() == 0) // если отзывов еще нет
-                    {
-                        FeedBack feedBack = new FeedBack
-                        {
-                            DateAdd = DateTime.Now,
-                            OrderId = orderid,
-                            Text = text
-                        };
-
-                        db.FeedBack.Add(feedBack);
-
-                        if (db.SaveChanges() > 0)
-                        {
-                            RaitingMsg = new RaitingMessage(feedBack.Id);
-                            //отправляем сообщение с кнопками от 1 до 5
-                            await EditMessage(RaitingMsg.BuildMsg());
-
-
-                        }
-
-                        return base.OkResult;
-                    }
-
-                    else // если отзыв уже есть
-                        return base.OkResult;
-                }
-
-                catch
-                {
-                    return base.OkResult;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Добавить адрес доставки к заказу (в таблицу OrderTemp !!!)
-        /// </summary>
-        private void AddAddressToOrderTemp(int AddressId)
-        {
-            OrderTemp OrderTmp = new OrderTemp();
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotInfo.Id).FirstOrDefault();
-                if (OrderTmp != null && AddressId > 0)
-                {
-                    OrderTmp.AddressId = AddressId;
-                    db.SaveChanges();
-                }
-
-                if (OrderTmp == null && AddressId > 0)
-                {
-                    db.OrderTemp.Add(new OrderTemp { AddressId = Argumetns[0], FollowerId = base.FollowerId , BotInfoId=BotInfo.Id});
-                    db.SaveChanges();
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// Добавить метод оплаты к заказу (в таблицу OrderTemp !!!)
-        /// </summary>
-        /// <param name="PaymentTypeId"></param>
-        /// <returns></returns>
-        private int AddPaymentMethodToOrderTemp (int PaymentTypeId)
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var order = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotInfo.Id).FirstOrDefault();
-
-                if (order != null && PaymentTypeId > 0)
-                {
-                    order.PaymentTypeId = PaymentTypeId;
-                    return db.SaveChanges();
-                }
-
-                else
-                    return 0;
-
-            }
         }
 
 
 
         private async Task<IActionResult> CheckPay()
         {
-            
 
            var mess= await CheckPayMsg.BuildMessage();
 

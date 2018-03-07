@@ -59,7 +59,7 @@ namespace MyTelegramBot.Messages
                 OrderTemp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotId).Include(o=>o.PaymentType).LastOrDefault();
                 string PositionInfo = BasketPositionInfo.GetPositionInfo(FollowerId,BotId);
                 Configuration = db.Configuration.Where(c => c.BotInfoId == BotId).FirstOrDefault();
-                double BasketTotalPrice = BasketPositionInfo.BasketTotalPrice(FollowerId, BotId);
+                double BasketTotalPrice = BusinessLayer.BasketFunction.BasketTotalPrice(FollowerId,BotId);
 
                 if (OrderTemp != null)  
                 {
@@ -86,7 +86,6 @@ namespace MyTelegramBot.Messages
 
                     if (OrderTemp.PickupPointId != null)
                         PickupPoint = db.PickupPoint.Find(OrderTemp.PickupPointId);
-
 
 
                     if (OrderTemp.PaymentType != null && OrderTemp.PaymentType.Name != null)
@@ -177,14 +176,15 @@ namespace MyTelegramBot.Messages
                     foreach (int id in IdList)
                     {
 
-                        string name = db.Product.Where(p => p.Id == id).FirstOrDefault().Name;
+                        Product product = db.Product.Where(p => p.Id == id).Include(p=>p.CurrentPrice).FirstOrDefault();
                         int count = basket.Where(p => p.ProductId == id).Count();
-                        var price = db.ProductPrice.Where(p => p.ProductId == id && p.Enabled).Include(p=>p.Currency).FirstOrDefault();
-                        message += counter.ToString() + ") " + name + " " + count.ToString() + 
-                            " x " + price.ToString() + " = " + (count * price.Value).ToString() + price.Currency.ShortName + BotMessage.NewLine();
-                        total += price.Value * count;
+                        product.CurrentPrice.Currency = db.Currency.Find(product.CurrentPrice.CurrencyId);
+                        message += counter.ToString() + ") " + product.Name + " "  + 
+                        product.CurrentPrice.ToString() + " x " + count.ToString() + " = " + 
+                        (count * product.CurrentPrice.Value).ToString() + product.CurrentPrice.Currency.ShortName + BotMessage.NewLine();
+                        total += product.CurrentPrice.Value * count;
                         counter++;
-                        currency = price.Currency.ShortName;
+                        currency = product.CurrentPrice.Currency.ShortName;
 
                     }
 
@@ -200,20 +200,23 @@ namespace MyTelegramBot.Messages
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                var basket = db.Basket.Where(b => b.FollowerId == FollowerID && b.Enable && b.BotInfoId == BotId);
+                var basket = db.Basket.Where(b => b.FollowerId == FollowerID && b.Enable && b.BotInfoId == BotId).Include(p=>p.Product.CurrentPrice);
 
-                var IdList = basket.Select(b => b.ProductId).Distinct().AsEnumerable();
+                var IdList = basket.Select(b => b.Product).Distinct().AsEnumerable();
 
                 double total = 0.0;
 
 
                 if (IdList.Count() > 0)
                 {
-                    foreach (int id in IdList)
+                    foreach (var product in IdList)
                     {
-                        int count = basket.Where(p => p.ProductId == id).Count();
-                        var price = db.ProductPrice.Where(p => p.ProductId == id && p.Enabled).Include(p => p.Currency).FirstOrDefault();                      
-                        total += price.Value * count;
+                        int count = basket.Where(p => p.ProductId == product.Id).Count();
+
+                        if (product.CurrentPrice == null)
+                            product.CurrentPrice = db.ProductPrice.Find(product.CurrentPriceId);
+
+                        total += product.CurrentPrice.Value * count;
                     }
 
                     return total;

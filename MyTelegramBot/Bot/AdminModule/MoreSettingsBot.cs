@@ -812,7 +812,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 BotInfo.Configuration.EndTime = null;
                 db.Update<Configuration>(BotInfo.Configuration);
                 db.SaveChanges();
-                return await SendDeliveryPriceInfo(base.MessageId);
+                return await SendMoreSettings(base.MessageId);
             }
         }
 
