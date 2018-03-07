@@ -165,7 +165,7 @@ namespace MyTelegramBot.Bot.Core
                 if (this.Update.Message != null) // Пришло текстовое сообщение
                     UpdateParser(update.Message);
 
-                Constructor();
+                Initializer();
 
             }
 
@@ -176,7 +176,7 @@ namespace MyTelegramBot.Bot.Core
 
         }
 
-        protected abstract void Constructor();
+        protected abstract void Initializer();
 
         /// <summary>
         /// id пользователя в в БД

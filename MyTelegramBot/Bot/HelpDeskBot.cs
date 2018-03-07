@@ -60,7 +60,7 @@ namespace MyTelegramBot.Bot
                 return OkResult;
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             
         }

@@ -691,7 +691,9 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> CheckPay()
         {
 
-           var mess= await CheckPayMsg.BuildMessage();
+            CheckPayMsg = new CheckPayMessage(Order);
+
+         var mess = await CheckPayMsg.BuildMessage();
 
             await AnswerCallback(mess.TextMessage, true);
 

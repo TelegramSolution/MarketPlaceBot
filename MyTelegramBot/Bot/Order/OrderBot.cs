@@ -194,7 +194,7 @@ namespace MyTelegramBot.Bot
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             if (Update.Message != null && Update.Message.ReplyToMessage != null)
                 CommandName = Update.Message.ReplyToMessage.Text;
@@ -211,7 +211,6 @@ namespace MyTelegramBot.Bot
                         Order = db.Orders.Where(o => o.Id == this.OrderId).Include(o => o.Confirm).
                             Include(o => o.Done).Include(o => o.Delete).
                             Include(o => o.OrderProduct).Include(o => o.Follower).Include(o => o.FeedBack).Include(o=>o.Invoice).FirstOrDefault();
-                    CheckPayMsg = new CheckPayMessage(Order);
 
                 }
 

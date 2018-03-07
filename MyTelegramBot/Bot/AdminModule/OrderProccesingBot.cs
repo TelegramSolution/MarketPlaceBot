@@ -146,7 +146,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
 
             if (Update.Message != null && Update.Message.ReplyToMessage != null)

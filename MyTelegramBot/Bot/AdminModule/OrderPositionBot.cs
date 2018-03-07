@@ -30,7 +30,7 @@ namespace MyTelegramBot.Bot
          
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             try
             {

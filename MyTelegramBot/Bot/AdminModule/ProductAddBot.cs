@@ -37,7 +37,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             
         }

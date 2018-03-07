@@ -19,7 +19,7 @@ namespace MyTelegramBot.Bot
         {
 
         }
-        protected override void Constructor()
+        protected override void Initializer()
         {
             RequestPhoneNumberMessageMsg = new RequestPhoneNumberMessage();
             OrderPreviewMsg = new OrderTempMessage(base.FollowerId,BotInfo.Id);
