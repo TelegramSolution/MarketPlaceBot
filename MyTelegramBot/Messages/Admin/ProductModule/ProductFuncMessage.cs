@@ -101,10 +101,10 @@ namespace MyTelegramBot.Messages.Admin
                 base.TextMessage = Product.AdminMessage();
 
                 if (Product.Enable == true)
-                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id),base.CheckEmodji);
+                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id,1),base.CheckEmodji);
 
                 else
-                    ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id),base.UnCheckEmodji);
+                    ProductEditEnableBtn = BuildInlineBtn("Скрыто", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id,0),base.UnCheckEmodji);
 
                 if (Product.Enable == true)
                     OpenProductBtn = BuildInlineBtn("Открыть", BuildCallData(ProductBot.GetProductCmd, ProductBot.ModuleName, Product.Id),base.SenderEmodji);

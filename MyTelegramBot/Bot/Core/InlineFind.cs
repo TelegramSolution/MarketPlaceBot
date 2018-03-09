@@ -50,6 +50,8 @@ namespace MyTelegramBot.Bot.Core
 
         public const string EditProduct = "Редактор";
 
+        public const string MyOrders = "Мои заказы";
+
         private InlineQuery inlineQuery { get; set; }
 
         /// <summary>
@@ -105,8 +107,9 @@ namespace MyTelegramBot.Bot.Core
                 if (GetFrom(inlineQuery.Query) == FindOperators)
                     BotInline = new InlineResult.OperatorSearchInline(QueryLine(inlineQuery.Query));
 
-                if (BotInline != null)
-                    await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
+                if(GetFrom(inlineQuery.Query)==MyOrders)
+                    BotInline = new InlineResult.MyOrdersSearchInline(QueryLine(inlineQuery.Query),inlineQuery.From.Id);
+
 
             }
 
@@ -116,6 +119,16 @@ namespace MyTelegramBot.Bot.Core
 
                 if (BotInline != null)
                     await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
+            }
+
+            try
+            {
+                if (BotInline != null)
+                    await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
+            }
+            catch
+            {
+
             }
 
             return true;

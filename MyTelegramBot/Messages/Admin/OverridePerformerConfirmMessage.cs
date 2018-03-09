@@ -27,6 +27,8 @@ namespace MyTelegramBot.Messages.Admin
 
         private HelpDesk HelpDesk { get; set; }
 
+        private HelpDeskInWork HelpDeskInWork { get; set; }
+
         public OverridePerformerConfirmMessage (Orders order, OrdersInWork ordersInWork)
         {
             Order = order;
@@ -35,9 +37,10 @@ namespace MyTelegramBot.Messages.Admin
 
         }
 
-        public OverridePerformerConfirmMessage(HelpDesk help)
+        public OverridePerformerConfirmMessage(HelpDesk help, HelpDeskInWork helpDeskInWork)
         {
             HelpDesk = help;
+            HelpDeskInWork = helpDeskInWork;
         }
 
         public override BotMessage BuildMsg()
@@ -54,7 +57,25 @@ namespace MyTelegramBot.Messages.Admin
 
         private void HelpOverrideMsg()
         {
+            base.TextMessage = "Заявка №" + this.HelpDesk.Number + " находится в обработке у пользователя:" +
+           Bot.GeneralFunction.FollowerFullName(this.HelpDeskInWork.FollowerId) + NewLine() +
+           "Время:" + this.HelpDeskInWork.Timestamp.ToString() + NewLine();
 
+            ConfirmOverrideBtn = BuildInlineBtn("Назначить себя исполнителем", BuildCallData(HelpDeskProccessingBot.CmdOverridePerformerHelp, HelpDeskProccessingBot.ModuleName, this.Order.Id));
+
+
+            base.MessageReplyMarkup = new InlineKeyboardMarkup(
+            new[]{
+                   new[]
+                    {
+                        ConfirmOverrideBtn
+                    },
+
+                    new[]
+                    {
+                        BackBtn
+                    },
+                });
         }
 
         private void OrderOverrideMsg()

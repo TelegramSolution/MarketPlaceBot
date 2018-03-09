@@ -69,7 +69,13 @@ namespace MyTelegramBot.InlineResult
                 {
                     Messages.ProductViewMessage productView = new Messages.ProductViewMessage(ProductList[i]);
                     InlineQueryResultCachedPhoto cachedPhoto = new InlineQueryResultCachedPhoto();
-                    cachedPhoto.Caption = ProductList[i].ToString();
+                    
+                    string caption= ProductList[i].ToString();
+
+                    if (caption.Length > 200)
+                        caption=caption.Substring(0, 199);
+
+                    cachedPhoto.Caption = caption;
                     cachedPhoto.Id = ProductList[i].Id.ToString();
                     cachedPhoto.FileId = attach_telegram.FileId;
                     cachedPhoto.ReplyMarkup = productView.SetInlineKeyBoard();

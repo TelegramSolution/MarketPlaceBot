@@ -3,47 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using MyTelegramBot.Bot.Core;
-using MyTelegramBot.Bot;
 
 namespace MyTelegramBot.BusinessLayer
 {
-    public class ConfigurationFunction
+    public class CategoryFunction
     {
-        public static int AddFileIdUserNameFaqImage(Configuration Configuration, string FileId)
+        public static Category GetCategory(string name)
         {
             MarketBotDbContext db = new MarketBotDbContext();
 
             try
             {
-                Configuration.UserNameFaqFileId = FileId;
-                db.Update<Configuration>(Configuration);
-                return db.SaveChanges();
-            }
-            catch
-            {
-                return -1;
-            }
-
-            finally
-            {
-                db.Dispose();
-            }
-        }
-
-        public static Currency MainCurrencyInSystem()
-        {
-            MarketBotDbContext db = new MarketBotDbContext();
-
-            try
-            {
-               var botInfo= GeneralFunction.GetBotInfo();
-
-                if (botInfo != null)
-                    return db.Currency.Find(botInfo.Configuration.CurrencyId);
-
-                else
-                    return null;
+                return db.Category.Where(c => c.Name == name).LastOrDefault();
             }
 
             catch
@@ -57,17 +28,47 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
-        /// <summary>
-        /// Список операторов системы
-        /// </summary>
-        /// <returns></returns>
-        public static List<Admin> GetOperatorList()
+        public static List<Category> GetListCategory()
         {
             MarketBotDbContext db = new MarketBotDbContext();
 
             try
             {
-                return db.Admin.Where(a => a.Enable).Include(a => a.Follower).ToList(); 
+                return db.Category.ToList(); 
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static Category InsertCategory(string name)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                if (db.Category.Where(c => c.Name == name).FirstOrDefault() != null)
+                {
+                    Category category = new Category
+                    {
+                        Name = name,
+                        Enable = true
+                    };
+
+                    db.Category.Add(category);
+                    db.SaveChanges();
+                    return category;
+                }
+
+                else
+                    return null;
             }
 
             catch

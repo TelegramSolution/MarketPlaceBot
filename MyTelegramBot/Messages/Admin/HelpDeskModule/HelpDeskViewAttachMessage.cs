@@ -22,6 +22,8 @@ namespace MyTelegramBot.Messages.Admin
 
         private int BotId { get; set; }
 
+        MarketBotDbContext db = new MarketBotDbContext();
+
         public HelpDeskViewAttachMessage(HelpDesk helpDesk, List<HelpDeskAttachment> list, int BotId)
         {
             this.HelpDesk = helpDesk;
@@ -35,36 +37,35 @@ namespace MyTelegramBot.Messages.Admin
             {
                 BotMessage = new BotMessage[ListAttachFs.Count];
                 int counter = 0;
+                db = new MarketBotDbContext();
 
-                using (MarketBotDbContext db = new MarketBotDbContext())
+                foreach (var attachFs in ListAttachFs)
                 {
-                    foreach (var attachFs in ListAttachFs)
+                    var telegram_attach= db.AttachmentTelegram.Where(a => a.AttachmentFsId == attachFs.AttachmentFsId && a.BotInfoId == BotId).FirstOrDefault();
+                    GetHelpDeskBtn = new InlineKeyboardCallbackButton("Вернуться к заявке №" + HelpDesk.Number.ToString(),
+                                                                        BuildCallData(Bot.AdminModule.HelpDeskProccessingBot.GetHelpDeskCmd, Bot.AdminModule.HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+                    try
                     {
-                        var telegram_attach= db.AttachmentTelegram.Where(a => a.AttachmentFsId == attachFs.AttachmentFsId && a.BotInfoId == BotId).FirstOrDefault();
-                        GetHelpDeskBtn = new InlineKeyboardCallbackButton("Вернуться к заявке №" + HelpDesk.Number.ToString(),
-                                                                            BuildCallData(Bot.AdminModule.HelpDeskProccessingBot.GetHelpDeskCmd, Bot.AdminModule.HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
-                        try
-                        {
-                            BotMessage[counter] = new BotMessage();
-                            BotMessage[counter].MediaFile = GetMediaFile(db, telegram_attach);
-                            BotMessage[counter].MessageReplyMarkup = new InlineKeyboardMarkup(
-                            new[]{
-                            new[]
-                            {
-                                GetHelpDeskBtn
-                            },
+                        BotMessage[counter] = new BotMessage();
+                        BotMessage[counter].MediaFile = GetMediaFile(telegram_attach);
+                        BotMessage[counter].MessageReplyMarkup = new InlineKeyboardMarkup(
+                        new[]{
+                        new[]
+                                    {
+                                        GetHelpDeskBtn
+                                    },
 
-                                });
+                         });
 
-                        }
-                        catch (Exception e)
-                        {
-
-                        }
-                        counter++;
                     }
+                    catch (Exception e)
+                    {
+
+                    }
+                    counter++;
                 }
 
+                db.Dispose();
                 return BotMessage;
             }
 
@@ -73,7 +74,7 @@ namespace MyTelegramBot.Messages.Admin
 
         }
 
-        private MediaFile GetMediaFile(MarketBotDbContext db,AttachmentTelegram telegram_attach)
+        private MediaFile GetMediaFile(AttachmentTelegram telegram_attach)
         {
             try
             {

@@ -16,7 +16,12 @@ namespace MyTelegramBot.BusinessLayer
 
         private InvoiceFunction InvoiceFunction { get; set; }
 
-        public void OpenConnection()
+        public OrderFunction()
+        {
+            OpenConnection();
+        }
+
+        private void OpenConnection()
         {
             db = new MarketBotDbContext();
         }

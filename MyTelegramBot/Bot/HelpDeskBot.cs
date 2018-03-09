@@ -9,6 +9,7 @@ using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot
 {
@@ -18,15 +19,6 @@ namespace MyTelegramBot.Bot
 
         private HelpDeskEditorMessage HelpDeskEditorMsg { get; set; }
 
-        const int AttachTypePhoto = 1;
-
-        const int AttachTypeVideo = 2;
-
-        const int AttachTypeAudio = 3;
-
-        const int AttachTypeVoice = 4;
-
-        const int AttachTypeVideoNote = 5;
 
         public HelpDeskBot(Update _update) : base(_update)
         {
@@ -69,187 +61,79 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> AddTextToHelpDesk()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
+            var NoSendHelp=HelpDeskFunction.InsertHelpDesk(FollowerId, BotInfo.Id, ReplyToMessageText);
+            HelpDeskEditorMsg = new HelpDeskEditorMessage(NoSendHelp);
+            await SendMessage(HelpDeskEditorMsg.BuildMsg());
+            return OkResult;
 
-                var NoSendHelp = db.HelpDesk.Where(h => h.Send == false && FollowerId == FollowerId && h.BotInfoId==BotInfo.Id).Include(h=>h.HelpDeskAttachment).FirstOrDefault();
-
-                //У пользователя есть не отправленная заявка. Работаем с ней
-                if (NoSendHelp != null && ReplyToMessageText!=null || NoSendHelp != null && ReplyToMessageText != null)
-                {
-                    NoSendHelp.Text = ReplyToMessageText;
-                    db.SaveChanges();
-                    AddAttachToHelpDesk(await CheckAttach(), NoSendHelp.Id);
-                    
-                    if (NoSendHelp.Id > 0)
-                    {
-                        HelpDeskEditorMsg = new HelpDeskEditorMessage(NoSendHelp);
-                        await SendMessage(HelpDeskEditorMsg.BuildMsg());
-                    }
-
-                    return OkResult;
-                }
-
-                //У пользователя нет не отправленных заявок. Создаем новую, но не даем Номер и делам статус не отправлена
-                if (NoSendHelp == null && ReplyToMessageText != null || NoSendHelp == null && ReplyToMessageText != null)
-                {
-                    HelpDesk help = new HelpDesk
-                    {
-                        FollowerId = FollowerId,
-                        Text = ReplyToMessageText,
-                        Send = false,
-                        BotInfoId=BotInfo.Id
-                    };
-
-                    db.HelpDesk.Add(help);
-                    db.SaveChanges();
-                    AddAttachToHelpDesk(await CheckAttach(), help.Id);
-
-                    if (help.Id > 0)
-                    {
-                        HelpDeskEditorMsg = new HelpDeskEditorMessage(help);
-                        await SendMessage(HelpDeskEditorMsg.BuildMsg());
-                    }
-
-                    return OkResult;
-                }
-
-                if (ReplyToMessageText == null && Caption == null)
-                {
-                    await SendMessage(new BotMessage { TextMessage = "Вы должны описать вашу проблему!" });
-                    return OkResult;
-                }
-
-                else
-                  return OkResult;
-                
-            }
         }
 
         /// <summary>
-        /// Провереям какие файлы пытается прикрепить к заявке пользователь
+        /// Провереям какие файлы пытается прикрепить к заявке пользователь, вытаскиваем их с сервера телегам и загружает в базу данных бота
         /// </summary>
         /// <returns></returns>
         private async Task<int> CheckAttach()
         {
-            AttachmentTelegram attachment = new AttachmentTelegram();
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            if (base.FileId != null && base.FileId != "")
             {
-                if (base.FileId != null && base.FileId != "")
-                {
-                    await SendMessage(new BotMessage { TextMessage = "Можно прикреплять только Фото, Аудио, Видео" });
-                    return -1;
-                }
-
-                if (base.PhotoId != null)
-                    return await base.InsertToAttachmentFs(base.PhotoId);
-
-                if (base.VideoId != null)
-                    return await base.InsertToAttachmentFs(base.VideoId);
-
-                if (base.AudioId != null)
-                    return await base.InsertToAttachmentFs(base.AudioId);
-
-                if (base.VoiceId != null)
-                    return await base.InsertToAttachmentFs(base.VoiceId);
-
-                if (base.VideoNoteId != null)
-                    return await base.InsertToAttachmentFs(base.VideoNoteId);
-
-
-                else
-                    return -1;
+                await SendMessage(new BotMessage { TextMessage = "Можно прикреплять только Фото, Аудио, Видео" });
+                return -1;
             }
-        }
 
-        /// <summary>
-        /// Прикрепить файлы к заявке
-        /// </summary>
-        /// <param name="AttachId"></param>
-        /// <param name="HelpDeskId"></param>
-        /// <returns></returns>
-        private HelpDeskAttachment AddAttachToHelpDesk(int AttachFsId, int HelpDeskId)
-        {
+            if (base.PhotoId != null)
+                return await base.InsertToAttachmentFs(base.PhotoId);
 
-            if (AttachFsId > 0 && HelpDeskId>0)
-            {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
+            if (base.VideoId != null)
+                return await base.InsertToAttachmentFs(base.VideoId);
 
+            if (base.AudioId != null)
+                return await base.InsertToAttachmentFs(base.AudioId);
 
-                    HelpDeskAttachment attachment = new HelpDeskAttachment
-                    {
-                        AttachmentFsId = AttachFsId,
-                        HelpDeskId = HelpDeskId
-                    };
-                   
+            if (base.VoiceId != null)
+                return await base.InsertToAttachmentFs(base.VoiceId);
 
-                    db.HelpDeskAttachment.Add(attachment);
+            if (base.VideoNoteId != null)
+                return await base.InsertToAttachmentFs(base.VideoNoteId);
 
-                    db.SaveChanges();
-                    return attachment;
-                }
-            }
 
             else
-                return null;
+                return -1;
         }
-
+        
         /// <summary>
         /// Прикрепить еще вложения к заявке
         /// </summary>
         /// <returns></returns>
         private async Task<IActionResult> GetHelpDeskNoSendAndAddAttach()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var NoSendHelp = db.HelpDesk.Where(h => h.Send == false && FollowerId == FollowerId).Include(h => h.HelpDeskAttachment).FirstOrDefault();
-                var attach= AddAttachToHelpDesk(await CheckAttach(), NoSendHelp.Id);
+            int AttachId = await CheckAttach();
 
-                if(attach!=null)
-                    NoSendHelp.HelpDeskAttachment.Add(attach);
+            var NoSendHelp = HelpDeskFunction.GetHelpDesk(FollowerId, BotInfo.Id);
 
-                HelpDeskEditorMsg = new HelpDeskEditorMessage(NoSendHelp);
-                await SendMessage(HelpDeskEditorMsg.BuildMsg());
-                return OkResult;
-            }
+            var attach= HelpDeskFunction.AddAttachToHelpDesk(AttachId, NoSendHelp.Id);
+
+            if(attach!=null)
+                NoSendHelp.HelpDeskAttachment.Add(attach);
+
+            HelpDeskEditorMsg = new HelpDeskEditorMessage(NoSendHelp);
+            await SendMessage(HelpDeskEditorMsg.BuildMsg());
+            return OkResult;
+            
         }
 
         private async Task<IActionResult> SaveHelpDesk(int HelpDeskId)
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId && h.Send == false).FirstOrDefault();
+            var Help = HelpDeskFunction.SaveHelpDesk(HelpDeskId);
 
-                var LastHelp = db.HelpDesk.Where(h=>h.Send==true).OrderByDescending(h=>h.Number).Include(h=>h.HelpDeskAttachment).FirstOrDefault();
+            HelpDeskEditorMsg = new HelpDeskEditorMessage(Help);
+            await EditMessage(HelpDeskEditorMsg.BuildMsg());
 
-                if (Help != null)
-                {
-                    int number = 1;
+            AdminHelpDeskMessage adminHelpDesk = new AdminHelpDeskMessage(Help);
+            await base.SendMessageAllBotEmployeess(adminHelpDesk.BuildMsg());
 
-                    if (LastHelp != null)
-                        number = Convert.ToInt32(LastHelp.Number) + 1;
-
-                    Help.Number = number;
-                    Help.Send = true;
-                    Help.Timestamp = DateTime.Now;
-                    Help.InWork = false;
-                    Help.Closed = false;
-
-                    db.SaveChanges();
-
-                    HelpDeskEditorMsg = new HelpDeskEditorMessage(Help);
-                    var message = HelpDeskEditorMsg.BuildMsg();
-                    await EditMessage(message);
-                    AdminHelpDeskMessage adminHelpDesk = new AdminHelpDeskMessage(Help.Id);
-                    await base.SendMessageAllBotEmployeess(adminHelpDesk.BuildMsg());
-                    return OkResult;
-                }
-
-                else
-                    return OkResult;
-            }
+            return OkResult;
+            
         }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -39,7 +40,8 @@ namespace MyTelegramBot.Messages.Admin
         /// <summary>
         /// У кого в обработке
         /// </summary>
-        private int FollowerInWork { get; set; }
+        private HelpDeskInWork InWorkNow { get; set; }
+
 
         public AdminHelpDeskMessage(HelpDesk helpDesk, int FollowerId=0)
         {
@@ -54,80 +56,65 @@ namespace MyTelegramBot.Messages.Admin
 
         public override BotMessage BuildMsg()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+
+            if (this.HelpDesk == null)
+                this.HelpDesk = HelpDeskFunction.GetHelpDesk(HelpDeskId);
+
+            string HelpAnswerText = "";
+
+            if (HelpDesk != null && HelpDesk.Send==true)
             {
-                if (this.HelpDesk == null)
-                    this.HelpDesk = db.HelpDesk.Where(h => h.Id == HelpDeskId).Include(h => h.HelpDeskAttachment).
-                         Include(h => h.HelpDeskAnswer)
-                        .Include(h=>h.HelpDeskInWork)
-                        .FirstOrDefault();
 
-                string HelpAnswerText = "";
+                base.TextMessage = Bold("Номер заявки: ") + HelpDesk.Number.ToString() + NewLine()
+                    + Bold("Пользователь: ") +Bot.GeneralFunction.FollowerFullName(HelpDesk.Follower) + NewLine()
+                    + Bold("Дата: ") + HelpDesk.Timestamp.ToString() + NewLine() 
+                    + Bold("Описание проблемы: ") + HelpDesk.Text + NewLine() + Bold("Прикрепленных файлов: ") + HelpDesk.HelpDeskAttachment.Count.ToString() + NewLine() +
+                    "Что бы быстро открыть эту заявку введите команду /ticket" + HelpDesk.Number;
 
-                if (HelpDesk != null && HelpDesk.Send==true)
+                if(HelpDesk.HelpDeskAnswer!=null && HelpDesk.HelpDeskAnswer.Count > 0)
                 {
-
-                    base.TextMessage = Bold("Номер заявки: ") + HelpDesk.Number.ToString() + NewLine()
-                        + Bold("Пользователь: ") +Bot.GeneralFunction.FollowerFullName(db.Follower.Where(f => f.Id == HelpDesk.FollowerId).FirstOrDefault()) + NewLine()
-                        + Bold("Дата: ") + HelpDesk.Timestamp.ToString() + NewLine() +
-                        Bold("Описание проблемы: ") + HelpDesk.Text + NewLine() + Bold("Прикрепленных файлов: ") + HelpDesk.HelpDeskAttachment.Count.ToString() + NewLine() +
-                        "Что бы быстро открыть эту заявку введите команду /ticket" + HelpDesk.Number;
-
-                    string closed = "";
-
-                    if(HelpDesk.HelpDeskAnswer!=null && HelpDesk.HelpDeskAnswer.Count > 0)
+                    int counter = 1;
+                    foreach(HelpDeskAnswer answer in HelpDesk.HelpDeskAnswer)
                     {
-                        int counter = 1;
-                        foreach(HelpDeskAnswer answer in HelpDesk.HelpDeskAnswer)
-                        {
-                            string view_attach = "";
 
-                            HelpAnswerText += counter.ToString() + ")"+Italic("Комментарий:")+" " + answer.Text +" | " +Italic(" Время:") + " "  
-                                + answer.Timestamp.ToString() + " | " + Italic(" Пользователь:") + " " +
-                                Bot.GeneralFunction.FollowerFullName(db.Follower.Where(f => f.Id == answer.FollowerId).FirstOrDefault()) 
-                                 +NewLine()+NewLine();
+                        HelpAnswerText += counter.ToString() + ") Комментарий:"+" " + answer.Text +" | " 
+                                            +" Время:" +" " + answer.Timestamp.ToString() + " | " + " Пользователь:" + " "
+                                            +Bot.GeneralFunction.FollowerFullName(answer.FollowerId) 
+                                            +NewLine()+NewLine();
 
-                            counter++;
-                        }
-
-                        if (HelpDesk.Closed == true)
-                            closed =Italic( "Заявка закрыта пользоватем " + 
-                                Bot.GeneralFunction.FollowerFullName(HelpDesk.HelpDeskAnswer.Where(h => h.Closed == true).FirstOrDefault().FollowerId) + " " +
-                              " " + HelpDesk.HelpDeskAnswer.Where(h => h.Closed == true).FirstOrDefault().ClosedTimestamp.ToString());
-
-                        HelpAnswerText += NewLine() + closed;
-
+                        counter++;
                     }
 
 
-                    if(HelpDesk.InWork==true && HelpDesk.HelpDeskInWork.Count > 0) // Узнаем у кого в обработке
-                        FollowerInWork =Convert.ToInt32(HelpDesk.HelpDeskInWork.OrderByDescending(h => h.Id).FirstOrDefault().FollowerId);
-                    
-
-                    base.TextMessage += NewLine() + NewLine() + HelpAnswerText;
                 }
 
-                CreateBtn();
-                SetInlineKeyBoard();
+                // Узнаем у кого в обработке
+                InWorkNow =HelpDesk.HelpDeskInWork.LastOrDefault();
 
+                base.TextMessage += NewLine() + NewLine() + HelpAnswerText;
             }
+
+            CreateBtn();
+            SetInlineKeyBoard();
+
+            
 
             return this;
         }
 
         private void CreateBtn()
         {
-            ViewAttachBtn = new InlineKeyboardCallbackButton("Посмотреть вложения", BuildCallData(HelpDeskProccessingBot.ViewAttachCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+            ViewAttachBtn = BuildInlineBtn("Посмотреть вложения", BuildCallData(HelpDeskProccessingBot.ViewAttachCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id),base.PictureEmodji);
 
-            AddCommentBtn = new InlineKeyboardCallbackButton("Добавить комментарий", BuildCallData(HelpDeskProccessingBot.AddHelpAnswerCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+            AddCommentBtn = BuildInlineBtn("Добавить комментарий", BuildCallData(HelpDeskProccessingBot.AddHelpAnswerCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id,Convert.ToInt32(HelpDesk.Number)),NoteBookEmodji);
 
-            ClosedBtn = new InlineKeyboardCallbackButton("Закрыть заявку", BuildCallData(HelpDeskProccessingBot.CloseHelpCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+            ClosedBtn = BuildInlineBtn("Закрыть заявку", BuildCallData(HelpDeskProccessingBot.CloseHelpCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id),base.DoneEmodji);
 
-            TakeToWorkBtn = new InlineKeyboardCallbackButton("Взять в работу", BuildCallData(HelpDeskProccessingBot.TakeHelpCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+            TakeToWorkBtn = BuildInlineBtn("Взять в работу", BuildCallData(HelpDeskProccessingBot.TakeToWorkCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id),base.Next2Emodji);
 
-            ViewContactBtn = new InlineKeyboardCallbackButton("Контактные данные", BuildCallData(HelpDeskProccessingBot.ViewContactCmd, HelpDeskProccessingBot.ModuleName, Convert.ToInt32(HelpDesk.FollowerId)));
+            ViewContactBtn = BuildInlineBtn("Контактные данные", BuildCallData(HelpDeskProccessingBot.ViewContactCmd, HelpDeskProccessingBot.ModuleName, Convert.ToInt32(HelpDesk.FollowerId)),MobileEmodji);
 
-            FreeHelpBtn = new InlineKeyboardCallbackButton("Освободить", BuildCallData(HelpDeskProccessingBot.FreeHelpCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+            FreeHelpBtn = BuildInlineBtn("Освободить", BuildCallData(HelpDeskProccessingBot.FreeHelpCmd, HelpDeskProccessingBot.ModuleName, HelpDesk.Id),base.Previuos2Emodji);
 
 
         }
@@ -135,7 +122,7 @@ namespace MyTelegramBot.Messages.Admin
         private void SetInlineKeyBoard()
         {
             //Заявка в работе, но не закрыта и по ней нет комментриев.
-            if(HelpDesk.InWork==true && HelpDesk.Closed==false && HelpDesk.HelpDeskAnswer.Count==0)
+            if(InWorkNow != null && InWorkNow.InWork == true && HelpDesk.Closed==false && HelpDesk.HelpDeskAnswer.Count==0)
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -156,7 +143,7 @@ namespace MyTelegramBot.Messages.Admin
                  });
 
             //Заявка в работе, но не закрыта. По заявке есть комментарии
-            if (HelpDesk.InWork==true && HelpDesk.Closed==false && HelpDesk.HelpDeskAnswer.Count >0)
+            if (InWorkNow!=null && InWorkNow.InWork==true && HelpDesk.Closed==false && HelpDesk.HelpDeskAnswer.Count >0)
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                     new[]{
                 new[]
@@ -170,17 +157,17 @@ namespace MyTelegramBot.Messages.Admin
 
                 new[]
                         {
-                            FreeHelpBtn
+                            ClosedBtn
                         },
 
                 new[]
                         {
-                            ClosedBtn
+                            FreeHelpBtn
                         },
                      });
 
-            //Заявка не в работе и не закрыта
-            if (HelpDesk.InWork == false && HelpDesk.Closed==false || FollowerId!=FollowerInWork)
+            //Заявка не зазкрты или Заявка в работе у кого то другого
+            if (HelpDesk.Closed==false && InWorkNow!=null  && InWorkNow.FollowerId!=FollowerId || InWorkNow!=null && InWorkNow.InWork==false)
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -193,14 +180,13 @@ namespace MyTelegramBot.Messages.Admin
                 });
 
             //ЗАявка в работе и уже выполнена
-            if (HelpDesk.InWork == true && HelpDesk.Closed==true || HelpDesk.Closed==true)
+            if (HelpDesk.Closed==true)
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
                             ViewAttachBtn,ViewContactBtn
                         },
-
 
 
                 });

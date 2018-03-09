@@ -26,8 +26,6 @@ namespace MyTelegramBot.Bot
 
             OrderFunction = new BusinessLayer.OrderFunction();
 
-            OrderFunction.OpenConnection();
-
             var Payment= OrderFunction.AddCreditCardPayment(this.OrderId,
                 (this.Update.Message.SuccessfulPayment.TotalAmount / 100),
                 this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId,
@@ -262,8 +260,6 @@ namespace MyTelegramBot.Bot
         {
             OrderFunction = new OrderFunction();
 
-            OrderFunction.OpenConnection();
-
             if (OrderFunction.AddAddressToOrderTmp(FollowerId, BotInfo.Id, AddressId) != null)
             {
                 OrderFunction.Dispose();
@@ -325,8 +321,6 @@ namespace MyTelegramBot.Bot
         {
             OrderFunction = new OrderFunction();
 
-            OrderFunction.OpenConnection();
-
             if (OrderFunction.AddPickUpPointToOrderTmp(FollowerId, BotInfo.Id, PickupPointId) != null)
             {
                 OrderFunction.Dispose();
@@ -375,8 +369,6 @@ namespace MyTelegramBot.Bot
                 int number = Convert.ToInt32(base.CommandName.Substring(MyOrder.Length));
 
                 OrderFunction = new OrderFunction();
-
-                OrderFunction.OpenConnection();
 
                 this.Order = OrderFunction.GetFollowerOrder(number, FollowerId);
 
@@ -438,8 +430,6 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> SelectPaymentMethod()
         {
             OrderFunction = new OrderFunction();
-
-            OrderFunction.OpenConnection();
 
             int PaymentTypeId=0;
 
@@ -590,8 +580,6 @@ namespace MyTelegramBot.Bot
         {
             OrderFunction = new OrderFunction();
 
-            OrderFunction.OpenConnection();
-
             OrderFunction.AddCommentToOrderTmp(FollowerId,BotInfo.Id, Update.Message.Text);
 
             OrderFunction.Dispose();
@@ -622,7 +610,7 @@ namespace MyTelegramBot.Bot
         }
 
         /// <summary>
-        /// Сохрнанить
+        /// Сохрнанить заказ. Перенести все данные из корзины.
         /// </summary>
         /// <returns></returns>
         private async Task<IActionResult> OrderSave()
@@ -631,8 +619,6 @@ namespace MyTelegramBot.Bot
             bool blocked = false;
 
             OrderFunction orderFunction = new OrderFunction();
-
-            orderFunction.OpenConnection();
 
             ConfigurationBot = base.GetConfigurationBot(BotInfo.Id);
 

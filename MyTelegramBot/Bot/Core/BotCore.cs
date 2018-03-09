@@ -771,6 +771,7 @@ namespace MyTelegramBot.Bot.Core
         {
             if (id == null)
                 id = FileId;
+            MarketBotDbContext db = new MarketBotDbContext();
 
             try
             {
@@ -790,48 +791,50 @@ namespace MyTelegramBot.Bot.Core
 
                 };
 
-                using (MarketBotDbContext db = new MarketBotDbContext())
+                db.AttachmentFs.Add(attachmentFs);
+
+                int type = HowMediaType(Update.Message); // узнаем какой типа файла. Фото, Аудио и тд
+
+                //Когда оператора будет смотреть заявку через того же бота, через коготого пользователь
+                //оформлял заявку, мы отправим ему ID файла на сервере телеграм вместо целой картинки. Это будет быстрее.
+                //А если оператор будет смотреть заявку из другого бота (например старого удалят), то мы сможем отрпавить файл картинки
+
+                //максимальный размер файла 15 мб
+                if (file != null && file.FileSize <= 15 * 1024 * 1024 && memoryStream != null && await db.SaveChangesAsync() > 0 && type > 0)
                 {
-                    db.AttachmentFs.Add(attachmentFs);
+                    AttachmentTelegram attachment = new AttachmentTelegram();
+                    attachment.FileId = id;
+                    attachment.AttachmentFsId = attachmentFs.Id;
+                    attachment.BotInfoId = BotInfo.Id;
 
-                    int type = HowMediaType(Update.Message); // узнаем какой типа файла. Фото, Аудио и тд
+                    db.AttachmentTelegram.Add(attachment);
 
-                    //Когда оператора будет смотреть заявку через того же бота, через коготого пользователь
-                    //оформлял заявку, мы отправим ему ID файла на сервере телеграм вместо целой картинки. Это будет быстрее.
-                    //А если оператор будет смотреть заявку из другого бота (например старого удалят), то мы сможем отрпавить файл картинки
-
-
-                    //максимальный размер файла 15 мб
-                    if (file != null && file.FileSize <= 15 * 1024 * 1024 && memoryStream != null && await db.SaveChangesAsync() > 0 && type > 0)
-                    {
-                        AttachmentTelegram attachment = new AttachmentTelegram();
-                        attachment.FileId = id;
-                        attachment.AttachmentFsId = attachmentFs.Id;
-                        attachment.BotInfoId = BotInfo.Id;
-
-                        db.AttachmentTelegram.Add(attachment);
-
-                        if (await db.SaveChangesAsync() > 0)
-                            return Convert.ToInt32(attachment.AttachmentFsId);
-
-                        else
-                            return -1;
-                    }
-
-                    if (file.FileSize > 15 * 1024 * 1024)
-                    {
-                        await SendMessage(new BotMessage { TextMessage = "Ошибка. Файл не может быть больше 15 мб!" });
-                        return -1;
-                    }
+                    if (await db.SaveChangesAsync() > 0)
+                        return Convert.ToInt32(attachment.AttachmentFsId);
 
                     else
                         return -1;
                 }
-            }
+
+                if (file.FileSize > 15 * 1024 * 1024)
+                {
+                    await SendMessage(new BotMessage { TextMessage = "Ошибка. Файл не может быть больше 15 мб!" });
+                    return -1;
+                }
+
+                else
+                    return -1;
+                }
+            
 
             catch (Exception exp)
             {
                 return -1;
+            }
+
+            finally
+            {
+                db.Dispose();
             }
 
         }
@@ -1067,44 +1070,42 @@ namespace MyTelegramBot.Bot.Core
         /// <returns></returns>
         protected async Task<bool> SendMessageAllBotEmployeess(BotMessage message)
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+
+            var operators = BusinessLayer.ConfigurationFunction.GetOperatorList();
+
+            try
             {
-                var list = db.Admin.Where(a => a.Enable && a.FollowerId != FollowerId).Include(a => a.Follower).ToList();
 
-                try
+                if (BotInfo.Configuration.OwnerPrivateNotify)
+                    await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), message);
+
+                if (operators != null)
                 {
-
-                    if (db.Configuration.Where(o => o.BotInfoId == BotOwner).FirstOrDefault() != null &&
-                        db.Configuration.Where(o => o.BotInfoId == BotOwner).FirstOrDefault().OwnerPrivateNotify)
-                        await SendMessage(BotOwner, message);
-
-                    if (list != null)
+                    foreach (var admin in operators)
                     {
-                        foreach (var admin in list)
-                        {
-                            if (admin.NotyfiActive)
-                            {
+                        System.Threading.Thread.Sleep(300);
+
+                        if (admin.NotyfiActive)
                                 await SendMessage(admin.Follower.ChatId, message, true);
-                                System.Threading.Thread.Sleep(300);
-                            }
-                        }
-
-                        await SendMessageToGroupChat(message);
-
-                        return
-                            true;
+ 
                     }
 
-                    else
-                        return false;
-                }
+                    await SendMessageToGroupChat(message);
 
-                catch
-                {
-                    return
-                        false;
-                }
+                    return true;
+
             }
+
+                else
+                    return false;
+            }
+
+            catch
+            {
+                return false;
+
+            }
+            
         }
 
         /// <summary>
@@ -1116,11 +1117,7 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
-                    this.GroupChatId = Convert.ToInt64(db.Configuration.FirstOrDefault().PrivateGroupChatId);
-                    return await SendMessage(this.GroupChatId, message);
-                }
+                return await SendMessage(Convert.ToInt32(BotInfo.Configuration.PrivateGroupChatId), message);
             }
 
             catch
@@ -1189,7 +1186,7 @@ namespace MyTelegramBot.Bot.Core
             {
                 await AnswerCallback();
 
-                return  await TelegramClient.SendTextMessageAsync(ChatId, url, replyMarkup: replyMarkup);
+                return  await TelegramClient.SendTextMessageAsync(ChatId, url, replyMarkup: replyMarkup, parseMode: ParseMode.Html);
             }
             catch
             {

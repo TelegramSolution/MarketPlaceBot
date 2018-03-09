@@ -29,11 +29,11 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton ViewBasketBtn { get; set; }
 
-        private InlineKeyboardCallbackButton MyOrdersBtn { get; set; }
+        private InlineKeyboardButton MyOrdersBtn { get; set; }
 
         private InlineKeyboardCallbackButton HelpBtn { get; set; }
 
-        private InlineKeyboardCallbackButton OpenSourceBtn { get; set; }
+        private InlineKeyboardButton OpenSourceBtn { get; set; }
 
         private InlineKeyboardCallbackButton MethodOfObtainingInfoBtn { get; set; }
 
@@ -46,11 +46,11 @@ namespace MyTelegramBot.Messages
             MenuBtn = new InlineKeyboardCallbackButton("Каталог (текстовая версия)"+ " \ud83d\udcc3", BuildCallData("Menu",Bot.CategoryBot.ModuleName));
             ContactBtn = new InlineKeyboardCallbackButton("О нас" + " \u260e\ufe0f", BuildCallData("Contact", Bot.MainMenuBot.ModuleName));
             ViewBasketBtn = new InlineKeyboardCallbackButton("Корзина" + " \ud83d\uded2", BuildCallData(Bot.BasketBot.ViewBasketCmd,Bot.BasketBot.ModuleName));
-            MyOrdersBtn = new InlineKeyboardCallbackButton("Мои заказы"+ " \ud83d\udce6", BuildCallData(Bot.OrderBot.MyOrdersListCmd,Bot.OrderBot.ModuleName));
+            MyOrdersBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Мои заказы", InlineFind.MyOrders + "|");
             HelpBtn = new InlineKeyboardCallbackButton("Техническая поддержка", BuildCallData("Help", Bot.HelpDeskBot.ModuleName));
-            OpenSourceBtn = new InlineKeyboardCallbackButton("Исходный код", BuildCallData("OpenSource", Bot.MainMenuBot.ModuleName));
-            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог", InlineFind.PhotoCatalog + "|");
-            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск", InlineFind.SearchProduct + "|");
+            OpenSourceBtn =  InlineKeyboardButton.WithUrl("Исходный код", "https://github.com/TelegramSolution/MarketPlaceBot");
+            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог"+base.PictureEmodji, InlineFind.PhotoCatalog + "|");
+            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск"+base.SearchEmodji, InlineFind.SearchProduct + "|");
 
             SetInlineKeyBoard();
             base.TextMessage = "Выберите действие";
@@ -59,8 +59,6 @@ namespace MyTelegramBot.Messages
 
         private void SetInlineKeyBoard()
         {
-
-            //new [] { InlineKeyboardButton.WithUrl("Link to Repository", "https://github.com/TelegramBots/Telegram.Bot"), }
 
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{

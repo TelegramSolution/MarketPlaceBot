@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Bot\AdminModule\HelpProcess.cs" />
     <Compile Remove="Bot\AdminModule\ImportCSVBot.cs" />
     <Compile Remove="Bot\Order\InsertNewOrder.cs" />
     <Compile Remove="Controllers\OrderController.cs" />
