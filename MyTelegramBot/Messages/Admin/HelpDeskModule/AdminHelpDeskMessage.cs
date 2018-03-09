@@ -95,7 +95,7 @@ namespace MyTelegramBot.Messages.Admin
             }
 
             CreateBtn();
-            SetInlineKeyBoard();
+            base.MessageReplyMarkup= SetInlineKeyBoard();
 
             
 
@@ -119,11 +119,11 @@ namespace MyTelegramBot.Messages.Admin
 
         }
 
-        private void SetInlineKeyBoard()
+        private InlineKeyboardMarkup SetInlineKeyBoard()
         {
             //Заявка в работе, но не закрыта и по ней нет комментриев.
             if(InWorkNow != null && InWorkNow.InWork == true && HelpDesk.Closed==false && HelpDesk.HelpDeskAnswer.Count==0)
-            base.MessageReplyMarkup = new InlineKeyboardMarkup(
+            return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -144,7 +144,7 @@ namespace MyTelegramBot.Messages.Admin
 
             //Заявка в работе, но не закрыта. По заявке есть комментарии
             if (InWorkNow!=null && InWorkNow.InWork==true && HelpDesk.Closed==false && HelpDesk.HelpDeskAnswer.Count >0)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                     new[]{
                 new[]
                         {
@@ -168,7 +168,7 @@ namespace MyTelegramBot.Messages.Admin
 
             //Заявка не зазкрты или Заявка в работе у кого то другого
             if (HelpDesk.Closed==false && InWorkNow!=null  && InWorkNow.FollowerId!=FollowerId || InWorkNow!=null && InWorkNow.InWork==false)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -181,7 +181,7 @@ namespace MyTelegramBot.Messages.Admin
 
             //ЗАявка в работе и уже выполнена
             if (HelpDesk.Closed==true)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -190,6 +190,19 @@ namespace MyTelegramBot.Messages.Admin
 
 
                 });
+
+            else
+                return new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                            TakeToWorkBtn
+                        },
+
+
+
+        });
+
         }
     }
 }

@@ -27,6 +27,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton ViewFollowerBtn { get; set; }
 
+        private InlineKeyboardButton HelpDesktBtn { get; set; }
 
         private InlineKeyboardCallbackButton ViewOrdersBtn { get; set; }
 
@@ -42,7 +43,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton ViewPickupPointBtn { get; set; }
 
-        private InlineKeyboardButton MoreSettingsBtn { get; set; }
+        private InlineKeyboardCallbackButton MoreSettingsBtn { get; set; }
 
         private MyTelegramBot.Admin Admin { get; set; }
 
@@ -58,9 +59,12 @@ namespace MyTelegramBot.Messages.Admin
         {
 
 
-                EditProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Редактор", InlineFind.EditProduct + "|");
+                EditProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Редактор"+base.PenEmodji, InlineFind.EditProduct + "|");
+
+                 HelpDesktBtn= InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Тех. поддержка" + base.PenEmodji, InlineFind.HelpdDesk + "|");
 
                 EditCategoryBtn = new InlineKeyboardCallbackButton("Изм. категорию"+ " \ud83d\udd8a", BuildCallData(CategoryEditBot.CategoryEditorCmd, CategoryEditBot.ModuleName));
+
                 StockViewBtn = BuildInlineBtn("Остатки", BuildCallData("ViewStock", AdminBot.ModuleName),base.Depth2Emodji);
                 
                 ViewFollowerBtn = BuildInlineBtn("Пользователи", BuildCallData(AdminBot.ViewFollowerListCmd, AdminBot.ModuleName), base.ManEmodji2);
@@ -78,7 +82,7 @@ namespace MyTelegramBot.Messages.Admin
                 MoreSettingsBtn = BuildInlineBtn("Доп. настройки", BuildCallData(MoreSettingsBot.MoreSettingsCmd, MoreSettingsBot.ModuleName), base.CogwheelEmodji);
 
             base.TextMessage = Bold("Панель администратора") + NewLine() +
-                               "1) Добавить новый товар /newprod" + NewLine() +
+                               "1) Добавить новый товар /addprod" + NewLine() +
                                "2) Создать новую категорию /newcategory" + NewLine() +
                                "3) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on";
 
@@ -102,9 +106,12 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            ViewFollowerBtn,ViewOperatorsBtn,ViewCitiesBtn
+                            ViewFollowerBtn,ViewOperatorsBtn,
                         },
-
+                new[]
+                        {
+                            HelpDesktBtn,ViewCitiesBtn
+                        },
                 new[]
                         {
                             ViewPaymentsBtn,ViewOrdersBtn

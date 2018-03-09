@@ -52,6 +52,8 @@ namespace MyTelegramBot.Bot.Core
 
         public const string MyOrders = "Мои заказы";
 
+        public const string HelpdDesk = "Desk";
+
         private InlineQuery inlineQuery { get; set; }
 
         /// <summary>
@@ -107,15 +109,22 @@ namespace MyTelegramBot.Bot.Core
                 if (GetFrom(inlineQuery.Query) == FindOperators)
                     BotInline = new InlineResult.OperatorSearchInline(QueryLine(inlineQuery.Query));
 
-                if(GetFrom(inlineQuery.Query)==MyOrders)
-                    BotInline = new InlineResult.MyOrdersSearchInline(QueryLine(inlineQuery.Query),inlineQuery.From.Id);
-
+                if (GetFrom(inlineQuery.Query) == HelpdDesk)
+                    BotInline = new InlineResult.HelpDeskSearchInline(QueryLine(inlineQuery.Query));
 
             }
 
             else
             {
-                BotInline = new InlineResult.ProductSearchInline(QueryLine(inlineQuery.Query));
+
+                if (GetFrom(inlineQuery.Query) == MyOrders)
+                    BotInline = new InlineResult.MyOrdersSearchInline(QueryLine(inlineQuery.Query), inlineQuery.From.Id);
+
+                if (GetFrom(inlineQuery.Query) == PhotoCatalog)
+                    BotInline = new InlineResult.PhotoCatalogInline(QueryLine(inlineQuery.Query), BotInfo);
+
+                if (GetFrom(inlineQuery.Query) == SearchProduct)
+                    BotInline = new InlineResult.ProductSearchInline(QueryLine(inlineQuery.Query));
 
                 if (BotInline != null)
                     await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());

@@ -52,6 +52,8 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton InsertAdditionalPhotosBtn { get; set; }
 
+        private InlineKeyboardButton EditorProductBtn { get; set; }
+
         private Product Product { get; set; }
 
         public ProductFuncMessage(int ProductId)
@@ -83,6 +85,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 AdminPanelBtn = BackToAdminPanelBtn();
 
+                EditorProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Редактор"+base.SearchEmodji, InlineFind.EditProduct + "|");
 
                 ProductEditNameBtn = BuildInlineBtn("Название", BuildCallData(ProductEditBot.ProductEditNameCmd, ProductEditBot.ModuleName, Product.Id),base.PenEmodji);
 
@@ -124,6 +127,10 @@ namespace MyTelegramBot.Messages.Admin
                 new[]{
                 new[]
                         {
+                            EditorProductBtn
+                        },
+                new[]
+                        {
                             ProductEditNameBtn, ProductEditCategoryBtn
                         },
                 new[]
@@ -153,7 +160,7 @@ namespace MyTelegramBot.Messages.Admin
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]   {
-                            OpenProductBtn
+                            OpenProductBtn,EditorProductBtn
                         },
                 new[]
                         {
@@ -176,7 +183,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 new[]
                          {
-                            AdminPanelBtn,MoreSettingsBtn
+                            AdminPanelBtn,EditorProductBtn,MoreSettingsBtn
                          }
                 ,
 

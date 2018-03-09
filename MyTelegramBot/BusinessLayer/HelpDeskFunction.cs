@@ -8,6 +8,29 @@ namespace MyTelegramBot.BusinessLayer
 {
     public class HelpDeskFunction
     {
+        public static List<HelpDesk> GetHelpDeskList(int Number=0)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                if(Number==0)
+                    return db.HelpDesk.Where(h => h.Send).ToList();
+
+                else
+                    return db.HelpDesk.Where(h => h.Number==Number).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
 
         /// <summary>
         /// Кто обрабатывает заявку в данный момент

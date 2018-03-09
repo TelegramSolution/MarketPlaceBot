@@ -101,8 +101,8 @@ namespace MyTelegramBot.Bot.AdminModule
                  product = ProductFunction.InsertProduct(product_name,true);
 
                 if (product != null)
-                    return await SendTextMessageAndForceReply("Введите название новой категории или выберите уже существующую."
-                        + "Список категорий:" + categorys, EnterCategoryForceReply + product.Name);
+                    return await SendTextMessageAndForceReply("Введите название новой категории или выберите уже существующую."+BotMessage.NewLine()
+                        + BotMessage.Bold("Список категорий:") + categorys, EnterCategoryForceReply + product.Name);
 
                 else
                     return await SendTextMessageAndForceReply("Неизвестная ошибка", EnterProductNameForceReply);

@@ -13,9 +13,14 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Controllers
 {
+    /// <summary>
+    /// ВЕБХУК
+    /// </summary>
     [Route("bot/")]
 
     [Produces("application/json")]
+
+   
     public class ValuesController : Controller
     {
         private CategoryBot Category { get; set; }
@@ -59,7 +64,7 @@ namespace MyTelegramBot.Controllers
         private string ModuleName { get; set; }
 
         IActionResult Result { get; set; }
-        // POST api/values
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Update update)
         {

@@ -38,9 +38,10 @@ namespace MyTelegramBot.Messages
         /// </summary>
         private InlineKeyboardCallbackButton ViewFeedBackBtn { get; set; }
 
-        //private int NextProductId { get; set; }
+        private InlineKeyboardButton PhotoCatalogBtn { get; set; }
 
-        //private int PreviousProductId { get; set; }
+        private InlineKeyboardButton SearchProductBtn { get; set; }
+
 
         private int CategoryId { get; set; }
 
@@ -163,9 +164,13 @@ namespace MyTelegramBot.Messages
 
         public InlineKeyboardMarkup SetInlineKeyBoard()
         {
-            NextProductBtn = ListingProduct(GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId)), "\u27a1\ufe0f");
+            NextProductBtn = ListingProduct(GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.Next2Emodji);
 
-            PreviousProductBtn = ListingProduct(GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId)), "\u2b05\ufe0f");
+            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог" + base.PictureEmodji, InlineFind.PhotoCatalog + "|");
+
+            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск" + base.SearchEmodji, InlineFind.SearchProduct + "|");
+
+            PreviousProductBtn = ListingProduct(GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.Previuos2Emodji);
 
             ReturnToCatalogListBtn = ReturnToCatalogList();
 
@@ -180,8 +185,8 @@ namespace MyTelegramBot.Messages
 
             if (Product.Stock.Count > 0 && Product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
             {
-                AddToBasketBtn = AddProductToBasket(Product.Id);
-                RemoveFromBasketBtn = RemoveFromBasket(Product.Id);
+                AddToBasketBtn = BuildInlineBtn("+", base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, ProductId));
+                RemoveFromBasketBtn = BuildInlineBtn("-", base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, ProductId));
             }
 
 
@@ -196,9 +201,13 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
+                            PhotoCatalogBtn, SearchProductBtn
+                        },
+                new[]
+                        {
                             ViewAllPhotoBtn,InfoProductBtn,ViewFeedBackBtn
-                        }
-                ,
+                        },
+                
                 new[]
                         {
                             RemoveFromBasketBtn,
@@ -219,6 +228,10 @@ namespace MyTelegramBot.Messages
                             PreviousProductBtn,
                             ReturnToCatalogListBtn,
                             NextProductBtn
+                        },
+                new[]
+                        {
+                            PhotoCatalogBtn, SearchProductBtn
                         },
                 new[]
                         {
@@ -249,6 +262,11 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
+                            PhotoCatalogBtn, SearchProductBtn
+                        },
+
+                new[]
+                        {
                             ViewAllPhotoBtn,InfoProductBtn,ViewFeedBackBtn
                         }
                 ,
@@ -272,6 +290,11 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
+                            PhotoCatalogBtn, SearchProductBtn
+                        },
+
+                new[]
+                        {
                             ViewAllPhotoBtn,ViewFeedBackBtn
                         }
                 ,
@@ -287,19 +310,7 @@ namespace MyTelegramBot.Messages
                 return null;
         }
 
-        private InlineKeyboardCallbackButton AddProductToBasket(int ProductId)
-        {
-            string data= base.BuildCallData(Bot.ProductBot.AddToBasketCmd,ProductBot.ModuleName ,ProductId);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("+" , data);
-            return button;
-        }
 
-        private InlineKeyboardCallbackButton RemoveFromBasket (int ProductId)
-        {
-            string data = base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd,ProductBot.ModuleName ,ProductId);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("-", data);
-            return button;
-        }
 
         private InlineKeyboardCallbackButton ListingProduct(int ProductId, string BtnText)
         {
