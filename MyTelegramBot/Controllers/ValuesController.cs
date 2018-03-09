@@ -25,8 +25,6 @@ namespace MyTelegramBot.Controllers
     {
         private CategoryBot Category { get; set; }
 
-        private BotCommand Command { get; set; }
-
         private ProductBot Product { get; set; }
 
         private BasketBot Basket { get; set; }

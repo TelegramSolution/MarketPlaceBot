@@ -48,7 +48,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton UnitBtn { get; set; }
 
-        private InlineKeyboardCallbackButton ViewAdditionalPhotosBtn { get; set; }
+        private InlineKeyboardButton ViewAdditionalPhotosBtn { get; set; }
 
         private InlineKeyboardCallbackButton InsertAdditionalPhotosBtn { get; set; }
 
@@ -71,9 +71,8 @@ namespace MyTelegramBot.Messages.Admin
         {
             int? Quantity = 0;
 
-            if(Product==null)
-                using(MarketBotDbContext db=new MarketBotDbContext())
-                    Product=db.Product.Where(p => p.Id == ProductId).Include(p => p.Category).Include(p => p.ProductPrice).Include(p=>p.Unit).Include(p => p.Stock).FirstOrDefault();
+            if (Product == null)
+                Product = BusinessLayer.ProductFunction.GetProductById(ProductId);
             
 
             if (Product != null && Product.Stock != null && Product.Stock.Count > 0)
@@ -193,7 +192,7 @@ namespace MyTelegramBot.Messages.Admin
 
         public InlineKeyboardMarkup MoreBtn()
         {
-            ViewAdditionalPhotosBtn = BuildInlineBtn("Доп. фотографии", BuildCallData("AdditionalPhotosEditor", ProductEditBot.ModuleName, ProductId), base.PictureEmodji);
+            ViewAdditionalPhotosBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Доп. фото" + base.PictureEmodji, InlineFind.AdditionalProduct + "|"+ ProductId);
 
             ProductEditUrlBtn = BuildInlineBtn("Заметка", BuildCallData(ProductEditBot.ProductEditUrlCmd, ProductEditBot.ModuleName, ProductId), base.PenEmodji);
 

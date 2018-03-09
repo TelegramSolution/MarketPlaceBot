@@ -77,6 +77,9 @@ namespace MyTelegramBot
         public string AdminMessage()
         {
             string MenuStatus = "Активно";
+            string MainPhotoString = "";
+            string CodeString = "";
+            string Url = "";
 
             int? Balance = 0;
 
@@ -89,14 +92,32 @@ namespace MyTelegramBot
             if (Unit == null)
                 Unit = Connection.getConnection().Units.Where(u => u.Id == UnitId).FirstOrDefault();
 
+            if (MainPhoto > 0)
+                MainPhotoString = "Есть";
+
+            if (TelegraphUrl != null)
+                Url = TelegraphUrl;
+
+            if (Code != null)
+                CodeString = Code;
+
+
+            else
+                MainPhotoString = "Отсутствует";
+
+
             try
             {
-                return BotMessage.Bold("Название: ") + Name + BotMessage.NewLine() +
-                BotMessage.Bold("Цена: ") + CurrentPrice.ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
-                BotMessage.Bold("Категория: ") + Category.Name + BotMessage.NewLine() +
-                BotMessage.Bold("Описание: ") + Text + BotMessage.NewLine() +
-                BotMessage.Bold("В наличии: ") + Balance.ToString() + BotMessage.NewLine() +
-                BotMessage.Bold("В меню: ") + MenuStatus;
+                    return BotMessage.Bold("Название: ") + Name + BotMessage.NewLine() +
+                    BotMessage.Bold("Цена: ") + CurrentPrice.ToString() + " / " + Unit.ShortName + BotMessage.NewLine() +
+                    BotMessage.Bold("Категория: ") + Category.Name + BotMessage.NewLine() +
+                    BotMessage.Bold("Описание: ") + Text + BotMessage.NewLine() +
+                    BotMessage.Bold("В наличии: ") + Balance.ToString() + BotMessage.NewLine() +
+                    BotMessage.Bold("Артикул:")+CodeString+BotMessage.NewLine()+
+                    BotMessage.Bold("Ссылка на подробное описание:")+Url+BotMessage.NewLine()+
+                    BotMessage.Bold("В меню: ") + MenuStatus + BotMessage.NewLine() +
+                    BotMessage.Bold("Фотография:") + MainPhotoString + BotMessage.NewLine() +
+                    BotMessage.Bold("Доп. фото:") + ProductPhoto.Count.ToString() + " шт.";
             }
 
             catch (Exception e)

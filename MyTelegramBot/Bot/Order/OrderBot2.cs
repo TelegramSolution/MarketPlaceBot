@@ -677,24 +677,15 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> CheckPay()
         {
 
-            CheckPayMsg = new CheckPayMessage(Order);
+            PaymentsFunction paymentsFunction = new PaymentsFunction();
+            var invoice=await paymentsFunction.CheckPaidInvoice(Argumetns[1]);
 
-         var mess = await CheckPayMsg.BuildMessage();
-
-            await AnswerCallback(mess.TextMessage, true);
-
-            if (mess.Order.Paid == true)
-            {
-                InvoiceViewMsg = new InvoiceViewMessage(mess.Order.Invoice, mess.Order.Id, "BackToMyOrder");
-                await EditMessage(InvoiceViewMsg.BuildMsg());
-
-
-                await SendMessageAllBotEmployeess(new BotMessage { TextMessage= "Поступил новый платеж. Заказ /order" + mess.Order.Number.ToString() });
-            }
+            InvoiceViewMsg = new InvoiceViewMessage(invoice,OrderId);
+            await EditMessage(InvoiceViewMsg.BuildMsg());
 
             return OkResult;
         }
 
-
+         
     }
 }

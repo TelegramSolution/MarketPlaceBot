@@ -45,6 +45,8 @@ namespace MyTelegramBot.Messages
         {
             db = new MarketBotDbContext();
 
+            string IsPaid = "Нет";
+
             if (PaymentList == null || PaymentList.Count == 0)
                     PaymentList = db.Payment.Where(p => p.InvoiceId == Invoice.Id).ToList();
 
@@ -53,20 +55,25 @@ namespace MyTelegramBot.Messages
                 if (Invoice.PaymentType == null)
                     Invoice.PaymentType = db.PaymentType.Where(p => p.Id == Invoice.PaymentTypeId).FirstOrDefault();
 
+                if (Invoice.Paid && Invoice.Payment.Count>0)
+                    IsPaid = "Да (" +Invoice.Payment.LastOrDefault().TimestampDataAdd.ToString()+")";
+
                 base.TextMessage = Bold("Счет на оплату №") + Invoice.InvoiceNumber.ToString() + NewLine() +
                                  Bold("Адрес счета получателя:") + Invoice.AccountNumber + NewLine() +
                                  Bold("Комментарий к платежу:") + Invoice.Comment + NewLine() +
                                  Bold("Сумма: ") + Invoice.Value.ToString() + " " + Invoice.PaymentType.Code + NewLine() +
                                  Bold("Время создания: ") + Invoice.CreateTimestamp.ToString() + NewLine() +
-                                 Bold("Способ оплаты: ") + Invoice.PaymentType.Name + NewLine() + NewLine() +
+                                 Bold("Способ оплаты: ") + Invoice.PaymentType.Name +NewLine()+
+                                 Bold("Оплачено:")+IsPaid
+                                 + NewLine() + NewLine() +
                                  "Вы должны оплатить этот счет не позднее " + Invoice.CreateTimestamp.Value.Add(Invoice.LifeTimeDuration.Value).ToString() + NewLine();
 
 
                 if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa && !Invoice.Paid)
                     ProceedToСheckoutBtn= BuildInlineBtn("Перейти к оплате", BuildCallData(OrderBot.CmdDebitCardСheckout, OrderBot.ModuleName, OrderId),base.Next2Emodji);
 
-                else
-                    CheckPayBtn = new InlineKeyboardCallbackButton("Я оплатил", BuildCallData(Bot.OrderBot.CheckPayCmd, OrderBot.ModuleName, OrderId));
+                if (Invoice.PaymentTypeId != Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa && !Invoice.Paid)
+                    CheckPayBtn = new InlineKeyboardCallbackButton("Я оплатил", BuildCallData(Bot.OrderBot.CheckPayCmd, OrderBot.ModuleName, OrderId,Invoice.Id));
 
                 if (Invoice.PaymentTypeId==Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
                     base.TextMessage+= NewLine() + "После оплаты нажмите кнопку \"Я оплатил\"";
@@ -85,6 +92,15 @@ namespace MyTelegramBot.Messages
                 if (Invoice.PaymentType != null && Invoice.PaymentType .Id== Bot.Core.ConstantVariable.PaymentTypeVariable.BitcoinCash)
                     base.TextMessage += NewLine() + NewLine() +
                         HrefUrl("https://blockchair.com/bitcoin-cash/address/" + Invoice.AccountNumber, "Посмотреть платеж");
+
+                if (Invoice.PaymentType != null && Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Dash)
+                    base.TextMessage += NewLine() + NewLine() +
+                         HrefUrl("https://explorer.dash.org/address/" + Invoice.AccountNumber, "Посмотреть платеж");
+
+                if (Invoice.PaymentType != null && Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Zcash)
+                    base.TextMessage += NewLine() + NewLine() +
+                         HrefUrl("https://explorer.zcha.in/accounts/" + Invoice.AccountNumber, "Посмотреть платеж");
+
 
                 if (Invoice.PaymentTypeId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI && !Invoice.Paid)
                     base.TextMessage += NewLine() +  HrefUrl(QiwiForm(Invoice.AccountNumber,Convert.ToInt32(Invoice.Value),Invoice.Comment),"Открыть платежную форму")+

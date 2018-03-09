@@ -376,7 +376,6 @@ namespace MyTelegramBot.BusinessLayer
                 else
                 {
                     OrderTmp.PickupPointId = PickUpPointId;
-                    OrderTmp.Address = null;
                     OrderTmp.AddressId = null;
                     db.Update<OrderTemp>(OrderTmp);
                     db.SaveChanges();
@@ -408,7 +407,7 @@ namespace MyTelegramBot.BusinessLayer
                 else
                 {
                     OrderTmp.PickupPoint = null;
-                    OrderTmp.AddressId = null;
+                    OrderTmp.AddressId = AddressId;
                     db.Update<OrderTemp>(OrderTmp);
                     db.SaveChanges();
                 }
@@ -513,7 +512,7 @@ namespace MyTelegramBot.BusinessLayer
                 {
                     InvoiceId = InvoiceId,
                     Comment = Comment,
-                    DataAdd = DateTime.Now,
+                    TimestampDataAdd = DateTime.Now,
                     Summ = Summ,
                     TxId = TxId
                 };

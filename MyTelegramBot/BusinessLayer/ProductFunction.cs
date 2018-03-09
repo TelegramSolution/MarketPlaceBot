@@ -170,6 +170,31 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public static Product GetProductById(int ProductId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Product.Where(p => p.Id == ProductId)
+                    .Include(p => p.Category)
+                    .Include(p => p.CurrentPrice)
+                    .Include(p => p.Unit)
+                    .Include(p => p.Stock)
+                    .Include(p => p.Category).FirstOrDefault();
+            }
+
+            catch (Exception e)
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
         public Product GetProduct(string Name)
         {
             try
@@ -179,6 +204,7 @@ namespace MyTelegramBot.BusinessLayer
                     .Include(p => p.CurrentPrice)
                     .Include(p => p.Unit)
                     .Include(p => p.Stock)
+                    .Include(p=>p.ProductPhoto)
                     .Include(p => p.Category).FirstOrDefault();
             }
 
@@ -464,6 +490,30 @@ namespace MyTelegramBot.BusinessLayer
            
         }
 
+        public int RemoveAdditionalPhoto(int ProductId, int AttachFsId)
+        {
+            try
+            {
+               var photo=db.ProductPhoto.Where(p => p.ProductId == ProductId && p.AttachmentFsId == AttachFsId).FirstOrDefault();
+
+                if (photo != null)
+                {
+                    db.ProductPhoto.Remove(photo);
+
+                    return db.SaveChanges();
+                }
+
+                else
+                    return 0; 
+
+            }
+
+            catch
+            {
+                return -1;
+            }
+        }
+
         private AttachmentFs InsertAttachmentFs(byte[] PhotoByte, int AttachmentTypeId= ConstantVariable.MediaTypeVariable.Photo,string Caption="", string Name = "Photo.jpg")
         {
             try
@@ -485,6 +535,53 @@ namespace MyTelegramBot.BusinessLayer
             catch
             {
                 return null;
+            }
+        }
+
+
+        public static List<Model.AdditionalPhoto> GetAdditionalPhoto(int ProductId, int BotId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            List<Model.AdditionalPhoto> Result = new List<Model.AdditionalPhoto>();
+
+            try
+            {
+                var product = db.Product.Where(p => p.Id == ProductId).Include(p=>p.ProductPhoto).FirstOrDefault();
+
+                if (product != null)
+                {
+                    foreach(ProductPhoto photo in product.ProductPhoto)
+                    {
+                        photo.AttachmentFs = db.AttachmentFs.Find(photo.AttachmentFsId);
+
+                        var tg_attach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == photo.AttachmentFsId && a.BotInfoId == BotId).FirstOrDefault();
+
+                        if (tg_attach != null && photo.AttachmentFs.AttachmentTypeId==ConstantVariable.MediaTypeVariable.Photo)
+                        {
+                            Model.AdditionalPhoto additional = new Model.AdditionalPhoto();
+                            additional.ProductId = product.Id;
+                            additional.Caption = photo.AttachmentFs.Caption;
+                            additional.FileId = tg_attach.FileId;
+                            additional.TelegramAttachId = tg_attach.Id;
+                            additional.AttachFsId = photo.AttachmentFsId;
+                            Result.Add(additional);
+                        }
+                    }
+                    
+                }
+
+                return Result;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
             }
         }
 

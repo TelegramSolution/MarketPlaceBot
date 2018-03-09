@@ -16,6 +16,9 @@ namespace MyTelegramBot.Services
 
         double GetBalance(string Account);
 
+
+        T GetListTransactions<T>();
+
         T GetInfo<T>();
     }
 }

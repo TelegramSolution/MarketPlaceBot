@@ -478,12 +478,18 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
+                Message[] message=null;
+
                 if (mediaGroup != null && mediaGroup.ListMedia != null && mediaGroup.ListMedia.Count > 0)
                 {
-                    var res = await TelegramClient.SendMediaGroupAsync(ChatId, mediaGroup.ListMedia);
+                    if(mediaGroup.ListMedia.Count<10)
+                        message = await TelegramClient.SendMediaGroupAsync(ChatId, mediaGroup.ListMedia);
+
+                    if (mediaGroup.ListMedia.Count > 10) // альбом не может содержать больше 10 фотографий
+                        message = await TelegramClient.SendMediaGroupAsync(ChatId, mediaGroup.ListMedia.Take(10));
 
                     int counter = 0;
-                    foreach (Message mess in res) // проверяем есть ли FileId у отправленных фотографий. Если нет, то заносим в БД
+                    foreach (Message mess in message) // проверяем есть ли FileId у отправленных фотографий. Если нет, то заносим в БД
                     {
                         if (mediaGroup.FsIdTelegramFileId.ElementAt(counter).Value == null)
                             InsertToAttachmentTelegram(mess.Photo[mess.Photo.Length - 1].FileId, mediaGroup.FsIdTelegramFileId.ElementAt(counter).Key);

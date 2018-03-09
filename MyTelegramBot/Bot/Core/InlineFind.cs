@@ -112,6 +112,9 @@ namespace MyTelegramBot.Bot.Core
                 if (GetFrom(inlineQuery.Query) == HelpdDesk)
                     BotInline = new InlineResult.HelpDeskSearchInline(QueryLine(inlineQuery.Query));
 
+                if (GetFrom(inlineQuery.Query) == AdditionalProduct)
+                    BotInline = new InlineResult.AdditionalPhotoSearchInline(QueryLine(inlineQuery.Query));
+
             }
 
             else

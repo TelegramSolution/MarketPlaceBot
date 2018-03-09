@@ -106,8 +106,7 @@ namespace MyTelegramBot.Messages
                 foreach (Product product in Page)
                 {
                     message += NewLine() + base.BlueRhombus + product.Name + base.BlueRhombus + NewLine() +
-                    "Цена:" + product.ProductPrice.Where(p => p.Enabled).FirstOrDefault().Value
-                    + db.Currency.Where(c => c.Id == product.ProductPrice.Where(p => p.Enabled).FirstOrDefault().CurrencyId).FirstOrDefault().ShortName;
+                    "Цена:" + product.CurrentPrice.ToString();
 
                     if (product.Stock != null && product.Stock.Count == 0 ||
                     product.Stock != null && product.Stock.Count > 0 && product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance == 0)

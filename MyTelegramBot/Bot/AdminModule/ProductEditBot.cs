@@ -159,10 +159,6 @@ namespace MyTelegramBot.Bot
         /// </summary>
         public const string ProudctUnitCmd = "ProudEditUnit";
 
-        /// <summary>
-        /// Кнопка изменить Валюту
-        /// </summary>
-        public const string ProudctCurrencyCmd = "ProdCurrency";
 
         /// <summary>
         /// добавить доп фото
@@ -176,6 +172,11 @@ namespace MyTelegramBot.Bot
         public const string MoreProdFuncCmd = "MoreProdFunc";
 
         public const string BackToProductEditorCmd = "BackToProductEditor";
+
+        /// <summary>
+        /// удалить доп фото
+        /// </summary>
+        public const string RemoveAdditionalPhotoCmd = "RemoveAdditionalPhoto";
 
         /// <summary>
         /// Конструктор
@@ -225,6 +226,9 @@ namespace MyTelegramBot.Bot
                     ///Назад к сообщению с описание товара и кнопками упралвния
                     case BackToProductEditorCmd:
                         return await SendProductAdminMsg(MessageId);
+
+                    case ProductEditorCmd:
+                        return await SendProductAdminMsg();
 
                     //Пользователь нажан кнопку Показывать/Скрывать от пользователя. 
                     //Данные обновляются в бд. Данные в сообщении обновляются (сообщение редактируется)
@@ -281,6 +285,10 @@ namespace MyTelegramBot.Bot
 
                     case MoreProdFuncCmd:
                         return await SendMoreFunctionButton();
+
+                        ///пользователь нажал удалить доп. фото
+                    case RemoveAdditionalPhotoCmd:
+                        return await RemoveAdditionalPhoto();
 
                     case InsertAdditionalPhotosCmd:
                         return await SendForceReplyMessage(ProductAdditionallyPhotoReply);
@@ -344,6 +352,29 @@ namespace MyTelegramBot.Bot
             return OkResult;
         }
 
+
+        /// <summary>
+        /// Удалить доп.фото у товара
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> RemoveAdditionalPhoto()
+        {
+            ProductId = Argumetns[0];
+
+            int Attachid = Argumetns[1];
+            
+            ProductFunction = new ProductFunction();
+
+            if (ProductFunction.RemoveAdditionalPhoto(ProductId, Attachid) > 0)
+                await AnswerCallback("Фотография удалена", true);
+
+            else
+                await AnswerCallback("Фотографии не существует", true);
+
+            ProductFunction.Dispose();
+
+            return OkResult;
+        }
 
         /// <summary>
         /// Сохрнаяем новоем значение Ед. измерения для товара

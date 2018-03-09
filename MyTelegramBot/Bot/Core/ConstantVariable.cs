@@ -31,6 +31,11 @@ namespace MyTelegramBot.Bot.Core
             /// оплата банковской карторй внутри бота, через яндекс кассу
             /// </summary>
             public const int DebitCardForYandexKassa = 7;
+
+            public const int Dash = 8;
+
+            public const int Zcash = 9;
+
         }
 
         /// <summary>

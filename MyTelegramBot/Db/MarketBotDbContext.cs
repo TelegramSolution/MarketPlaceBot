@@ -756,7 +756,7 @@ namespace MyTelegramBot
                     .HasMaxLength(500)
                     .IsUnicode(false);
 
-                entity.Property(e => e.DataAdd).HasColumnType("datetime");
+                entity.Property(e => e.TimestampDataAdd).HasColumnType("datetime");
 
                 entity.Property(e => e.TxId)
                     .HasMaxLength(200)
