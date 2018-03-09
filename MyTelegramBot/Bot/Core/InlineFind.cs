@@ -54,6 +54,8 @@ namespace MyTelegramBot.Bot.Core
 
         public const string HelpdDesk = "Desk";
 
+        public const string Payment = "Платежи";
+
         private InlineQuery inlineQuery { get; set; }
 
         /// <summary>
@@ -115,10 +117,11 @@ namespace MyTelegramBot.Bot.Core
                 if (GetFrom(inlineQuery.Query) == AdditionalProduct)
                     BotInline = new InlineResult.AdditionalPhotoSearchInline(QueryLine(inlineQuery.Query));
 
+                if (GetFrom(inlineQuery.Query) == Payment)
+                    BotInline = new InlineResult.PaymentInlineSearchInline(QueryLine(inlineQuery.Query));
+
             }
 
-            else
-            {
 
                 if (GetFrom(inlineQuery.Query) == MyOrders)
                     BotInline = new InlineResult.MyOrdersSearchInline(QueryLine(inlineQuery.Query), inlineQuery.From.Id);
@@ -131,7 +134,7 @@ namespace MyTelegramBot.Bot.Core
 
                 if (BotInline != null)
                     await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
-            }
+            
 
             try
             {

@@ -64,8 +64,8 @@ namespace MyTelegramBot.Messages
             {
                 Product = FeedBack.Product;
                 BackBtn = BuildInlineBtn("Назад", BuildCallData(Bot.OrderBot.CmdBackFeedBackView, Bot.OrderBot.ModuleName,Convert.ToInt32(FeedBack.OrderId),FeedBackId));
-                SaveBtn = BuildInlineBtn("Сохранить", BuildCallData(Bot.OrderBot.CmdSaveFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBackId),base.DoneEmodji);
-                AddCommentBtn = BuildInlineBtn("Добавить комментарий", BuildCallData(Bot.OrderBot.CmdAddCommentFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBackId),base.PenEmodji);
+                SaveBtn = BuildInlineBtn("Сохранить", BuildCallData(Bot.OrderBot.CmdSaveFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBack.Id),base.DoneEmodji);
+                AddCommentBtn = BuildInlineBtn("Добавить комментарий", BuildCallData(Bot.OrderBot.CmdAddCommentFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBack.Id),base.PenEmodji);
                 base.TextMessage =base.BlueRhombus+ "Название товара:" + Product.Name + NewLine() +
                     Bold("Оценка:") + FeedBack.RaitingValue + NewLine() +
                     Bold("Время:") + FeedBack.DateAdd.ToString() + NewLine() +

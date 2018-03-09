@@ -37,22 +37,82 @@ namespace MyTelegramBot.BusinessLayer
 
         public static List<Payment> GetPaymentsList()
         {
-            return null;
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Payment.Include(p => p.Invoice.Orders).OrderByDescending(p=>p.Id).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
         }
 
         public static Payment GetPayment(int PaymentId)
         {
-            return null;
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Payment.Where(p => p.Id == PaymentId).Include(p => p.Invoice.Orders).LastOrDefault();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
         }
 
         public static Payment GetPaymentByInvoiceId(int InvoiceId)
         {
-            return null;
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Payment.Where(p => p.InvoiceId == InvoiceId).Include(p => p.Invoice.Orders).LastOrDefault();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
         }
 
         public List<Invoice> FindNoPaidInvoice()
         {
-            return null;
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Invoice.Where(i=>i.Paid==false).Include(p => p.Orders).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
         }
 
         public async Task<Invoice> CheckPaidInvoice(int InvoiceId)

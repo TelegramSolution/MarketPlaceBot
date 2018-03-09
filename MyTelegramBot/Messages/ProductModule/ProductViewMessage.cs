@@ -183,10 +183,10 @@ namespace MyTelegramBot.Messages
             if (Product.TelegraphUrl != null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
                 InfoProductBtn = MoreInfoProduct(Product.Id);
 
-            if (Product.Stock.Count > 0 && Product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
+            if (Product.Stock.Count > 0 && Product.Stock.LastOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
             {
-                AddToBasketBtn = BuildInlineBtn("+", base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, ProductId));
-                RemoveFromBasketBtn = BuildInlineBtn("-", base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, ProductId));
+                AddToBasketBtn = BuildInlineBtn("+", base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, Product.Id));
+                RemoveFromBasketBtn = BuildInlineBtn("-", base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, Product.Id));
             }
 
 

@@ -26,16 +26,12 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton ProceedToСheckoutBtn { get; set; }
 
-        public InvoiceViewMessage (Invoice invoice,int OrderId,string BackCmdName= "BackToOrder")
+        public InvoiceViewMessage (Invoice invoice,int OrderId)
         {
             this.Invoice = invoice;
             this.OrderId = OrderId;
 
-            if(BackCmdName== "BackToOrder")
-                BackBtn = BuildInlineBtn("Вернуться к заказу", BuildCallData(BackCmdName,Bot.AdminModule.OrderProccesingBot.ModuleName ,OrderId), base.Previuos2Emodji, false);
-
-            else // для операторов
-                BackBtn = BuildInlineBtn("Вернуться к заказу", BuildCallData(BackCmdName, OrderBot.ModuleName, OrderId),base.Previuos2Emodji,false);
+            BackBtn = BuildInlineBtn("Вернуться к заказу", BuildCallData(OrderBot.BackToMyOrderCmd, OrderBot.ModuleName, OrderId),base.Previuos2Emodji,false);
 
             
         }
@@ -109,7 +105,7 @@ namespace MyTelegramBot.Messages
                 SetButtons();
              
             }
-
+                db.Dispose();
                 return this;
         }
 

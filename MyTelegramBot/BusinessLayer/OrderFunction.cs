@@ -63,7 +63,9 @@ namespace MyTelegramBot.BusinessLayer
 
                     var Invoice = InvoiceFunction.AddInvoice(Order, Convert.ToInt32(OrderTmp.PaymentTypeId), TotalPrice);
 
-                    if(Invoice!=null)
+                    InvoiceFunction.Dispose();
+
+                    if (Invoice!=null)
                         Order.InvoiceId = Invoice.Id;
 
                     if(CurrentStatus!=null)
@@ -406,6 +408,7 @@ namespace MyTelegramBot.BusinessLayer
                     OrderTmp = InsertOrderTmp(FollowerId, BotId);
                 else
                 {
+                    OrderTmp.PickupPointId = null;
                     OrderTmp.PickupPoint = null;
                     OrderTmp.AddressId = AddressId;
                     db.Update<OrderTemp>(OrderTmp);

@@ -149,7 +149,7 @@ namespace MyTelegramBot.Messages
 
         private void SetButton()
         {
-            if(this.Order!=null && this.Order.CurrentStatus==Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice!=null)               
+            if(this.Order!=null && this.Order.CurrentStatusNavigation.StatusId==Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice!=null)               
                 base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
                     new[]{
                                 new[]
@@ -162,7 +162,7 @@ namespace MyTelegramBot.Messages
                                     },
                     });
 
-            if (this.Order != null && this.Order.CurrentStatus == Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice == null)
+            if (this.Order != null && this.Order.CurrentStatusNavigation.StatusId == Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice == null)
                 base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
                 new[]{
                                 new[]
@@ -173,7 +173,7 @@ namespace MyTelegramBot.Messages
                 });
 
 
-            if (this.Order != null && this.Order.CurrentStatus != Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice != null)
+            if (this.Order != null && this.Order.CurrentStatusNavigation.StatusId != Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice != null)
                 base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
                 new[]{
                                 new[]
@@ -194,7 +194,7 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton ViewInvoice()
         {
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("Счет на оплату", BuildCallData("ViewInvoice", Bot.OrderBot.ModuleName, Convert.ToInt32(Order.Id)));
+            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("Счет на оплату", BuildCallData(Bot.OrderBot.ViewInvoiceCmd, Bot.OrderBot.ModuleName, Convert.ToInt32(Order.Id)));
             return button;
         }
 

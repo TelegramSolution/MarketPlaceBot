@@ -17,6 +17,10 @@ namespace MyTelegramBot.Bot
     {
         public const string ModuleName = "Order";
 
+        public const string ViewInvoiceCmd = "ViewInvoice";
+
+        public const string BackToMyOrderCmd = "BackToMyOrder";
+
         public OrderFunction OrderFunction { get; set; }
 
         /// <summary>
@@ -62,14 +66,7 @@ namespace MyTelegramBot.Bot
 
         private InvoiceViewMessage InvoiceViewMsg { get; set; }
 
-        private CheckPayMessage CheckPayMsg { get; set; }
-
         private MethodOfObtainingMessage MethodOfObtainingMsg { get; set; }
-
-        /// <summary>
-        /// сообщение с кнопками оценок для отзыва к заказу от 1 до 5
-        /// </summary>
-        private RaitingMessage RaitingMsg { get; set; }
 
         private int OrderId { get; set; }
 
@@ -181,6 +178,7 @@ namespace MyTelegramBot.Bot
 
         public const string CmdDebitCardСheckout = "DebitCardСheckout";
 
+      
 
         int AddressId { get; set; }
 

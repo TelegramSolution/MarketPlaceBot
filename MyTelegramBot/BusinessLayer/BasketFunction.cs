@@ -239,9 +239,11 @@ namespace MyTelegramBot.BusinessLayer
                                                   b.FollowerId == FollowerId && 
                                                   b.BotInfoId == BotId)
                                                   .LastOrDefault();
-                db.Basket.Remove(basket);
-                db.SaveChanges();
-
+                if (basket != null)
+                {
+                    db.Basket.Remove(basket);
+                    db.SaveChanges();
+                }
                 var list = db.Basket.Where(b => b.ProductId == ProductId  &&
                                                 b.BotInfoId == BotId &&
                                                 b.FollowerId == FollowerId).ToList();

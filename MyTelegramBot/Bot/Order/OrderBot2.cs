@@ -97,7 +97,7 @@ namespace MyTelegramBot.Bot
         {
             if (Argumetns.Count > 0)
             {
-                int FeedBackId = Argumetns[0];
+                int FeedBackId = Argumetns[1];
 
                 var feedbak= FeedbackFunction.EnableFeedback(FeedBackId);
 
@@ -335,27 +335,17 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> SendInvoice()
         {
-            try
+
+            if (Order != null  && Order.Invoice!=null)
             {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
-
-                    if (Order != null  && Order.Invoice!=null)
-                    {
-                        InvoiceViewMsg = new InvoiceViewMessage(Order.Invoice, Order.Id, "BackToMyOrder");
-                        await EditMessage(InvoiceViewMsg.BuildMsg());
-                        return OkResult;
-                    }
-
-                    else 
-                        return OkResult;
-                 }
-            }
-
-            catch
-            {
+                var Invoice = InvoiceFunction.GetInvoiceByOrderId(OrderId);
+                InvoiceViewMsg = new InvoiceViewMessage(Invoice, OrderId);
+                await EditMessage(InvoiceViewMsg.BuildMsg());
                 return OkResult;
             }
+
+                return OkResult;
+
         }
 
         /// <summary>
@@ -646,7 +636,7 @@ namespace MyTelegramBot.Bot
 
             if (new_order != null && new_order.Invoice != null)
             {
-                InvoiceViewMsg = new InvoiceViewMessage(new_order.Invoice, new_order.Id, "BackToMyOrder");
+                InvoiceViewMsg = new InvoiceViewMessage(new_order.Invoice, new_order.Id);
                 await EditMessage(InvoiceViewMsg.BuildMsg());
             }
 
@@ -676,9 +666,9 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> CheckPay()
         {
-
             PaymentsFunction paymentsFunction = new PaymentsFunction();
-            var invoice=await paymentsFunction.CheckPaidInvoice(Argumetns[1]);
+            var invoice=await paymentsFunction.CheckPaidInvoice(OrderId);
+            paymentsFunction.Dispose();
 
             InvoiceViewMsg = new InvoiceViewMessage(invoice,OrderId);
             await EditMessage(InvoiceViewMsg.BuildMsg());

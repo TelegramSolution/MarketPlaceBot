@@ -15,7 +15,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var feedback = db.FeedBack.Find(FeedBackId);
+                var feedback = db.FeedBack.Where(f=>f.Id==FeedBackId).Include(f=>f.Product).FirstOrDefault();
                 feedback.DateAdd = DateTime.Now;
                 feedback.Enable = true;
                 db.Update<FeedBack>(feedback);
@@ -37,19 +37,39 @@ namespace MyTelegramBot.BusinessLayer
         {
             MarketBotDbContext db = new MarketBotDbContext();
 
+            var feed = db.FeedBack.Where(f => f.ProductId == ProductId && f.OrderId == OrderId).LastOrDefault();
+
+            var product = db.Product.Find(ProductId);
+
             try
             {
-                FeedBack feedBack = new FeedBack
+                if (feed != null)
                 {
-                    OrderId = OrderId,
-                    ProductId = ProductId,
-                    RaitingValue = Raiting,
-                    Enable = false
-                };
+                    feed.RaitingValue = Raiting;
+                    feed.OrderId = OrderId;
+                    db.Update<FeedBack>(feed);
+                    db.SaveChanges();
+                    feed.Product = product;
+                    return feed;
 
-                db.FeedBack.Add(feedBack);
-                db.SaveChanges();
-                return feedBack;
+                }
+
+                else
+                {
+                    FeedBack feedBack = new FeedBack
+                    {
+                        OrderId = OrderId,
+                        ProductId = ProductId,
+                        RaitingValue = Raiting,
+                        Enable = false
+                    };
+
+                    db.FeedBack.Add(feedBack);
+                    db.SaveChanges();
+                    feedBack.Product = product;
+                    return feedBack;
+                }
+
             }
 
             catch

@@ -22,8 +22,8 @@ namespace MyTelegramBot.BusinessLayer
             OpenConnection();
 
             // создаем инвойс для оплаты в через КИВИ
-            if (PaymentTypeId == ConstantVariable.PaymentTypeVariable.QIWI)
-                return AddQiwiInvoice(order, TotalPrice);
+            if (PaymentTypeId == ConstantVariable.PaymentTypeVariable.QIWI) { 
+                return AddQiwiInvoice(order, TotalPrice);}
 
             if (PaymentTypeId != ConstantVariable.PaymentTypeVariable.PaymentOnReceipt
                 && PaymentTypeId != ConstantVariable.PaymentTypeVariable.QIWI
@@ -44,9 +44,55 @@ namespace MyTelegramBot.BusinessLayer
             db = new MarketBotDbContext();
         }
 
-        private void Dispose()
+        public void Dispose()
         {
             db.Dispose();
+        }
+
+        public static Invoice GetInvoice(int Id)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Invoice.Where(i => i.Id == Id).Include(i => i.Payment).Include(i=>i.PaymentType).Include(i => i.Orders).FirstOrDefault();
+            }
+
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                db.Dispose();
+            }
+
+        }
+
+        public static Invoice GetInvoiceByOrderId(int OrderId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var Order = db.Orders.Find(OrderId);
+
+                if (Order != null)
+                    return db.Invoice.Where(i => i.Id == Order.InvoiceId).Include(i => i.Payment).Include(i => i.PaymentType).Include(i => i.Orders).FirstOrDefault();
+
+                else
+                    return null;
+            }
+
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                db.Dispose();
+            }
+
         }
 
         /// <summary>

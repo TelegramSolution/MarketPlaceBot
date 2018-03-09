@@ -31,7 +31,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton ViewOrdersBtn { get; set; }
 
-        private InlineKeyboardCallbackButton ViewPaymentsBtn { get; set; }
+        private InlineKeyboardButton ViewPaymentsBtn { get; set; }
 
         private InlineKeyboardCallbackButton AddProuctBtn { get; set; }
 
@@ -71,7 +71,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 ViewOrdersBtn = BuildInlineBtn("Заказы", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.PackageEmodji);
 
-                ViewPaymentsBtn = BuildInlineBtn("Платежи", BuildCallData(AdminBot.ViewPaymentsListCmd, AdminBot.ModuleName), base.CreditCardEmodji);
+                ViewPaymentsBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Платежи" + base.CreditCardEmodji, InlineFind.Payment + "|");
 
                 ViewCitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
 

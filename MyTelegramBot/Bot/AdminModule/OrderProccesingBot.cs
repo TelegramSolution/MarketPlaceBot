@@ -10,6 +10,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
@@ -36,7 +37,7 @@ namespace MyTelegramBot.Bot.AdminModule
         /// </summary>
         private FeedBackOfferMessage FeedBackOfferMsg { get; set; }
 
-        private InvoiceViewMessage InvoiceViewMsg { get; set; }
+        private AdminViewInvoice InvoiceViewMsg { get; set; }
 
         private int OrderId { get; set; }
 
@@ -76,6 +77,13 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Удалить заказ
         /// </summary>
         public const string CmdOrderDelete = "OrderDelete";
+
+        public const string ViewInvoiceCmd = "ViewInvoice";
+
+        /// <summary>
+        /// отправить инвойс новым сообщением
+        /// </summary>
+        public const string SendInvoiceCmd = "SendIvoice";
 
         /// <summary>
         /// Заказа согласован
@@ -118,6 +126,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string CmdBackOverride = "BackOverride";
 
+        public const string PaymentCmd = "/payment";
+
         /// <summary>
         /// назад к выбору статуса заказа
         /// </summary>
@@ -135,6 +145,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private const string GetOrderCmd = "/order";
 
+        public const string ViewPaymentCmd = "ViewPayment";
 
         /// <summary>
         /// Конструктор
@@ -166,7 +177,6 @@ namespace MyTelegramBot.Bot.AdminModule
                             Include(o => o.Done).Include(o => o.Delete).Include(o => o.OrderProduct).
                             Include(o => o.Follower).Include(o => o.FeedBack).Include(o=>o.OrderAddress).Include(o=>o.CurrentStatusNavigation).Include(o=>o.Invoice).Include(o=>o.OrdersInWork).FirstOrDefault();
 
-                    InvoiceViewMsg = new InvoiceViewMessage(Order.Invoice, Order.Id);
                 }
 
             }
@@ -221,9 +231,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     case "FreeOrder":
                         return await FreeOrder();
 
-                    case "ViewInvoice":
-                        return await SendInvoice();
-
                     case CmdUpdateOrderStatus:
                         return await UpdateOrderStatus(Argumetns[1]);
 
@@ -242,10 +249,19 @@ namespace MyTelegramBot.Bot.AdminModule
                     case CmdOverridePerformerOrder:
                         return await ConfirmOverridePerformer();
 
+                    case ViewInvoiceCmd:
+                        return await SendViewInvoice(MessageId);
+
+                    case ViewPaymentCmd:
+                        return await SendViewPayment(Argumetns[0],MessageId);
+
                     default:
                         break;
 
                 }
+
+                if (base.CommandName.Contains(PaymentCmd))
+                    return await SendViewPayment();
 
                 //Администратор нажал на кнопку "Удалить заказ"
                 if (base.CommandName == CmdOrderDelete && Order != null)
@@ -263,6 +279,7 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (OriginalMessage.Contains(ForceReplyAddCommentToStatus))
                     return await AddCommentToStatus();
 
+
                 else
                     return null;
             }
@@ -272,6 +289,76 @@ namespace MyTelegramBot.Bot.AdminModule
                 return null;
 
 
+        }
+
+        private async Task<IActionResult> SendViewInvoice(int MessageId=0)
+        {
+          // var invoice= InvoiceFunction.GetInvoiceByOrderId(Argumetns[0]);
+
+            InvoiceViewMsg = new AdminViewInvoice(Argumetns[0]);
+
+            var mess = InvoiceViewMsg.BuildMsg();
+
+            if (mess != null)
+                await SendMessage(mess, MessageId);
+
+            else
+                await AnswerCallback("Счет на оплату отсутствует", true);
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Показать детали платежа /payment[id]
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendViewPayment()
+        {
+            try
+            {
+                int Id =Convert.ToInt32(base.CommandName.Substring(PaymentCmd.Length));
+
+                var Payment = PaymentsFunction.GetPayment(Id);
+
+                Messages.Admin.PaymentViewMessage viewMessage = new PaymentViewMessage(Payment);
+                await SendMessage(viewMessage.BuildMsg());
+                return OkResult;
+            }
+
+            catch
+            {
+                return OkResult;
+            }
+        }
+
+        /// <summary>
+        /// Показать платеж по id счета
+        /// </summary>
+        /// <param name="InvoiceId"></param>
+        /// <param name="MessageId"></param>
+        /// <returns></returns>
+        private async Task<IActionResult> SendViewPayment(int InvoiceId,int MessageId=0)
+        {
+            try
+            {
+                var Payment = PaymentsFunction.GetPaymentByInvoiceId(InvoiceId);
+
+                if (Payment != null)
+                {
+                    Messages.Admin.PaymentViewMessage viewMessage = new PaymentViewMessage(Payment);
+                    await SendMessage(viewMessage.BuildMsg(), MessageId);
+                }
+
+                else
+                   await AnswerCallback("Данные по оплате отсутствуют", true);
+
+                return OkResult;
+            }
+
+            catch
+            {
+                return OkResult;
+            }
         }
 
         /// <summary>

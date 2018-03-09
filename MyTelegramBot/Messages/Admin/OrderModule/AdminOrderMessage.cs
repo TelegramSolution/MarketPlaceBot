@@ -217,7 +217,7 @@ namespace MyTelegramBot.Messages.Admin
 
             ViewAddressOnMapBtn = new InlineKeyboardCallbackButton("Показать на карте"+ " \ud83c\udfd8", BuildCallData(OrderProccesingBot.CmdViewAddressOnMap, OrderProccesingBot.ModuleName, Order.Id));
 
-            ViewInvoiceBtn = new InlineKeyboardCallbackButton("Посмотреть счет" + " \ud83d\udcb5", BuildCallData("ViewInvoice", OrderProccesingBot.ModuleName, Order.Id));
+            ViewInvoiceBtn = new InlineKeyboardCallbackButton("Посмотреть счет" + " \ud83d\udcb5", BuildCallData(OrderProccesingBot.ViewInvoiceCmd, OrderProccesingBot.ModuleName, Order.Id));
 
             TakeOrderBtn = new InlineKeyboardCallbackButton("Взять в работу", BuildCallData("TakeOrder", OrderProccesingBot.ModuleName, Order.Id));
 

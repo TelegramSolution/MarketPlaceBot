@@ -205,13 +205,20 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> AddToBasket()
         {
-            var message = AddProductToBasketMsg.BuildMsg();
+           var basket_total_amount= BusinessLayer.BasketFunction.ProductBasketCount(FollowerId, ProductId, BotInfo.Id);
 
-            if (AddProductToBasketMsg.Basket != null) // товар успешно добвлен в корзину
-                await base.AnswerCallback(message.CallBackTitleText);
+            var balance= BusinessLayer.StockFunction.CurrentBalance(ProductId);
 
-            else // в наличии меньше чем хочет пользваотель
-                await base.AnswerCallback(message.CallBackTitleText, true);
+            if (basket_total_amount + 1 <= balance)
+            {
+                BusinessLayer.BasketFunction.AddPositionToBasker(FollowerId, ProductId, BotInfo.Id);
+                await AnswerCallback("Итого:"+(basket_total_amount+1).ToString(), false);
+            }
+
+           else
+            {
+                await AnswerCallback("В наличии только:" + balance.ToString(), true);
+            }
 
             return OkResult;
         }
@@ -253,12 +260,11 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> RemoveFromBasket()
         {
-            var message = ProductRemoveFromBasketMsg.BuildMsg();
-            if (await AnswerCallback(message.CallBackTitleText))
-                return base.OkResult;
+          int basket_total= BusinessLayer.BasketFunction.RemovePositionFromBasket(FollowerId, ProductId, BotInfo.Id);
 
-            else
-                return base.OkResult;
+           await AnswerCallback("Итого:" + basket_total.ToString(), false);
+
+          return base.OkResult;
 
         }
 
@@ -270,18 +276,7 @@ namespace MyTelegramBot.Bot
                 var product = db.Product.Find(ProductId);
                 await SendUrl("Вернуться к товару /product" + product.Id + BotMessage.NewLine() + BotMessage.NewLine() + product.TelegraphUrl);
                 return OkResult;
-                //     await SendUrl("Вернуться к товару /product"+product.Id+ BotMessage.NewLine()+ BotMessage.NewLine() + product.TelegraphUrl,
-                //         new InlineKeyboardMarkup(
-                //new[]{
-                //new[]
-                //            {
-                //               new InlineKeyboardCallbackButton("Назад","ddd")
-                //            },
 
-                //    }));
-                //    return OkResult;
-
-                //}
             }
         }
     }
