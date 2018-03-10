@@ -33,7 +33,11 @@ namespace MyTelegramBot
                     Currency = db.Currency.Find(CurrencyId);
                 }
 
-            return Value.ToString() + " " + Currency.ShortName;
+            if (Currency != null)
+                return Value.ToString() + " " + Currency.ShortName;
+
+            else
+                return String.Empty;
         }
     }
 }

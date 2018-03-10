@@ -75,7 +75,7 @@ namespace MyTelegramBot.Messages
                     base.TextMessage+= NewLine() + "После оплаты нажмите кнопку \"Я оплатил\"";
 
                 if(Invoice.PaymentTypeId!= Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI && Invoice.PaymentTypeId!= Bot.Core.ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
-                    base.TextMessage += NewLine() + "После оплаты нажмите кнопку \"Я оплатил\"" +NewLine() + Italic("Криптовалютые платежи будут доступны спустя 10-15 минут");
+                    base.TextMessage += NewLine() + "После оплаты нажмите кнопку \"Я оплатил\"" +NewLine() + Italic("Для криптовалютных платежей требуется 2 подтверждения");
 
 
                 if (Invoice.PaymentType != null &&Invoice.PaymentType.Id == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin ||

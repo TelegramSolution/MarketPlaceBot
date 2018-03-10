@@ -145,6 +145,35 @@ namespace MyTelegramBot.Controllers
             return View("CryptoCurrency", PaymentTypeConfig);
         }
 
+        public IActionResult Dash()
+        {
+            db = new MarketBotDbContext();
+
+
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Dash).OrderByDescending(p => p.Id).FirstOrDefault();
+
+            if (PaymentTypeConfig == null)
+            {
+                PaymentTypeConfig = new PaymentTypeConfig
+                {
+                    Host = "127.0.0.1",
+                    Login = "",
+                    Pass = "",
+                    Port = "9999",
+                    Enable = true,
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Dash
+                };
+
+            }
+
+            ViewBag.Title = "Doge";
+            ViewBag.Text = "В папке с установленными Doge Core создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 20гб)." +
+                "Содержимое бат файла:";
+            ViewBag.Bat = "dash-qt.exe -server -rest -rpcuser=root -rpcpassword=toor -rpcport=9999";
+
+            return View("CryptoCurrency", PaymentTypeConfig);
+        }
+
         public IActionResult PaymentOnReceipt()
         {
             db = new MarketBotDbContext();
@@ -187,17 +216,6 @@ namespace MyTelegramBot.Controllers
             if (config != null && config.Pass == "" && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
                 return Json("Заполните поле Токен доступа");
 
-            if (config != null && config.Pass == "" && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin)
-                return Json("Заполните поле Пароль");
-
-            if (config != null && config.Login == "" && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin)
-                return Json("Заполните поле Логин");
-
-            if (config != null && config.Host == "" && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin)
-                return Json("Заполните поле Адрес RPC сервера");
-
-            if (config != null && config.Port == "" && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin)
-                return Json("Заполните поле Порт RPC сервера");
 
             if (config != null && SaveChanges(config)>=0)
                 return Json("Сохранено");
