@@ -43,7 +43,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 foreach(var feed in FeedBackList)
                 {
-                    base.TextMessage = i.ToString() + ") " + feed.Product.Name + NewLine() +
+                    base.TextMessage += i.ToString() + ") " + feed.Product.Name + NewLine() +
                         Bold("Оценка:") + feed.RaitingValue.ToString() + NewLine() +
                         Bold("Комментарий:") + feed.Text + NewLine() +
                         Bold("Время:")+feed.DateAdd.ToString()+NewLine()

@@ -15,7 +15,7 @@ namespace MyTelegramBot.BusinessLayer
             try
             {
                 if(Number==0)
-                    return db.HelpDesk.Where(h => h.Send).ToList();
+                    return db.HelpDesk.Where(h => h.Send).OrderByDescending(h=>h.Id).ToList();
 
                 else
                     return db.HelpDesk.Where(h => h.Number==Number).ToList();

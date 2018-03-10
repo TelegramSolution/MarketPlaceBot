@@ -95,7 +95,8 @@ namespace MyTelegramBot.Controllers
                     Result = await BotCore.Response();
                 }
 
-                if (Result == null && ModuleName != null && ModuleName == AddressBot.ModuleName || Result == null && ModuleName == null)
+                if (Result == null && ModuleName != null && ModuleName == AddressBot.ModuleName || Result == null && ModuleName == null ||
+                    Result==null && update.Message!=null && update.Message.Location!=null)
                 {
                     BotCore = new AddressBot(update);
                     Result = await BotCore.Response();

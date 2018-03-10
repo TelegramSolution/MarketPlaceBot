@@ -163,7 +163,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     case BlockFollowerCmd:
                         return await BlockUser();
 
-                    case UnblockUserCmd:
+                    case UnBlockFollowerCmd:
                         return await UnBlockUser();
 
                     default:
@@ -266,8 +266,16 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             var follower = BusinessLayer.FollowerFunction.Block(Argumetns[0]);
 
-            BotMessage = new FollowerControlMessage(follower);
-            await EditMessage(BotMessage.BuildMsg());
+            if (follower!=null)
+            {
+                BotMessage = new FollowerControlMessage(follower);
+                await EditMessage(BotMessage.BuildMsg());
+
+                //уведомим струдников 
+                string message = "Пользователь " + follower.FirstName + " " + follower.LastName + " Заблокирован." + BotMessage.NewLine() +
+                                "Оператор:" + GeneralFunction.FollowerFullName(FollowerId);
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
+            }
 
             return OkResult;
         }
@@ -280,8 +288,16 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             var follower = BusinessLayer.FollowerFunction.UnBlock(Argumetns[0]);
 
-            BotMessage = new FollowerControlMessage(follower);
-            await EditMessage(BotMessage.BuildMsg());
+            if (follower != null)
+            {
+                BotMessage = new FollowerControlMessage(follower);
+                await EditMessage(BotMessage.BuildMsg());
+
+                //уведомим струдников 
+                string message = "Пользователь " + follower.FirstName + " " + follower.LastName + " Разблокирован." + BotMessage.NewLine() +
+                                "Оператор:" + GeneralFunction.FollowerFullName(FollowerId);
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
+            }
 
             return OkResult;
         }

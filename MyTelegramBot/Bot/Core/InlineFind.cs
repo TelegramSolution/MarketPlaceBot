@@ -56,6 +56,9 @@ namespace MyTelegramBot.Bot.Core
 
         public const string Payment = "Платежи";
 
+        /// <summary>
+        /// адерса пользователя
+        /// </summary>
         public const string FollowerAddress = "Адреса";
 
         public const string FolowerOrder = "Заказы";
@@ -123,6 +126,12 @@ namespace MyTelegramBot.Bot.Core
 
                 if (GetFrom(inlineQuery.Query) == Payment)
                     BotInline = new InlineResult.PaymentInlineSearchInline(QueryLine(inlineQuery.Query));
+
+                if (GetFrom(inlineQuery.Query) == FollowerAddress)
+                    BotInline = new InlineResult.AddressFollowerSearchInline(QueryLine(inlineQuery.Query));
+
+                if (GetFrom(inlineQuery.Query) == FolowerOrder)
+                    BotInline = new InlineResult.OrderFollowerSeachInline(QueryLine(inlineQuery.Query));
 
             }
 

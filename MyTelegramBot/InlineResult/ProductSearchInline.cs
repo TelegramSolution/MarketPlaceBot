@@ -25,7 +25,7 @@ namespace MyTelegramBot.InlineResult
             this.Query = Query;
 
 
-            SqlQuery = "SELECT Product.* FROM Product Inner Join Category On Category.Id=Product.CategoryId "
+            SqlQuery = "SELECT TOP 20 Product.* FROM Product Inner Join Category On Category.Id=Product.CategoryId "
                 + "WHERE Product.Name LIKE @name and Product.Enable=1 OR Category.Name LIKE @name and Product.Enable=1 OR "
                 + "Product.Text LIKE @name and Product.Enable=1";
         }

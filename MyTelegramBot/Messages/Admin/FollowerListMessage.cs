@@ -82,11 +82,6 @@ namespace MyTelegramBot.Messages.Admin
 
                     reginfoline = Bold("Дата регистрации:") + follower.DateAdd.ToString() + NewLine();
 
-                    if (follower.Blocked)
-                        blockedinfoline = Italic("Разблокировать:") + " /userunblock" + follower.Id.ToString() + NewLine();
-
-                    else
-                        blockedinfoline = Italic("Заблокировать:") + " /userblock" + follower.Id.ToString() + NewLine();
 
                     base.TextMessage += firstline + secondline + reginfoline + blockedinfoline +NewLine();
 

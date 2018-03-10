@@ -241,5 +241,64 @@ namespace MyTelegramBot.BusinessLayer
                 db.Dispose();
             }
         }
+
+
+        /// <summary>
+        /// Все адреса пользователя
+        /// </summary>
+        /// <param name="FollowerId"></param>
+        /// <returns></returns>
+        public static List<Orders> FollowerOrder(int FollowerId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Orders.Where(o => o.FollowerId == FollowerId).Include(o => o.CurrentStatusNavigation.Status).OrderByDescending(o => o.Id).Take(20).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static List<Address> FollowerAddress(int FollowerId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var list= db.Address.Where(o => o.FollowerId == FollowerId).Include(o => o.OrderAddress).ToList();
+
+                List<Address> addressList = new List<Address>();
+
+                foreach(var address in list)
+                {
+                    address.House = db.House.Where(h => h.Id == address.Id).Include(h => h.Street.City).FirstOrDefault();
+
+                    if (address.House != null && address.House.Street != null)
+                        addressList.Add(address);
+                }
+
+
+                return addressList;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
     }
 }

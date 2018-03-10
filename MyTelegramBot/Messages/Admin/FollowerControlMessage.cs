@@ -62,20 +62,15 @@ namespace MyTelegramBot.Messages.Admin
                 if (Follower.Blocked)
                 {
                     status = Italic("Заблокирован");
-                    UnblockBtn = BuildInlineBtn("Разблокировать:", BuildCallData(AdminBot.UnBlockFollowerCmd, AdminBot.ModuleName, Follower.Id));
                 }
 
-                else
-                    BlockBtn = BuildInlineBtn("Заблокировать:", BuildCallData(AdminBot.BlockFollowerCmd, AdminBot.ModuleName, Follower.Id));
 
                 base.TextMessage = Bold("Имя: ") + Follower.FirstName + NewLine() +
                                  Bold("Фамилия: ") + Follower.LastName + NewLine() +
                                  Bold("Профиль:") + HrefUrl("https://t.me/" + Follower.UserName, Follower.UserName) + NewLine() +
+                                 Bold("Дата регистрации:") +Follower.DateAdd.ToString()+NewLine()+
                                  Bold("Телефон:") + Follower.Telephone + NewLine() + status;
 
-                ViewAddressBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Адреса", InlineFind.FollowerAddress + "|");
-
-                ViewOrderBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Заказы", InlineFind.FolowerOrder + "|");
 
                 base.MessageReplyMarkup = SetInline();
 
@@ -99,8 +94,8 @@ namespace MyTelegramBot.Messages.Admin
                     },
                     new[]
                     {
-                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Адреса", InlineFind.FollowerAddress + "|"),
-                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Заказы", InlineFind.FolowerOrder + "|")
+                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Адреса", InlineFind.FollowerAddress + "|"+Follower.Id.ToString()),
+                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Заказы", InlineFind.FolowerOrder + "|"+Follower.Id.ToString())
             },
                     new[]
                     {
@@ -118,8 +113,8 @@ namespace MyTelegramBot.Messages.Admin
                     },
                     new[]
                     {
-                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Адреса", InlineFind.FollowerAddress + "|"+Follower.Id + ""),
-                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Заказы", InlineFind.FolowerOrder + "|"+Follower.Id+ "|")
+                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Адреса", InlineFind.FollowerAddress + "|"+Follower.Id.ToString()),
+                        InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Заказы", InlineFind.FolowerOrder + "|"+Follower.Id.ToString())
                     },
                     new[]
                     {
