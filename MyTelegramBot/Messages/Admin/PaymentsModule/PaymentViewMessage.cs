@@ -34,7 +34,7 @@ namespace MyTelegramBot.Messages.Admin
 
         public PaymentViewMessage(int PaymentId)
         {
-
+            this.PaymentId = PaymentId;
         }
 
         public override BotMessage BuildMsg()

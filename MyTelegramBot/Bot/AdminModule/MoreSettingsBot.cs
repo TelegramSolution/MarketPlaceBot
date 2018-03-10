@@ -112,25 +112,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string CurrencyEditorUpdCmd = "CurrencyUpd";
 
-        MoreSettingsMessage MoreSettingsMsg { get; set; }
-
-        MethodOfObtaining MethodOfObtainingMsg { get; set; }
-
-        WorkTimeMessage WorkTimeMsg { get; set; }
-
-        DeliveryPriceMessage DeliveryPriceMsg { get; set; }
-
-        YandexKassaEditMessage YandexKassaEditMsg { get; set; }
-
-        QiwiListMessage QiwiListMsg { get; set; }
-
-        AdminQiwiSettingsMessage AdminQiwiSettingsMsg { get; set; }
-
-        AdminPayMethodsSettings AdminPayMethodsSettingMsg { get; set; }
-
-        EnablePaymentsMethodMessage EnablePaymentsMethodMsg { get; set; }
-
-        CurrencySettingsMessage CurrencySettingsMsg { get; set; }
 
         public MoreSettingsBot(Update _update) : base(_update)
         {
@@ -139,8 +120,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         protected override void Initializer()
         {
-            MoreSettingsMsg = new MoreSettingsMessage();
-            EnablePaymentsMethodMsg = new EnablePaymentsMethodMessage();
+
         }
 
         public async override Task<IActionResult> Response()
@@ -324,9 +304,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> SendCurrencyEditor()
         {
-            CurrencySettingsMsg = new CurrencySettingsMessage(base.BotInfo);
+            BotMessage = new CurrencySettingsMessage(base.BotInfo);
 
-            await EditMessage(CurrencySettingsMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
 
             return OkResult;
 
@@ -362,7 +342,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> SendEnablePaymentEditor()
         {
-            await EditMessage(EnablePaymentsMethodMsg.BuildMsg());
+            BotMessage =new EnablePaymentsMethodMessage();
+            await EditMessage(BotMessage.BuildMsg());
             return OkResult;
         }
         private async Task<IActionResult> RemoveYandex()
@@ -428,8 +409,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
             if (qiwi != null)
             {
-                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage(qiwi);
-                await SendMessage(AdminQiwiSettingsMsg.BuildMsg());
+                BotMessage = new AdminQiwiSettingsMessage(qiwi);
+                await SendMessage(BotMessage.BuildMsg());
                 db.Dispose();
             }
 
@@ -453,8 +434,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 db.SaveChanges();
                 db.Dispose();
 
-                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage(qiwi);
-                await SendMessage(AdminQiwiSettingsMsg.BuildMsg());
+                BotMessage = new AdminQiwiSettingsMessage(qiwi);
+                await SendMessage(BotMessage.BuildMsg());
 
             }
 
@@ -516,41 +497,42 @@ namespace MyTelegramBot.Bot.AdminModule
                 db.PaymentTypeConfig.Add(paymentTypeConfig);
                 db.SaveChanges();
 
-                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage(paymentTypeConfig);
-                await SendMessage(AdminQiwiSettingsMsg.BuildMsg());
+                BotMessage = new AdminQiwiSettingsMessage(paymentTypeConfig);
+                await SendMessage(BotMessage.BuildMsg());
                 return OkResult;
             }
         }
 
         private async Task<IActionResult> SendYandexKassaView()
         {
-            YandexKassaEditMsg = new YandexKassaEditMessage();
-            await EditMessage(YandexKassaEditMsg.BuildMsg());
+            BotMessage = new YandexKassaEditMessage();
+            await EditMessage(BotMessage.BuildMsg());
             return OkResult;
         }
 
         private async Task<IActionResult> SendQiwiList()
         {
             if(Argumetns.Count==1)
-                QiwiListMsg = new QiwiListMessage(Argumetns[0]);
+                BotMessage = new QiwiListMessage(Argumetns[0]);
 
             else
-                QiwiListMsg = new QiwiListMessage();
+                BotMessage = new QiwiListMessage();
 
-            await EditMessage(QiwiListMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
             return OkResult;
         }
 
         private async Task<IActionResult> SendPaymentsSettings()
         {
-            AdminPayMethodsSettingMsg = new AdminPayMethodsSettings();
-            await EditMessage(AdminPayMethodsSettingMsg.BuildMsg());
+            BotMessage = new AdminPayMethodsSettings();
+            await EditMessage(BotMessage.BuildMsg());
             return OkResult;
         }
 
         private async Task<IActionResult> SendMoreSettings(int MessageId = 0)
         {
-            await SendMessage(MoreSettingsMsg.BuildMsg(), MessageId);
+            BotMessage =new MoreSettingsMessage();
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return OkResult;
         }
@@ -561,9 +543,9 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> SendMethodOfObtaining()
         {
-            MethodOfObtainingMsg = new MethodOfObtaining(base.BotInfo);
+            BotMessage = new MethodOfObtaining(base.BotInfo);
 
-            await EditMessage(MethodOfObtainingMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
 
             return OkResult;
         }
@@ -604,9 +586,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> SendDeliveryPriceInfo(int MessageId = 0)
         {
-            DeliveryPriceMsg = new DeliveryPriceMessage(base.BotInfo);
+            BotMessage = new DeliveryPriceMessage(base.BotInfo);
 
-            await SendMessage(DeliveryPriceMsg.BuildMsg(), MessageId);
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return OkResult;
         }
@@ -647,9 +629,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> SendWorkTime(int MessageId = 0)
         {
-            WorkTimeMsg = new WorkTimeMessage(base.BotInfo);
+            BotMessage = new WorkTimeMessage(base.BotInfo);
 
-            await SendMessage(WorkTimeMsg.BuildMsg(), MessageId);
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return OkResult;
         }

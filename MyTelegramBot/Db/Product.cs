@@ -95,6 +95,9 @@ namespace MyTelegramBot
             if (MainPhoto > 0)
                 MainPhotoString = "Есть";
 
+            else
+                MainPhotoString = "Отсутствует";
+
             if (TelegraphUrl != null)
                 Url = TelegraphUrl;
 
@@ -102,8 +105,6 @@ namespace MyTelegramBot
                 CodeString = Code;
 
 
-            else
-                MainPhotoString = "Отсутствует";
 
 
             try

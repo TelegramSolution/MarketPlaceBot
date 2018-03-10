@@ -67,6 +67,7 @@ namespace MyTelegramBot.Messages.Admin
             foreach (Product product in Category.Product)
             {
 
+                if(product.Stock.Count>0)
                 message += NewLine() + counter.ToString() + ") " + product.Name + NewLine() +
                   "Остаток:"+  product.Stock.LastOrDefault().Balance.ToString();
 

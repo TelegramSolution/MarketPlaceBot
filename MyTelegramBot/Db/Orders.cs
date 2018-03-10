@@ -22,21 +22,23 @@ namespace MyTelegramBot
         public bool? Paid { get; set; }
         public int? BotInfoId { get; set; }
         public int? InvoiceId { get; set; }
-        public int? ConfirmId { get; set; }
-        public int? DeleteId { get; set; }
-        public int? DoneId { get; set; }
+
         public int? PickupPointId { get; set; }
 
         public int? CurrentStatus { get; set; }
 
         public BotInfo BotInfo { get; set; }
-        public OrderHistory Confirm { get; set; }
-        public OrderHistory Delete { get; set; }
-        public OrderHistory Done { get; set; }
+
         public Follower Follower { get; set; }
 
         public Invoice Invoice { get; set; }
+
         public PickupPoint PickupPoint { get; set; }
+
+        /// <summary>
+        /// флаг  указывающий на то, что после выполнения заказа, остатки на складе были обнавлены
+        /// </summary>
+        public bool StockUpdate { get; set; }
         public ICollection<FeedBack> FeedBack
         {
             get; set;
@@ -225,7 +227,7 @@ namespace MyTelegramBot
                 if (OrderProduct == null || OrderProduct != null && OrderProduct.Count == 0)
                     OrderProduct = db.OrderProduct.Where(op => op.OrderId == Id).ToList();
 
-                if(OrderProduct!=null && OrderProduct.Count > 0)
+                if(!StockUpdate && OrderProduct!=null && OrderProduct.Count > 0)
                 {
                     
                     foreach(OrderProduct op in OrderProduct)
@@ -251,6 +253,12 @@ namespace MyTelegramBot
 
                         list.Add(stock);
                     }
+
+                    this.StockUpdate = true;
+
+                    db.Update<Orders>(this);
+
+                    db.SaveChanges();
 
                     result = list.GroupBy(s => s.Product).ToList();
                 

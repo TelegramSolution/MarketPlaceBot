@@ -27,7 +27,7 @@ namespace MyTelegramBot.Bot.Core
         /// <summary>
         /// поиск по заказам
         /// </summary>
-        public const string FindOrder = "Заказы";
+        public const string FindOrder = "Order";
 
         /// <summary>
         /// поиск доп фоток у товара
@@ -55,6 +55,10 @@ namespace MyTelegramBot.Bot.Core
         public const string HelpdDesk = "Desk";
 
         public const string Payment = "Платежи";
+
+        public const string FollowerAddress = "Адреса";
+
+        public const string FolowerOrder = "Заказы";
 
         private InlineQuery inlineQuery { get; set; }
 

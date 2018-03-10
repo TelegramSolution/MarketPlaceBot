@@ -17,7 +17,7 @@ namespace MyTelegramBot.Bot
     {
         public const string ModuleName = "Help";
 
-        private HelpDeskEditorMessage HelpDeskEditorMsg { get; set; }
+        //private HelpDeskEditorMessage HelpDeskEditorMsg { get; set; }
 
 
         public HelpDeskBot(Update _update) : base(_update)
@@ -62,8 +62,8 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> AddTextToHelpDesk()
         {
             var NoSendHelp=HelpDeskFunction.InsertHelpDesk(FollowerId, BotInfo.Id, ReplyToMessageText);
-            HelpDeskEditorMsg = new HelpDeskEditorMessage(NoSendHelp);
-            await SendMessage(HelpDeskEditorMsg.BuildMsg());
+            BotMessage = new HelpDeskEditorMessage(NoSendHelp);
+            await SendMessage(BotMessage.BuildMsg());
             return OkResult;
 
         }
@@ -116,8 +116,8 @@ namespace MyTelegramBot.Bot
             if(attach!=null)
                 NoSendHelp.HelpDeskAttachment.Add(attach);
 
-            HelpDeskEditorMsg = new HelpDeskEditorMessage(NoSendHelp);
-            await SendMessage(HelpDeskEditorMsg.BuildMsg());
+            BotMessage = new HelpDeskEditorMessage(NoSendHelp);
+            await SendMessage(BotMessage.BuildMsg());
             return OkResult;
             
         }
@@ -126,8 +126,8 @@ namespace MyTelegramBot.Bot
         {
             var Help = HelpDeskFunction.SaveHelpDesk(HelpDeskId);
 
-            HelpDeskEditorMsg = new HelpDeskEditorMessage(Help);
-            await EditMessage(HelpDeskEditorMsg.BuildMsg());
+            BotMessage = new HelpDeskEditorMessage(Help);
+            await EditMessage(BotMessage.BuildMsg());
 
             AdminHelpDeskMessage adminHelpDesk = new AdminHelpDeskMessage(Help);
             await base.SendMessageAllBotEmployeess(adminHelpDesk.BuildMsg());

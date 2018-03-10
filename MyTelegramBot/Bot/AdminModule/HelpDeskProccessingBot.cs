@@ -47,12 +47,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private HelpDesk HelpDesk { get; set; }
 
-        private AdminHelpDeskMessage AdminHelpDeskMsg { get; set; }
-
-        private HelpDeskMiniViewMessage HelpDeskMiniViewMsg { get; set; }
-
-        private OverridePerformerConfirmMessage  OverridePerformerConfirmMsg { get; set; }
-
         public HelpDeskProccessingBot(Update _update) : base(_update)
         {
 
@@ -180,8 +174,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
             if (WhoItWorkNow != null && WhoItWorkNow.Id != FollowerId) // заявка в обработке у другого пользователя. Отправляем сообщение с вопрос о переназначении 
             {
-                OverridePerformerConfirmMsg = new OverridePerformerConfirmMessage(HelpDesk, WhoItWorkNow);
-                await EditMessage(OverridePerformerConfirmMsg.BuildMsg());
+                BotMessage = new OverridePerformerConfirmMessage(HelpDesk, WhoItWorkNow);
+                await EditMessage(BotMessage.BuildMsg());
             }
 
             return OkResult;
@@ -190,33 +184,32 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> GetContact()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+
+            int Help_followerId = Argumetns[0]; // id пользователя которой создал заявку
+            var follower = FollowerFunction.GetFollower(Help_followerId);
+
+            if (follower != null && follower.Telephone != null && follower.Telephone != "")
             {
-
-                var follower = db.Follower.Where(f => f.Id == FollowerId).FirstOrDefault();
-
-                if (follower != null && follower.Telephone != null && follower.Telephone != "")
+                Contact contact = new Contact
                 {
-                    Contact contact = new Contact
-                    {
-                        FirstName = follower.FirstName,
-                        PhoneNumber = follower.Telephone
+                    FirstName = follower.FirstName,
+                    PhoneNumber = follower.Telephone
 
-                    };
+                };
 
-                    await SendContact(contact);
+                await SendContact(contact);
 
-                }
-
-                if (follower != null && follower.UserName != null && follower.UserName != "")
-                {
-                    await SendUrl(BotMessage.HrefUrl("https://t.me/" + follower.UserName, follower.UserName));
-                    return OkResult;
-                }
-
-                else
-                    return base.OkResult;
             }
+
+            if (follower != null && follower.UserName != null && follower.UserName != "")
+            {
+                await SendUrl(BotMessage.HrefUrl("https://t.me/" + follower.UserName, follower.UserName));
+                return OkResult;
+            }
+
+            else
+                return base.OkResult;
+            
         }
 
         private async Task<IActionResult> SendHelpDeskAttach()
@@ -254,8 +247,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (HelpDesk != null)
                 {
                     HelpDesk=HelpDeskFunction.AddAnswerComment(HelpDesk.Id, FollowerId, ReplyToMessageText);
-                    AdminHelpDeskMsg = new AdminHelpDeskMessage(HelpDesk, FollowerId);
-                    await SendMessage(AdminHelpDeskMsg.BuildMsg());
+                    BotMessage = new AdminHelpDeskMessage(HelpDesk, FollowerId);
+                    await SendMessage(BotMessage.BuildMsg());
                     
                 }
 

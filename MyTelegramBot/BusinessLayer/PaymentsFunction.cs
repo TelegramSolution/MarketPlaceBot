@@ -44,7 +44,7 @@ namespace MyTelegramBot.BusinessLayer
                 return db.Payment.Include(p => p.Invoice.Orders).OrderByDescending(p=>p.Id).ToList();
             }
 
-            catch
+            catch (Exception e)
             {
                 return null;
             }
@@ -115,9 +115,15 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
-        public async Task<Invoice> CheckPaidInvoice(int InvoiceId)
+        public async Task<Invoice> CheckPaidInvoice(int OrderId)
         {
-           return await CheckPaidInvoice(db.Invoice.Where(p=>p.Id==InvoiceId).Include(p=>p.Payment).FirstOrDefault());
+          var order= db.Orders.Where(p=>p.Id== OrderId).Include(p=>p.Invoice.Payment).FirstOrDefault();
+
+            if (order != null)
+                return await CheckPaidInvoice(order.Invoice);
+
+            else
+                return null;
         }
 
         /// <summary>
@@ -134,7 +140,7 @@ namespace MyTelegramBot.BusinessLayer
                 payment =await CheckQiwiInvoce(invoice);
             }
 
-            if(invoice!=null && invoice.PaymentTypeId==ConstantVariable.PaymentTypeVariable.Bitcoin ||
+            if(invoice!=null && !invoice.Paid && invoice.PaymentTypeId==ConstantVariable.PaymentTypeVariable.Bitcoin ||
                 invoice.PaymentTypeId == ConstantVariable.PaymentTypeVariable.BitcoinCash ||
                 invoice.PaymentTypeId == ConstantVariable.PaymentTypeVariable.Litecoin ||
                 invoice.PaymentTypeId == ConstantVariable.PaymentTypeVariable.Doge)
@@ -143,7 +149,7 @@ namespace MyTelegramBot.BusinessLayer
             }
 
             //Найден платеж, смотрим зачисленная сумма больше или равна сумме которая была указана в инвойсе
-            if (invoice!=null && payment != null && invoice != null && payment.Summ >= invoice.Value)
+            if (invoice!=null && !invoice.Paid &&payment != null && invoice != null && payment.Summ >= invoice.Value)
             {
                invoice=InvoiceAndOrderIsPaid(invoice.Id).Invoice;
                invoice.Payment.Add(payment);

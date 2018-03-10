@@ -26,10 +26,253 @@ namespace MyTelegramBot.BusinessLayer
             db = new MarketBotDbContext();
         }
 
+
+
         public void Dispose()
         {
             db.Dispose();
         }
+
+        /// <summary>
+        /// кто обрабатывает заявку в данные момент
+        /// </summary>
+        /// <param name="OrderId"></param>
+        /// <returns></returns>
+        public static OrdersInWork WhoItWorkNow(int OrderId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.OrdersInWork.Where(o => o.OrderId == OrderId).Include(o=>o.Follower).LastOrDefault();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+        public static OrdersInWork InsertOrderInWork (int OrderId,int FollowerId,bool InWork=true)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                OrdersInWork ordersInWork = new OrdersInWork
+                {
+                    FollowerId = FollowerId,
+                    InWork = InWork,
+                    OrderId = OrderId,
+                    Timestamp = DateTime.Now
+                };
+
+                db.OrdersInWork.Add(ordersInWork);
+                db.SaveChanges();
+                return ordersInWork;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static OrderAddress GetAddress(int OrderId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return  db.OrderAddress.Where(o => o.OrderId == OrderId).Include(o => o.Adress.House).FirstOrDefault();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+        public static Orders GetOrder(int OrderId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Orders.Where(o => o.Id == OrderId).
+                            Include(o => o.OrderProduct).
+                            Include(o => o.Follower).
+                            Include(o => o.FeedBack).
+                            Include(o => o.OrderAddress).
+                            Include(o => o.CurrentStatusNavigation.Status).
+                            Include(o=>o.PickupPoint).
+                            Include(o => o.Invoice).
+                            Include(o => o.OrdersInWork).FirstOrDefault();
+
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+        /// <summary>
+        /// удалить статус заказа
+        /// </summary>
+        /// <param name="OrderStatusId"></param>
+        /// <returns></returns>
+        public static int RemoveStatus(int OrderStatusId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                db.OrderStatus.Remove(db.OrderStatus.Find(OrderStatusId));
+                return db.SaveChanges();
+            }
+
+            catch
+            {
+                return -1;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+
+        /// <summary>
+        /// Подтвердить добавленный статус. 
+        /// </summary>
+        /// <param name="OrderStatusId"></param>
+        /// <returns></returns>
+        public static OrderStatus ConfirmOrderStatus(int OrderStatusId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var status = db.OrderStatus.Find(OrderStatusId);
+                var order = db.Orders.Find(status.OrderId);
+                if (status != null && order != null)
+                {
+                    status.Enable = true;
+                    status.Timestamp = DateTime.Now;
+                    db.Update<OrderStatus>(status);
+                    db.SaveChanges();
+
+                    order.CurrentStatus = status.Id;
+                    db.Update<Orders>(order);
+                    db.SaveChanges();
+
+                    return status;
+                }
+
+                else
+                    return null;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+        public static OrderStatus InsertOrderStarus(int OrderId,int StatusId, int FollowerId, bool Enable=true, string Comment="")
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+            try
+            {
+                OrderStatus orderStatus = new OrderStatus
+                {
+                    Enable = Enable,
+                    FollowerId = FollowerId,
+                    OrderId = OrderId,
+                    StatusId = StatusId,
+                    Timestamp = DateTime.Now,
+                    Text = Comment
+                };
+
+                db.OrderStatus.Add(orderStatus);
+                db.SaveChanges();
+                return orderStatus;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+        public static OrderStatus AddCommentToStatus(int OrderStatus, string Comment)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var status = db.OrderStatus.Find(OrderStatus);
+
+                if (status != null)
+                {
+                    status.Text = Comment;
+                    db.Update<OrderStatus>(status);
+                    db.SaveChanges();
+                    
+                }
+
+                return status;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
 
         public Orders CreateOrder(int FollowerId, BotInfo botInfo)
         {
@@ -96,6 +339,8 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
         }
 
+
+
         /// <summary>
         /// Добавить адрес доставки к заказу
         /// </summary>
@@ -123,6 +368,8 @@ namespace MyTelegramBot.BusinessLayer
                 return -1;
         }
 
+
+
         /// <summary>
         /// Стоимость доставки
         /// </summary>
@@ -148,6 +395,8 @@ namespace MyTelegramBot.BusinessLayer
                 return 0;
         }
 
+
+
         private Orders InsertOrder(OrderTemp orderTemp,int LastOrderNumber)
         {
             Orders Order = new Orders
@@ -158,13 +407,16 @@ namespace MyTelegramBot.BusinessLayer
                 Number = LastOrderNumber + 1,
                 Paid = false,
                 BotInfoId = orderTemp.BotInfoId,
-                PickupPoint=orderTemp.PickupPoint
+                PickupPoint=orderTemp.PickupPoint,
+                StockUpdate=false
             };
 
             db.Orders.Add(Order);
             db.SaveChanges();
             return Order;
         }
+
+
 
         /// <summary>
         /// Обновить текущий статус заказ
@@ -193,6 +445,9 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
         }
+
+
+
 
         /// <summary>
         /// Добавить запись в таблицу OrderStatus
@@ -227,6 +482,8 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+
+
         /// <summary>
         /// Удалить временные данные
         /// </summary>
@@ -251,6 +508,8 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+
+
         /// <summary>
         /// Доступен ли способ оплаты
         /// </summary>
@@ -269,6 +528,10 @@ namespace MyTelegramBot.BusinessLayer
 
             if (PaymentTypeCfg == null)
                 return false;
+
+            if (PaymentTypeCfg != null && PaymentTypeCfg.PaymentId == ConstantVariable.PaymentTypeVariable.QIWI ||
+               PaymentTypeCfg != null && PaymentTypeCfg.PaymentId == ConstantVariable.PaymentTypeVariable.DebitCardForYandexKassa)
+                return true;
 
             if (ConstantVariable.PaymentTypeVariable.Bitcoin == PaymentTypeId ||
                ConstantVariable.PaymentTypeVariable.BitcoinCash == PaymentTypeId ||
@@ -297,6 +560,8 @@ namespace MyTelegramBot.BusinessLayer
                 return false;
         }
 
+
+
         /// <summary>
         /// Приндалежит ли заказ пользователю если нет вернут null
         /// </summary>
@@ -308,14 +573,13 @@ namespace MyTelegramBot.BusinessLayer
             try
             {
                 return db.Orders.Where(o => o.Number == OrderNumber && o.FollowerId == FollowerId)
-                        .Include(o => o.Confirm)
-                        .Include(o => o.Delete).Include(o => o.Done)
                         .Include(o => o.FeedBack)
                         .Include(o => o.OrderProduct)
                         .Include(o => o.OrderAddress)
                         .Include(o => o.PickupPoint)
                         .Include(o => o.BotInfo)
                         .Include(o => o.Invoice)
+                        .Include(o=>o.CurrentStatusNavigation)
                         .FirstOrDefault();
 
             }
@@ -325,6 +589,8 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
         }
+
+
 
         /// <summary>
         /// Добавить платеж кридитной картой и поменить заказ и счет как оплаченные
@@ -337,9 +603,12 @@ namespace MyTelegramBot.BusinessLayer
         public Payment AddCreditCardPayment(int OrderId, double Summ, string TxId = "", string Comment = "")
         {
             var Order = db.Orders.Find(OrderId);
+            Payment payment = null;
+
             try
             {
-                var payment = InsertPayment(1, Summ, TxId, Comment);
+                 if(Order!=null && Order.Paid==false) // заказ еще не оплачен, значит добавляем платеж
+                    payment = InsertPayment(Convert.ToInt32(Order.InvoiceId), Summ, TxId, Comment);
 
                 if (payment != null)
                 {
@@ -347,6 +616,7 @@ namespace MyTelegramBot.BusinessLayer
                     Order.Paid = true;
                     db.Update<Orders>(Order);
                     db.SaveChanges();
+
                     return payment;
                 }
 
@@ -359,6 +629,8 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
         }
+
+
 
         /// <summary>
         /// Добавить пункт самовывоза  к еще не офрмленному закаку
@@ -374,7 +646,7 @@ namespace MyTelegramBot.BusinessLayer
                 var OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotId).LastOrDefault();
 
                 if (OrderTmp == null)
-                    OrderTmp = InsertOrderTmp(FollowerId, BotId);
+                    OrderTmp = InsertOrderTmp(FollowerId, BotId, PickupPointId:PickUpPointId);
                 else
                 {
                     OrderTmp.PickupPointId = PickUpPointId;
@@ -391,6 +663,8 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+
+
         /// <summary>
         /// Добавить адрес к заказу
         /// </summary>
@@ -405,7 +679,7 @@ namespace MyTelegramBot.BusinessLayer
                 var OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotId).LastOrDefault();
 
                 if (OrderTmp == null)
-                    OrderTmp = InsertOrderTmp(FollowerId, BotId);
+                    OrderTmp = InsertOrderTmp(FollowerId, BotId, AddressId:AddressId);
                 else
                 {
                     OrderTmp.PickupPointId = null;
@@ -423,6 +697,8 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+
+
         /// <summary>
         /// Добавить способо оплаты к заказу
         /// </summary>
@@ -437,7 +713,7 @@ namespace MyTelegramBot.BusinessLayer
                 var OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == BotId).LastOrDefault();
 
                 if (OrderTmp == null)
-                    OrderTmp = InsertOrderTmp(FollowerId, BotId);
+                    OrderTmp = InsertOrderTmp(FollowerId, BotId, PaymentTypeId:PaymentTypeId);
 
                 else
                 {
@@ -454,6 +730,8 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
         } 
+
+
 
         /// <summary>
         /// Добавить комментарий к еще не оформленому заказу
@@ -486,7 +764,9 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
-        public OrderTemp InsertOrderTmp(int FollowerId, int BotId)
+
+
+        public OrderTemp InsertOrderTmp(int FollowerId, int BotId,int? PickupPointId=null,int? AddressId=null,int? PaymentTypeId=null)
         {
             try
             {
@@ -494,6 +774,9 @@ namespace MyTelegramBot.BusinessLayer
                 {
                     FollowerId = FollowerId,
                     BotInfoId = BotId,
+                    PickupPointId= PickupPointId,
+                    AddressId= AddressId,
+                    PaymentTypeId= PaymentTypeId
 
                 };
 
@@ -506,6 +789,8 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
         }
+
+
 
         private Payment InsertPayment(int InvoiceId,double Summ, string TxId="", string Comment="")
         {
@@ -535,6 +820,8 @@ namespace MyTelegramBot.BusinessLayer
 
             }
         }
+
+
 
         private Invoice InvoicePaid(int InvoiceId)
         {

@@ -33,7 +33,6 @@ namespace MyTelegramBot.Bot
 
         private ViewAllProductInCategoryMessage ViewAllProductInCategoryMsg { get; set; }
 
-        private ViewProductFeedBackMessage ViewProductFeedBackMsg { get; set; }
 
         public const string GetProductCmd = "GetProduct";
 
@@ -131,11 +130,9 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendProductPage(int CategoryId, int PageNumber = 1)
         {
-            ViewAllProductInCategoryMsg = new ViewAllProductInCategoryMessage(CategoryId, PageNumber);
+            BotMessage = new ViewAllProductInCategoryMessage(CategoryId, PageNumber);
 
-            var mess = ViewAllProductInCategoryMsg.BuildMsg();
-
-            await EditMessage(mess);
+            await EditMessage(BotMessage.BuildMsg());
 
             return OkResult;
         }
@@ -144,8 +141,8 @@ namespace MyTelegramBot.Bot
         {
             if (Argumetns.Count == 1)
             {
-                ViewProductFeedBackMsg = new ViewProductFeedBackMessage(Argumetns[0]);
-                var mess = ViewProductFeedBackMsg.BuildMsg();
+                BotMessage = new ViewProductFeedBackMessage(Argumetns[0]);
+                var mess = BotMessage.BuildMsg();
 
                 if (mess != null)
                     await SendMessage(mess);
@@ -153,8 +150,8 @@ namespace MyTelegramBot.Bot
             }
             if (Argumetns.Count == 2) // перелистывание отзывов в одном сообщении.
             {
-                ViewProductFeedBackMsg = new ViewProductFeedBackMessage(Argumetns[0], Argumetns[1]);
-                var mess = ViewProductFeedBackMsg.BuildMsg();
+                BotMessage = new ViewProductFeedBackMessage(Argumetns[0], Argumetns[1]);
+                var mess = BotMessage.BuildMsg();
 
                 if (mess != null)
                     await EditMessage(mess);

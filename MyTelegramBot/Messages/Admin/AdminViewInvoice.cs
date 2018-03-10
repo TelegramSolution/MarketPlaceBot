@@ -29,12 +29,17 @@ namespace MyTelegramBot.Messages.Admin
 
         }
 
+        public AdminViewInvoice (Invoice invoice)
+        {
+            Invoice = invoice;
+        }
 
         public override BotMessage BuildMsg()
         {
             string IsPaid = "Нет";
 
-            Invoice = InvoiceFunction.GetInvoiceByOrderId(OrderId);
+            if(Invoice==null && OrderId>0)
+                Invoice = InvoiceFunction.GetInvoiceByOrderId(OrderId);
 
             if (Invoice != null)
             {
@@ -50,9 +55,9 @@ namespace MyTelegramBot.Messages.Admin
                                  Bold("Способ оплаты: ") + Invoice.PaymentType.Name + NewLine() +
                                  Bold("Оплачено:") + IsPaid;
 
-                BackToOrderBtn = BuildInlineBtn("Детали заказа", BuildCallData(OrderProccesingBot.CmdBackToOrder, OrderProccesingBot.ModuleName, this.OrderId));
+                BackToOrderBtn = BuildInlineBtn("Детали заказа", BuildCallData(OrderProccesingBot.CmdBackToOrder, OrderProccesingBot.ModuleName, Invoice.Orders.LastOrDefault().Id));
 
-                ViewPaymentBtn = BuildInlineBtn("Платеж", BuildCallData(OrderProccesingBot.ViewPaymentCmd, OrderProccesingBot.ModuleName, Invoice.Id));
+                ViewPaymentBtn = BuildInlineBtn("Платеж", BuildCallData(OrderProccesingBot.ViewPaymentCmd, OrderProccesingBot.ModuleName, Invoice.Orders.LastOrDefault().Id, Invoice.Payment.LastOrDefault().Id));
 
                 if (Invoice.PaymentType != null && Invoice.PaymentType.Id == ConstantVariable.PaymentTypeVariable.Litecoin ||
                     Invoice.PaymentType != null && Invoice.PaymentType.Id == ConstantVariable.PaymentTypeVariable.Bitcoin ||

@@ -17,38 +17,6 @@ namespace MyTelegramBot.Bot.AdminModule
     {
         public const string ModuleName = "Admin";
 
-        private ControlPanelMessage AdminCmdListMsg { get; set; }
-
-        private CategoryListMessage CategoryListMsg { get; set; }
-
-        private AdminProductListMessage AdminProductListMsg { get; set; }
-
-        private ProductFuncMessage AdminProductFuncMsg { get; set; }
-
-        private ContactEditMessage ContactEditMsg { get; set; }
-
-        private AdminAllProductsViewMessage AdminAllProductsViewMsg { get; set; }
-
-        private CurrentStockMessage AdminCurrentStockMsg { get; set; }
-
-        private AdminPayMethodsSettings AdminPayMethodsSettingsMsg { get; set; }
-
-        private AdminQiwiSettingsMessage AdminQiwiSettingsMsg { get; set; }
-
-        private StatisticMessage StatisticMsg { get; set; }
-
-        private OperatosListMessage AdminControlMsg { get; set; }
-
-        private AvailableCitiesMessage AvailableCitiesMsg { get; set; }
-
-        private FollowerListMessage FollowerListMsg { get; set; }
-
-        private OrdersListMessage OrdersListMsg { get; set; }
-
-        private PickUpPointListMessage PickUpPointListMsg { get; set; }
-
-        private ProductStockHistoryMessage ProductStockHistoryMsg { get; set; }
-
         public const string ProductCreateCmd = "ProductCreate";
 
         public const string ProductEditCmd = "ProductEdit";
@@ -69,6 +37,15 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private const string AdminKeyCmd = "/adminkey";
 
+        /// <summary>
+        /// заблокировать
+        /// </summary>
+        public const string BlockFollowerCmd = "BlockFollower";
+
+        /// <summary>
+        /// Разблокировать
+        /// </summary>
+        public const string UnBlockFollowerCmd = "UnBlockFollower";
 
         public const string PaymentTypeEnableCmd = "PaymentTypeEnable";
 
@@ -134,20 +111,10 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                AdminCmdListMsg = new ControlPanelMessage(base.FollowerId);
-                ContactEditMsg = new ContactEditMessage();
-                AdminAllProductsViewMsg = new AdminAllProductsViewMessage();
-                AdminCurrentStockMsg = new CurrentStockMessage();
-                AdminPayMethodsSettingsMsg = new AdminPayMethodsSettings();
-                AdminControlMsg = new OperatosListMessage();
-                StatisticMsg = new StatisticMessage();
-                AvailableCitiesMsg = new AvailableCitiesMessage();
                 
                 if (base.Argumetns.Count > 0)
                 {
                     Parametr = base.Argumetns[0];
-                    AdminProductListMsg = new AdminProductListMessage(this.Parametr);
-                    AdminProductFuncMsg = new ProductFuncMessage(Parametr);
                 }
 
 
@@ -193,7 +160,13 @@ namespace MyTelegramBot.Bot.AdminModule
                     case ViewStockProdCmd:
                         return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
 
-                        default:
+                    case BlockFollowerCmd:
+                        return await BlockUser();
+
+                    case UnblockUserCmd:
+                        return await UnBlockUser();
+
+                    default:
                             break;
                     }
 
@@ -222,9 +195,6 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await SendPaymentMethods();
 
 
-                    case StatCmd:
-                        return await SendStat();
-
                     case ViewOperatosCmd:
                         return await SendOperatorList(MessageId);
 
@@ -242,6 +212,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
                     case "GetCategoryStock":
                         return await SendCurrentStock(Argumetns[0],MessageId);
+
+                   
 
                     default:
                         break;
@@ -266,11 +238,6 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(DisablePickUpPointCmd))
                     return await EnablePickUpPoint(DisablePickUpPointCmd);
 
-                if (base.CommandName.Contains(BlockUserCmd)) 
-                    return await BlockUser();
-
-                if (base.CommandName.Contains(UnblockUserCmd))
-                    return await UnBlockUser();
 
                 else
                     return null;
@@ -297,38 +264,12 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> BlockUser()
         {
-            try
-            {
-                int id = Convert.ToInt32(base.CommandName.Substring(BlockUserCmd.Length));
+            var follower = BusinessLayer.FollowerFunction.Block(Argumetns[0]);
 
-                MarketBotDbContext db = new MarketBotDbContext();
+            BotMessage = new FollowerControlMessage(follower);
+            await EditMessage(BotMessage.BuildMsg());
 
-                var follower = db.Follower.Find(id);
-
-                db.Dispose();
-
-                if (follower != null)
-                {
-                    if (!follower.Blocked)
-                    {
-                        follower.Blocked = true;
-                        db.Update<Follower>(follower);
-                        db.SaveChanges();
-                        await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Пользователь " + follower.FirstName + " " + follower.LastName + " заблокирован" });
-                        return OkResult;
-                    }
-
-                    else
-                        await SendMessage(new BotMessage { TextMessage = "Пользователь уже заблокирован" });
-                }
-
-                return OkResult;
-            }
-
-            catch
-            {
-                return OkResult;
-            }
+            return OkResult;
         }
 
         /// <summary>
@@ -337,46 +278,20 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> UnBlockUser()
         {
-            try
-            {
-                int id = Convert.ToInt32(base.CommandName.Substring(UnblockUserCmd.Length));
+            var follower = BusinessLayer.FollowerFunction.UnBlock(Argumetns[0]);
 
-                MarketBotDbContext db = new MarketBotDbContext();
+            BotMessage = new FollowerControlMessage(follower);
+            await EditMessage(BotMessage.BuildMsg());
 
-                var follower = db.Follower.Find(id);
-
-                db.Dispose();
-
-                if (follower != null)
-                {
-                    if (follower.Blocked)
-                    {
-                        follower.Blocked = false;
-                        db.Update<Follower>(follower);
-                        db.SaveChanges();
-                        await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Пользователь " + follower.FirstName + " " + follower.LastName + " разблокирован" });
-                        return OkResult;
-                    }
-
-                    else
-                        await SendMessage(new BotMessage { TextMessage = "Пользователь разблокирован!" });
-                }
-
-                return OkResult;
-            }
-
-            catch
-            {
-                return OkResult;
-            }
+            return OkResult;
         }
 
         private async Task<IActionResult> SendProductStockHistory(int ProductId,int PageNumber=1,int MessageId=0)
         {
             if (ProductId>0)
-                ProductStockHistoryMsg = new ProductStockHistoryMessage(ProductId, PageNumber);
+                BotMessage = new ProductStockHistoryMessage(ProductId, PageNumber);
 
-            var mess = ProductStockHistoryMsg.BuildMsg();
+            var mess = BotMessage.BuildMsg();
 
             if (mess != null)
                 await SendMessage(mess, MessageId);
@@ -445,12 +360,12 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> SendPickupPointList(int MessageId=0)
         {
             if (Argumetns!=null && Argumetns.Count > 0)
-                PickUpPointListMsg = new PickUpPointListMessage(Argumetns[0]);
+                BotMessage = new PickUpPointListMessage(Argumetns[0]);
 
             else
-                PickUpPointListMsg = new PickUpPointListMessage();
+                BotMessage = new PickUpPointListMessage();
 
-            await SendMessage(PickUpPointListMsg.BuildMsg(), MessageId);
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return OkResult;
 
@@ -463,12 +378,12 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> SendOrderList()
         {
             if (Argumetns != null && Argumetns.Count > 0)
-                OrdersListMsg = new OrdersListMessage(Argumetns[0]);
+                BotMessage = new OrdersListMessage(Argumetns[0]);
 
             else
-                OrdersListMsg = new OrdersListMessage();
+                BotMessage = new OrdersListMessage();
 
-            var mess = OrdersListMsg.BuildMsg();
+            var mess = BotMessage.BuildMsg();
 
             if (mess != null)
                 await EditMessage(mess);
@@ -486,12 +401,12 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> SendFollowerList()
         {
             if (Argumetns != null && Argumetns.Count>0)
-                FollowerListMsg = new FollowerListMessage(Argumetns[0]);
+                BotMessage = new FollowerListMessage(Argumetns[0]);
 
             else
-                FollowerListMsg = new FollowerListMessage();
+                BotMessage = new FollowerListMessage();
 
-            var mess = FollowerListMsg.BuildMsg();
+            var mess = BotMessage.BuildMsg();
 
             if (mess != null)
                 await EditMessage(mess);
@@ -565,7 +480,8 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-               await SendMessage(AvailableCitiesMsg.BuildMsg(), MessageId);
+               BotMessage = new AvailableCitiesMessage();
+               await SendMessage(BotMessage.BuildMsg(), MessageId);
                return OkResult;
             }
 
@@ -712,7 +628,8 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                await SendMessage(AdminControlMsg.BuildMsg(), MessageId);
+                BotMessage = new OperatosListMessage();
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
 
@@ -730,7 +647,8 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                await SendMessage(AdminPayMethodsSettingsMsg.BuildMsg(),MessageId);
+                BotMessage = new AdminPayMethodsSettings();
+                await SendMessage(BotMessage.BuildMsg(),MessageId);
                 return OkResult;
             }
 
@@ -748,8 +666,8 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                AdminCurrentStockMsg = new CurrentStockMessage(CategoryId);
-                await SendMessage(AdminCurrentStockMsg.BuildMsg(), MessageId);
+                BotMessage = new CurrentStockMessage(CategoryId);
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
             catch
@@ -766,48 +684,14 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                await SendMessage(AdminAllProductsViewMsg.BuildMsg());
+                BotMessage = new AdminAllProductsViewMessage();
+                await SendMessage(BotMessage.BuildMsg());
                 return OkResult;
             }
 
             catch
             {
                 return OkResult; 
-            }
-        }
-
-
-        /// <summary>
-        /// Отправить сообщение со статистикой
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendStat()
-        {           
-
-            try
-            {
-                
-                TimeSpan diff = DateTime.Now - LastReportsRequest();
-                if (diff.Minutes >= 5)
-                {
-                    var msgs = StatisticMsg.BuildMessage();
-                    await SendMessage(msgs[0]);
-                    await SendDocument(msgs[1]);
-                    await SendDocument(msgs[2]);
-                    InsertReportsRequest();
-                    return OkResult;
-                }
-
-                else
-                {
-                    await SendMessage(new BotMessage { TextMessage = "Не более одного запроса в 5 минут" });
-                    return OkResult;
-                }
-            }
-
-            catch
-            {
-                return OkResult;
             }
         }
 
@@ -862,8 +746,8 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-
-                if (AdminCmdListMsg!=null && await SendMessage(AdminCmdListMsg.BuildMsg()) != null)
+                BotMessage = new ControlPanelMessage(base.FollowerId);
+                if (BotMessage != null && await SendMessage(BotMessage.BuildMsg()) != null)
                     return base.OkResult;
 
                 else
@@ -953,7 +837,8 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> BackToAdminPanel()
         {
-            if (await EditMessage(AdminCmdListMsg.BuildMsg()) != null)
+            BotMessage = new ControlPanelMessage(FollowerId);
+            if (await EditMessage(BotMessage.BuildMsg()) != null)
                 return OkResult;
 
             else

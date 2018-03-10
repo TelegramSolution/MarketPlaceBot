@@ -21,22 +21,12 @@ namespace MyTelegramBot.Bot
     {
         public const string ModuleName = "ProdEdit";
 
-        /// <summary>
-        /// Соообщение с категориями
-        /// </summary>
-        private CategoryListMessage CategoryListMsg { get; set; }
+        ///// <summary>
+        ///// Сообщение с админскими функциями для товара
+        ///// </summary>
+        //private ProductFuncMessage AdminProductFuncMsg { get; set; }
 
-        /// <summary>
-        /// Сообщение с товарами в выбранной категории
-        /// </summary>
-        private AdminProductListMessage AdminProductListMsg { get; set; }
-
-        /// <summary>
-        /// Сообщение с админскими функциями для товара
-        /// </summary>
-        private ProductFuncMessage AdminProductFuncMsg { get; set; }
-
-        private UnitListMessage UnitListMsg { get; set; }
+        //private UnitListMessage UnitListMsg { get; set; }
 
         private ProductFunction ProductFunction { get; set; }
 
@@ -200,12 +190,6 @@ namespace MyTelegramBot.Bot
                     using (MarketBotDbContext db = new MarketBotDbContext())
                         ProductName = db.Product.Find(ProductId).Name;
 
-                    UnitListMsg = new UnitListMessage(this.ProductId);
-
-
-                    AdminProductListMsg = new AdminProductListMessage(this.ProductId);
-
-                    AdminProductFuncMsg = new ProductFuncMessage(this.ProductId);
                 }
 
             }
@@ -345,9 +329,10 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendMoreFunctionButton()
         {
-            AdminProductFuncMsg = new ProductFuncMessage(Argumetns[0]);
 
-            await EditInlineReplyKeyboard(AdminProductFuncMsg.MoreBtn());
+            ProductFuncMessage ProductFuncMsg = new ProductFuncMessage(ProductId);
+
+            await EditInlineReplyKeyboard(ProductFuncMsg.MoreBtn());
 
             return OkResult;
         }
@@ -404,7 +389,8 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                if (UnitListMsg != null && await EditMessage(UnitListMsg.BuildMsg()) != null)
+                BotMessage = new UnitListMessage(ProductId);
+                if (await EditMessage(BotMessage.BuildMsg()) != null)
                     return OkResult;
 
                 else
@@ -447,15 +433,12 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendProductAdminMsg(int MessageId = 0)
         {
+            BotMessage = new ProductFuncMessage(ProductId);
 
-            if (await SendMessage(AdminProductFuncMsg.BuildMsg(), MessageId) != null)
-                return base.OkResult;
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
-            if (MessageId > 0 && await EditMessage(AdminProductFuncMsg.BuildMsg()) != null)
-                return OkResult;
+            return OkResult;
 
-            else
-                return base.OkResult;
         }
 
 
@@ -710,7 +693,7 @@ namespace MyTelegramBot.Bot
                 var product = db.Product.Where(p => p.Name == ProductName).FirstOrDefault();
                 if (product != null)
                 {
-                    AdminProductFuncMsg = new ProductFuncMessage(product.Id);
+                    BotMessage = new ProductFuncMessage(product.Id);
 
                     return product.Id;
                 }
@@ -731,8 +714,8 @@ namespace MyTelegramBot.Bot
         {
             if (productId >0)
             {
-                AdminProductFuncMsg = new ProductFuncMessage(productId);
-                var mess = AdminProductFuncMsg.BuildMsg();
+                BotMessage = new ProductFuncMessage(productId);
+                var mess = BotMessage.BuildMsg();
                 await SendMessage(mess, MessageId);
 
                 return OkResult;
@@ -748,8 +731,8 @@ namespace MyTelegramBot.Bot
         {
             if (product !=null)
             {
-                AdminProductFuncMsg = new ProductFuncMessage(product);
-                var mess = AdminProductFuncMsg.BuildMsg();
+                BotMessage = new ProductFuncMessage(product);
+                var mess = BotMessage.BuildMsg();
                 await SendMessage(mess, MessageId);
 
                 return OkResult;

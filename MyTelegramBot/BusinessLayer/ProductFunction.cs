@@ -20,19 +20,71 @@ namespace MyTelegramBot.BusinessLayer
         public Product InsertProduct(string Name, bool Enable)
         {
             MarketBotDbContext db = new MarketBotDbContext();
+            Product product = null;
+
+            var category = db.Category.FirstOrDefault(); // сразу присваеваем какое нибудь значение цены, категори, ед. изм
+            var price = db.ProductPrice.Where(p => p.Enabled).FirstOrDefault();
+            var unit = db.Units.FirstOrDefault();
 
             try
             {
-                Product product = new Product
+                if (category != null && price != null)
                 {
-                    Name = Name,
-                    DateAdd = DateTime.Now,
-                    Enable = Enable,
-                };
+                    product = new Product
+                    {
+                        Name = Name,
+                        DateAdd = DateTime.Now,
+                        Enable = Enable,
+                        UnitId = unit.Id,
+                        CategoryId = category.Id,
+                        CurrentPriceId = price.Id
+                    };
+                    db.Product.Add(product);
+                    db.SaveChanges();
+                    return product;
+                }
+                if (category != null && price == null)
+                {
+                    product = new Product
+                    {
+                        Name = Name,
+                        DateAdd = DateTime.Now,
+                        Enable = Enable,
+                        UnitId = unit.Id,
+                        CategoryId = category.Id
+                    };
+                    db.Product.Add(product);
+                    db.SaveChanges();
+                    return product;
+                }
+                if (category != null && price == null)
+                {
+                    product = new Product
+                    {
+                        Name = Name,
+                        DateAdd = DateTime.Now,
+                        Enable = Enable,
+                        UnitId = unit.Id,
+                        CurrentPriceId = price.Id
+                    };
+                    db.Product.Add(product);
+                    db.SaveChanges();
+                    return product;
+                }
+                else
+                {
+                    product = new Product
+                    {
+                        Name = Name,
+                        DateAdd = DateTime.Now,
+                        Enable = Enable,
+                        UnitId = unit.Id,
+                    };
+                    db.Product.Add(product);
+                    db.SaveChanges();
+                    return product;
+                }
 
-                db.Product.Add(product);
-                db.SaveChanges();
-                return product;
             }
 
             catch

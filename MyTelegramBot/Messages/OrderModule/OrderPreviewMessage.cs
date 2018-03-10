@@ -42,7 +42,7 @@ namespace MyTelegramBot.Messages
             this.BotId = BotId;
         }
 
-        public OrderTempMessage BuildMessage()
+        public override BotMessage BuildMsg()
         {
             string Desc = "-";
 
@@ -52,7 +52,6 @@ namespace MyTelegramBot.Messages
             DescEditorBtn = new InlineKeyboardCallbackButton("Комментарий к заказу" + " \ud83d\udccb", BuildCallData(Bot.OrderBot.CmdOrderDesc, OrderBot.ModuleName));
             MethodOfObtainingEditor = new InlineKeyboardCallbackButton("Изменить способ получения заказа" + " \ud83d\udd8a", BuildCallData(Bot.OrderBot.MethodOfObtainingListCmd, OrderBot.ModuleName));
             PaymentMethodEditor = new InlineKeyboardCallbackButton("Изменить способ оплаты" + " \ud83d\udd8a", BuildCallData(Bot.OrderBot.GetPaymentMethodListCmd, OrderBot.ModuleName));
-
 
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
@@ -196,35 +195,5 @@ namespace MyTelegramBot.Messages
             }
         }
 
-        public static double BasketTotalPrice (int FollowerID, int BotId)
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var basket = db.Basket.Where(b => b.FollowerId == FollowerID && b.Enable && b.BotInfoId == BotId).Include(p=>p.Product.CurrentPrice);
-
-                var IdList = basket.Select(b => b.Product).Distinct().AsEnumerable();
-
-                double total = 0.0;
-
-
-                if (IdList.Count() > 0)
-                {
-                    foreach (var product in IdList)
-                    {
-                        int count = basket.Where(p => p.ProductId == product.Id).Count();
-
-                        if (product.CurrentPrice == null)
-                            product.CurrentPrice = db.ProductPrice.Find(product.CurrentPriceId);
-
-                        total += product.CurrentPrice.Value * count;
-                    }
-
-                    return total;
-                }
-
-                else
-                    return 0.0;
-            }
-        }
     }
 }

@@ -152,5 +152,94 @@ namespace MyTelegramBot.BusinessLayer
                 db.Dispose();
             }
         }
+
+        public static Follower GetFollower(int FollowerId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var follower = db.Follower.Find(FollowerId);
+
+                return follower;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// заблокировать
+        /// </summary>
+        /// <param name="FollowerId"></param>
+        /// <returns></returns>
+        public static Follower Block(int FollowerId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var follower= db.Follower.Find(FollowerId);
+
+                if (follower != null && follower.Blocked==false)
+                {
+                    follower.Blocked = true;
+                    db.SaveChanges();
+                }
+
+                return follower;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+
+        /// <summary>
+        /// Разблокировать
+        /// </summary>
+        /// <param name="FollowerId"></param>
+        /// <returns></returns>
+        public static Follower UnBlock(int FollowerId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var follower = db.Follower.Find(FollowerId);
+
+                if (follower != null && follower.Blocked)
+                {
+                    follower.Blocked = false;
+                    db.SaveChanges();
+                }
+
+                return follower;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
     }
 }

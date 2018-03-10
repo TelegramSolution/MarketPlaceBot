@@ -14,7 +14,6 @@ namespace MyTelegramBot.Bot
     {
         RequestPhoneNumberMessage RequestPhoneNumberMessageMsg { get; set; }
 
-        OrderTempMessage OrderPreviewMsg { get; set; }
         public FollowerBot(Update _update) : base(_update)
         {
 
@@ -22,7 +21,7 @@ namespace MyTelegramBot.Bot
         protected override void Initializer()
         {
             RequestPhoneNumberMessageMsg = new RequestPhoneNumberMessage();
-            OrderPreviewMsg = new OrderTempMessage(base.FollowerId,BotInfo.Id);
+
         }
 
         public async override Task<IActionResult> Response()
@@ -50,8 +49,9 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> InsertTelephoneNumber()
         {
+            BotMessage = new OrderTempMessage(base.FollowerId, BotInfo.Id); 
             if (FollowerFunction.AddTelephoneNumber(FollowerId, Update.Message.Contact.PhoneNumber) != null)
-                await SendMessage(OrderPreviewMsg.BuildMessage());
+                await SendMessage(BotMessage.BuildMsg());
 
             else
                 await SendMessage(new BotMessage { TextMessage = "Ошибка!" });

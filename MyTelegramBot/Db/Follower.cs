@@ -20,7 +20,7 @@ namespace MyTelegramBot
             OrdersInWork = new HashSet<OrdersInWork>();
             ReportsRequestLog = new HashSet<ReportsRequestLog>();
             TelegramMessage = new HashSet<TelegramMessage>();
-            OrderHistory = new HashSet<OrderHistory>();
+
         }
 
         public int Id { get; set; }
@@ -51,6 +51,6 @@ namespace MyTelegramBot
 
         public ICollection<HelpDeskInWork> HelpDeskInWork { get; set; }
 
-        public ICollection<OrderHistory> OrderHistory { get; set; }
+
     }
 }

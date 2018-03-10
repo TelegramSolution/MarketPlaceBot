@@ -23,41 +23,10 @@ namespace MyTelegramBot.Controllers
    
     public class ValuesController : Controller
     {
-        private CategoryBot Category { get; set; }
+       
+        private OkResult OkResult { get; set; }
 
-        private ProductBot Product { get; set; }
-
-        private BasketBot Basket { get; set; }
-
-        private AddressBot Address { get; set; }
-
-        private OrderBot OrderBot { get; set; }
-
-        private FollowerBot FollowerBot { get; set; }
-
-        private OrderPositionBot PositionBot { get; set; }
-
-        private ProductEditBot ProductEditBot { get; set; }
-
-        private CategoryEditBot CategoryEditBot { get; set; }
-
-        private MainMenuBot MainMenuBot { get; set; }
-
-        private AdminBot AdminBot { get; set; }
-
-        private HelpDeskBot HelpDeskBot { get; set; }
-
-        private Bot.AdminModule.OrderProccesingBot OrderProccesingBot { get; set; }
-
-        private HelpDeskProccessingBot HelpDeskProccessingBot { get; set; }
-
-        private MoreSettingsBot MoreSettingsBot { get; set; }
-
-        private ProductAddBot ProductAddBot { get; set; }
-
-        protected OkResult OkResult { get; set; }
-
-        protected NotFoundResult NotFoundResult { get; set; }
+        private BotCore BotCore { get; set; }
 
         private string ModuleName { get; set; }
 
@@ -67,12 +36,11 @@ namespace MyTelegramBot.Controllers
         public async Task<IActionResult> Post([FromBody] Update update)
         {
             OkResult = this.Ok();
-            NotFoundResult = this.NotFound();
 
             if (Result == null && update.CallbackQuery == null && update.InlineQuery==null)
             {
-                ProductAddBot = new ProductAddBot(update);
-                Result = await ProductAddBot.Response();
+                BotCore = new ProductAddBot(update);
+                Result = await BotCore.Response();
 
             }
 
@@ -93,94 +61,94 @@ namespace MyTelegramBot.Controllers
             {
                 if (Result == null && ModuleName != null && ModuleName == MoreSettingsBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    MoreSettingsBot = new MoreSettingsBot(update);
-                    Result = await MoreSettingsBot.Response();
+                    BotCore = new MoreSettingsBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == HelpDeskProccessingBot.ModuleName || Result == null && ModuleName == null && update.InlineQuery == null)
                 {
-                    HelpDeskProccessingBot = new HelpDeskProccessingBot(update);
-                    Result = await HelpDeskProccessingBot.Response();
+                    BotCore = new HelpDeskProccessingBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == OrderProccesingBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    OrderProccesingBot = new OrderProccesingBot(update);
-                    Result = await OrderProccesingBot.Response();
+                    BotCore = new OrderProccesingBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == CategoryBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    Category = new CategoryBot(update);
-                    Result = await Category.Response();
+                    BotCore = new CategoryBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == ProductBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    Product = new ProductBot(update);
-                    Result = await Product.Response();
+                    BotCore = new ProductBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == BasketBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    Basket = new BasketBot(update);
-                    Result = await Basket.Response();
+                    BotCore = new BasketBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == AddressBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    Address = new AddressBot(update);
-                    Result = await Address.Response();
+                    BotCore = new AddressBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == OrderBot.ModuleName || Result == null && ModuleName == null
                 || Result == null && update.PreCheckoutQuery != null)
                 {
-                    OrderBot = new OrderBot(update);
-                    Result = await OrderBot.Response();
+                    BotCore = new OrderBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (update.Message != null && Result == null)
                 {
-                    FollowerBot = new FollowerBot(update);
-                    Result = await FollowerBot.Response();
+                    BotCore = new FollowerBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == OrderPositionBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    PositionBot = new OrderPositionBot(update);
-                    Result = await PositionBot.Response();
+                    BotCore = new OrderPositionBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == AdminBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    AdminBot = new AdminBot(update);
-                    Result = await AdminBot.Response();
+                    BotCore = new AdminBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == ProductEditBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    ProductEditBot = new ProductEditBot(update);
-                    Result = await ProductEditBot.Response();
+                    BotCore = new ProductEditBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == CategoryEditBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    CategoryEditBot = new CategoryEditBot(update);
-                    Result = await CategoryEditBot.Response();
+                    BotCore = new CategoryEditBot(update);
+                    Result = await BotCore.Response();
                 }
 
                 if (Result == null && ModuleName != null && ModuleName == MainMenuBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    MainMenuBot = new MainMenuBot(update);
-                    Result = await MainMenuBot.Response();
+                    BotCore = new MainMenuBot(update);
+                    Result = await BotCore.Response();
                 }
 
 
                 if (Result == null && ModuleName != null && ModuleName == HelpDeskBot.ModuleName || Result == null && ModuleName == null)
                 {
-                    HelpDeskBot = new HelpDeskBot(update);
-                    Result = await HelpDeskBot.Response();
+                    BotCore = new HelpDeskBot(update);
+                    Result = await BotCore.Response();
                 }
             }
 

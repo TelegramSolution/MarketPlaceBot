@@ -35,30 +35,35 @@ namespace MyTelegramBot.Messages.Admin
 
         public override BotMessage BuildMsg()
         {
-           // db = new MarketBotDbContext();
-            
-            base.TextMessage = Bold("Изменения в остатках:")+NewLine();
-            
-
-            foreach (var group in StockList)
+            // db = new MarketBotDbContext();
+            if (StockList!=null && OrderId > 0)
             {
-                base.TextMessage += NewLine() + base.BlueRhombus + group.Key.Name + " /adminproduct" + group.Key.Id.ToString()   + NewLine() +
-                    Bold("Было:") + (group.OrderBy(s => s.Balance).LastOrDefault().Balance - group.OrderBy(s => s.Balance).LastOrDefault().Quantity).ToString()
-                    + " " + group.Key.Unit.ShortName + " " + NewLine() +
-                    Bold("Стало:") + group.OrderBy(s => s.Balance).FirstOrDefault().Balance +" " + group.Key.Unit.ShortName + " " + NewLine();
-            }
+                base.TextMessage = Bold("Изменения в остатках:") + NewLine();
 
-            OpenOrderBtn = BuildInlineBtn("Открыть заказ", BuildCallData(Bot.AdminModule.OrderProccesingBot.CmdOpenOrder, Bot.AdminModule.OrderProccesingBot.ModuleName, this.OrderId));
 
-            base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
+                foreach (var group in StockList)
+                {
+                    base.TextMessage += NewLine() + base.BlueRhombus + group.Key.Name + " /adminproduct" + group.Key.Id.ToString() + NewLine() +
+                        Bold("Было:") + (group.OrderBy(s => s.Balance).LastOrDefault().Balance - group.OrderBy(s => s.Balance).LastOrDefault().Quantity).ToString()
+                        + " " + group.Key.Unit.ShortName + " " + NewLine() +
+                        Bold("Стало:") + group.OrderBy(s => s.Balance).FirstOrDefault().Balance + " " + group.Key.Unit.ShortName + " " + NewLine();
+                }
+
+                OpenOrderBtn = BuildInlineBtn("Открыть заказ", BuildCallData(Bot.AdminModule.OrderProccesingBot.CmdOpenOrder, Bot.AdminModule.OrderProccesingBot.ModuleName, this.OrderId));
+
+                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                new[]{
                     new[]
                     {
                         OpenOrderBtn
                     },
-                });
+                    });
 
-            return this;
+                return this;
+            }
+
+            else
+            return null;
         }
     }
 }

@@ -50,15 +50,12 @@ namespace MyTelegramBot.Messages
             {
                 if (this.OrderId > 0) // если в конструктор был передан айди заявки
                     Order = db.Orders.Where(o => o.Id == OrderId).
-                        Include(o => o.Confirm).
-                        Include(o => o.Delete).
-                        Include(o => o.Done).
                         Include(o => o.FeedBack).
                         Include(o => o.OrderProduct).
                         Include(o => o.PickupPoint).
                         Include(o => o.OrderAddress).
                         Include(o => o.BotInfo).
-                        Include(o => o.Invoice).Include(o=>o.CurrentStatusNavigation).
+                        Include(o => o.Invoice).Include(o=>o.CurrentStatusNavigation.Status).
                         Include(o => o.OrderProduct).FirstOrDefault();
 
                 if (Order != null && Order.CurrentStatusNavigation == null)

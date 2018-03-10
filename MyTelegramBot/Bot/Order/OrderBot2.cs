@@ -22,18 +22,26 @@ namespace MyTelegramBot.Bot
         {
             var id =Convert.ToInt32(this.Update.Message.SuccessfulPayment.InvoicePayload);
 
-            this.OrderId = Convert.ToInt32(id);
+            this.OrderId = Convert.ToInt32(id);           
 
             OrderFunction = new BusinessLayer.OrderFunction();
-
+            
             var Payment= OrderFunction.AddCreditCardPayment(this.OrderId,
                 (this.Update.Message.SuccessfulPayment.TotalAmount / 100),
                 this.Update.Message.SuccessfulPayment.ProviderPaymentChargeId,
-                "идентификатор платежа в Telegram:" + this.Update.Message.SuccessfulPayment.TelegramPaymentChargeId);
+                "идентификатор платежа в Telegram:" + this.Update.Message.SuccessfulPayment.TelegramPaymentChargeId);         
 
-            if (Payment!=null)
-                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Поступил новый платеж. Заказ /order" + Order.Number.ToString() });
-            
+           
+            if (Payment != null) 
+            {
+                BotMessage = new OrderViewMessage(this.OrderId); // отправляем пользователю сообщение с деталями его заказа
+                await SendMessage(BotMessage.BuildMsg());
+
+                BotMessage = new PaymentViewMessage(Payment.Id);// отрпавляем уведомление о новом платеже всем операторам
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+
+                OrderFunction.Dispose();
+            }
             return OkResult;
         }
 
@@ -101,9 +109,9 @@ namespace MyTelegramBot.Bot
 
                 var feedbak= FeedbackFunction.EnableFeedback(FeedBackId);
 
-                FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedbak);
+                BotMessage = new FeedBackOfferMessage(Convert.ToInt32(feedbak.OrderId));
 
-                await EditMessage(FeedBackToProductEditorMsg.BuildMsg());
+                await EditMessage(BotMessage.BuildMsg());
 
                 await SendMessageAllBotEmployeess(
                     new BotMessage
@@ -141,9 +149,8 @@ namespace MyTelegramBot.Bot
                     feedback.Text = ReplyToMessageText;
                     db.SaveChanges();
 
-                    FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedback.Id);
-                    var mess = FeedBackToProductEditorMsg.BuildMsg();
-                    await SendMessage(mess);
+                    BotMessage = new FeedBackToProductEditorMessage(feedback.Id);
+                    await SendMessage(BotMessage.BuildMsg());
                    
                 }
 
@@ -189,9 +196,8 @@ namespace MyTelegramBot.Bot
 
                 var feedBack= FeedbackFunction.InsertFeedBack(Raiting, ProductId, OrderId);
 
-                FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(feedBack);
-                var mess = FeedBackToProductEditorMsg.BuildMsg();
-                await EditMessage(mess);
+                BotMessage = new FeedBackToProductEditorMessage(feedBack);
+                await EditMessage(BotMessage.BuildMsg());
                
             }
 
@@ -221,15 +227,13 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> SendFeedBackToProductEditor()
         {
             if(Argumetns.Count==2)
-                FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(Argumetns[0], Argumetns[1]);
+                BotMessage = new FeedBackToProductEditorMessage(Argumetns[0], Argumetns[1]);
 
             if(Argumetns.Count==1)
-                FeedBackToProductEditorMsg = new FeedBackToProductEditorMessage(Argumetns[0]);
+                BotMessage = new FeedBackToProductEditorMessage(Argumetns[0]);
 
-            var mess = FeedBackToProductEditorMsg.BuildMsg();
-
-            if (mess != null)
-                await EditMessage(mess);
+            if(BotMessage!=null)
+                await EditMessage(BotMessage.BuildMsg());
 
             return OkResult;
         }
@@ -278,9 +282,9 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendAddressList(int MessageId = 0)
         {
-            AddressListMessage ViewAddressListMsg = new AddressListMessage(base.FollowerId);
+            BotMessage= new AddressListMessage(base.FollowerId);
 
-            await SendMessage(ViewAddressListMsg.BuildMsg(), MessageId);
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return base.OkResult;
         }
@@ -291,9 +295,9 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendMethodOfObtainingList()
         {
-            MethodOfObtainingMsg = new MethodOfObtainingMessage(base.BotInfo.Name);
+            BotMessage = new MethodOfObtainingMessage(base.BotInfo.Name);
 
-            await EditMessage(MethodOfObtainingMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
 
             return base.OkResult;
         }
@@ -304,9 +308,9 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendPickupPointList()
         {
-            PickupPointListMsg = new PickupPointListMessage();
+            BotMessage = new PickupPointListMessage();
 
-            await EditMessage(PickupPointListMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
 
             return OkResult;
 
@@ -339,8 +343,8 @@ namespace MyTelegramBot.Bot
             if (Order != null  && Order.Invoice!=null)
             {
                 var Invoice = InvoiceFunction.GetInvoiceByOrderId(OrderId);
-                InvoiceViewMsg = new InvoiceViewMessage(Invoice, OrderId);
-                await EditMessage(InvoiceViewMsg.BuildMsg());
+                BotMessage = new InvoiceViewMessage(Invoice, OrderId);
+                await EditMessage(BotMessage.BuildMsg());
                 return OkResult;
             }
 
@@ -364,8 +368,8 @@ namespace MyTelegramBot.Bot
 
                 if (this.Order != null)
                 {
-                    OrderViewMsg = new OrderViewMessage(this.Order);
-                    await SendMessage(OrderViewMsg.BuildMsg());
+                    BotMessage = new OrderViewMessage(this.Order);
+                    await SendMessage(BotMessage.BuildMsg());
                 }
 
                 return base.OkResult;
@@ -380,38 +384,11 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> BackToOrder()
         {                
-            OrderViewMsg = new OrderViewMessage(this.Order);
-            await EditMessage(OrderViewMsg.BuildMsg());
+            BotMessage = new OrderViewMessage(this.Order);
+            await EditMessage(BotMessage.BuildMsg());
             return OkResult;
         }
 
-        /// <summary>
-        /// Отправить пользователю список его заказов
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendMyOrderList()
-        {
-            try
-            {
-                if (MyOrdersMsg != null)
-                {
-                    await SendMessage(MyOrdersMsg.BuildMsg());
-                    return OkResult;
-                }
-
-                else
-                {
-                    MyOrdersMsg = new MyOrdersMessage(base.FollowerId,BotInfo.Id);
-                    await SendMessage(MyOrdersMsg.BuildMsg());
-                    return OkResult;
-                }
-            }
-
-            catch
-            {
-                return OkResult;
-            }
-        }
 
         /// <summary>
         /// Пользователь выбрал методо оплаты
@@ -458,9 +435,11 @@ namespace MyTelegramBot.Bot
             //Если в настройках бота включена верификация по номеру телефона, то проверяем указан ли номер телефона у этого пользователя
             //Если не указан то просим указать
             ExistTelephone = FollowerFunction.ExistTelephone(FollowerId);
-            if (orderTemp!=null && ConfigurationBot != null && ConfigurationBot.VerifyTelephone && !ExistTelephone)
-                await SendMessage(RequestPhoneNumberMsg.BuildMsg());
-
+            if (orderTemp != null && ConfigurationBot != null && ConfigurationBot.VerifyTelephone && !ExistTelephone)
+            {
+                BotMessage = new RequestPhoneNumberMessage();
+                await SendMessage(BotMessage.BuildMsg());
+            }
             //телефон указан
             if (orderTemp != null && ConfigurationBot != null && ConfigurationBot.VerifyTelephone && ExistTelephone)
                 return await SendOrderTemp();
@@ -487,21 +466,17 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendPaymentMethodsList()
         {
-            var message = PaymentsMethodsListMsg.BuildMsg();
+            BotMessage = new PaymentsMethodsListMessage();
+            var message = BotMessage.BuildMsg();
 
-            if (message != null && await EditMessage(message)!=null)            
-                return OkResult;
-            
+            if (message != null)
+                await EditMessage(message);           
 
             else // если сообщение с вариантами оплаты пустое, значит все варианты оплаты выключены. Отправляем пользователю
             //сообщение с оишбкой
-            {
                 await SendMessage(new BotMessage { TextMessage = "Нет досутпных способов оплаты. Свяжитесь с технической поддержкой /help" });
 
-                return OkResult;
-            }
-
-           
+            return OkResult;
         }
 
  
@@ -546,10 +521,10 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendOrderTemp()
         {
-            if (OrderPreviewMsg == null)
-                OrderPreviewMsg = new OrderTempMessage(base.FollowerId,BotInfo.Id);
 
-            var message = OrderPreviewMsg.BuildMessage();
+           BotMessage = new OrderTempMessage(base.FollowerId,BotInfo.Id);
+
+            var message = BotMessage.BuildMsg();
 
             if (message != null)
                 await EditMessage(message);
@@ -574,9 +549,9 @@ namespace MyTelegramBot.Bot
 
             OrderFunction.Dispose();
 
-            OrderPreviewMsg = new OrderTempMessage(FollowerId, BotInfo.Id);
+            BotMessage = new OrderTempMessage(FollowerId, BotInfo.Id);
 
-            await SendMessage(OrderPreviewMsg.BuildMessage());
+            await SendMessage(BotMessage.BuildMsg());
 
             return base.OkResult;
 
@@ -591,12 +566,10 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendAddressEditor()
         {
+            BotMessage = new AddressListMessage(FollowerId);
+            await EditMessage(BotMessage.BuildMsg());
 
-            if (await EditMessage(ViewShipAddressMsg.BuildMsg()) != null)
-                return base.OkResult;
-
-            else
-                return base.OkResult;
+            return base.OkResult;
         }
 
         /// <summary>
@@ -608,7 +581,7 @@ namespace MyTelegramBot.Bot
             Orders new_order = null;
             bool blocked = false;
 
-            OrderFunction orderFunction = new OrderFunction();
+            OrderFunction = new OrderFunction();
 
             ConfigurationBot = base.GetConfigurationBot(BotInfo.Id);
 
@@ -623,12 +596,12 @@ namespace MyTelegramBot.Bot
                 ConfigurationBot.EndTime!=null && ConfigurationBot.StartTime.Value.Hours <=
                 DateTime.Now.Hour && ConfigurationBot.StartTime.Value<= DateTime.Now.TimeOfDay &&
                  ConfigurationBot.EndTime.Value>DateTime.Now.TimeOfDay)
-                      new_order= orderFunction.CreateOrder(FollowerId,BotInfo);
+                      new_order= OrderFunction.CreateOrder(FollowerId,BotInfo);
                 
 
             //Время работы магазина не указано.
             else if (!blocked && ConfigurationBot.EndTime==null && ConfigurationBot.StartTime==null)
-                new_order = orderFunction.CreateOrder(FollowerId, BotInfo);
+                new_order = OrderFunction.CreateOrder(FollowerId, BotInfo);
 
             else
                 await AnswerCallback("Мы обрабатываем заказы только в период с "+ConfigurationBot.StartTime.ToString()+ 
@@ -636,22 +609,22 @@ namespace MyTelegramBot.Bot
 
             if (new_order != null && new_order.Invoice != null)
             {
-                InvoiceViewMsg = new InvoiceViewMessage(new_order.Invoice, new_order.Id);
-                await EditMessage(InvoiceViewMsg.BuildMsg());
+                BotMessage = new InvoiceViewMessage(new_order.Invoice, new_order.Id);
+                await EditMessage(BotMessage.BuildMsg());
             }
 
             if(new_order!=null && new_order.Invoice == null)
             {
-                OrderViewMsg = new OrderViewMessage(new_order);
-                await EditMessage(OrderViewMsg.BuildMsg());
+                BotMessage = new OrderViewMessage(new_order);
+                await EditMessage(BotMessage.BuildMsg());
             }
 
             //то отправляем уведомление о новом заказке Админам
             if (new_order != null)
             {
-                OrderAdminMsg = new AdminOrderMessage(new_order);
+                BotMessage = new AdminOrderMessage(new_order);
 
-                var message = OrderAdminMsg.BuildMsg();
+                var message = BotMessage.BuildMsg();
 
                 await SendMessageAllBotEmployeess(message);
             }
@@ -663,15 +636,28 @@ namespace MyTelegramBot.Bot
         }
 
 
-
+        /// <summary>
+        /// Кнопка  я оплатил. ПРоверка платежа
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> CheckPay()
         {
             PaymentsFunction paymentsFunction = new PaymentsFunction();
             var invoice=await paymentsFunction.CheckPaidInvoice(OrderId);
             paymentsFunction.Dispose();
 
-            InvoiceViewMsg = new InvoiceViewMessage(invoice,OrderId);
-            await EditMessage(InvoiceViewMsg.BuildMsg());
+            if (invoice != null && invoice.Payment.Count > 0 && invoice.Paid) // платеж найден и счет имеет статут Оплачен
+            {
+                BotMessage = new InvoiceViewMessage(invoice, OrderId);
+                await EditMessage(BotMessage.BuildMsg());
+
+                //уведомляем сотрудников о поступлении платежа
+                PaymentViewMessage paymentViewMessage = new PaymentViewMessage(invoice.Payment.LastOrDefault().Id);
+                await SendMessageAllBotEmployeess(paymentViewMessage.BuildMsg());
+            }
+
+            else
+                await AnswerCallback("Платеж не найден", true);
 
             return OkResult;
         }

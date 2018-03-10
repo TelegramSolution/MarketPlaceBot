@@ -128,5 +128,52 @@ namespace MyTelegramBot.BusinessLayer
                 db.Dispose();
             }
         }
+
+        /// <summary>
+        /// Отзывы для заказа
+        /// </summary>
+        /// <param name="OrderId"></param>
+        /// <returns></returns>
+        public static List<FeedBack> GetFeedBackByOrderId(int OrderId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.FeedBack.Where(f => f.OrderId == OrderId && f.Enable).Include(f=>f.Product).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+
+            }
+        }
+
+        public static List<FeedBack> GetFeedBackByOrderNumber(int OrderNumber)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var order = db.Orders.Where(o => o.Number == OrderNumber).Include(o => o.FeedBack).FirstOrDefault();
+
+                return order.FeedBack.Where(f => f.Enable).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+
+            }
+        }
     }
 }

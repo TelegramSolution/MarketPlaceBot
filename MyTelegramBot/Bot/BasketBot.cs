@@ -30,11 +30,6 @@ namespace MyTelegramBot.Bot
 
         public const string ClearBasketCmd = "ClearBasket";
 
-        ViewBasketMessage ViewBasketMsg { get; set; }
-
-        BasketPositionListMessage  BasketPositionListMsg { get; set; }
-
-        BasketPositionCallBackAnswerMessage BasketPositionEditMsg { get; set; }
 
         private int ProductId { get; set; }
 
@@ -47,15 +42,10 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                ViewBasketMsg = new ViewBasketMessage(base.FollowerId,BotInfo.Id);
-                BasketPositionListMsg = new BasketPositionListMessage(base.FollowerId);
-
 
                 if (base.Argumetns.Count > 0)
-                {
                     this.ProductId = Argumetns[0];
-                    BasketPositionEditMsg = new BasketPositionCallBackAnswerMessage(base.FollowerId, this.ProductId);
-                }
+                
             }
 
             catch
@@ -103,15 +93,16 @@ namespace MyTelegramBot.Bot
         /// <summary>
         /// отправить сообщение с содержанием корзины
         /// </summary>
-        /// <param name="Message"></param>
+        /// <param name="MessageId"></param>
         /// <returns></returns>
-        private async Task<IActionResult> ViewBasket(int Message=0)
+        private async Task<IActionResult> ViewBasket(int MessageId=0)
         {
-            ViewBasketMsg.BuildMsg();
-            var mess= ViewBasketMsg.BuildMsg();
+            BotMessage = new ViewBasketMessage(FollowerId, BotInfo.Id);
+
+            var mess= BotMessage.BuildMsg();
 
             if (mess != null && mess.TextMessage != null)
-                await SendMessage(ViewBasketMsg, Message);
+                await SendMessage(BotMessage, MessageId);
 
             else
                 await AnswerCallback("Корзина пуста!", true);
@@ -137,11 +128,9 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendPositionList()
         {
-            if (await EditMessage(BasketPositionListMsg.BuildMsg()) != null)
-                return base.OkResult;
-
-            else
-                return base.OkResult;
+            BotMessage = new BasketPositionListMessage(FollowerId);
+            await EditMessage(BotMessage.BuildMsg());
+            return base.OkResult;
 
         }
 
@@ -151,11 +140,11 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> SendEditorPositionMsg()
         {
-            if (await EditMessage(BasketPositionEditMsg.BuildMsg()) != null)
-                return base.OkResult;
+            BotMessage = new BasketPositionCallBackAnswerMessage(FollowerId, ProductId);
 
-            else
-                return base.OkResult;
+            await EditMessage(BotMessage.BuildMsg());
+
+            return base.OkResult;
 
         }
 

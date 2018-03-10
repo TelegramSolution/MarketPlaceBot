@@ -93,7 +93,7 @@ namespace MyTelegramBot.Messages
             {
                 SavedFeedBack+=counter.ToString() + ") " + feed.Product.Name + NewLine()+
                     Bold("Оценка:") + feed.RaitingValue.ToString() + NewLine() +
-                    Bold("Комментарий:") + feed.Text + NewLine();
+                    Bold("Комментарий:") + feed.Text + NewLine() + NewLine();
             }
 
             base.MessageReplyMarkup = new InlineKeyboardMarkup(FeedBackProductsBtn);

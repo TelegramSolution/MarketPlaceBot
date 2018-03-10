@@ -28,6 +28,11 @@ namespace MyTelegramBot.Bot.Core
         private TelegramBotClient TelegramClient { get; set; }
 
         /// <summary>
+        /// Сообщение которое будем отправлять в ответ
+        /// </summary>
+        protected BotMessage BotMessage { get; set; }
+
+        /// <summary>
         /// Объект апдейт
         /// </summary>
         protected Update Update { get; set; }
@@ -461,9 +466,9 @@ namespace MyTelegramBot.Bot.Core
                     return null;
             }
 
-            catch
+            catch(Exception e)
             {
-                //await telegram.SendTextMessageAsync(this.ChatId, botMessage.Text, ParseMode.Html, false, false, ReplyToMessageId, botMessage.InlineKeyboard);
+               // await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 return null;
             }
@@ -1132,6 +1137,11 @@ namespace MyTelegramBot.Bot.Core
             }
         }
 
+        /// <summary>
+        /// отправить телеграм инвойс
+        /// </summary>
+        /// <param name="telegramDebitCardInvoice"></param>
+        /// <returns></returns>
         protected async Task<Message> SendInvoice(TelegramDebitCardInvoice telegramDebitCardInvoice)
         {
             try

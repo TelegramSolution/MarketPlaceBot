@@ -17,31 +17,9 @@ namespace MyTelegramBot.Bot.AdminModule
     public partial class OrderProccesingBot : BotCore
     {
         public const string ModuleName = "Or";
-
-        StockChangesMessage StockChangesMsg { get; set; }
        
-        /// <summary>
-        /// Сообщение с описание заказа и админскими кнопками
-        /// </summary>
-        private AdminOrderMessage OrderAdminMsg { get; set; }
-
-
-        /// <summary>
-        /// Сообщение с позициями заказа. Каждай позиция отдельная кнопка
-        /// </summary>
-        private OrderPositionListMessage OrderPositionListMsg { get; set; }
-
-
-        /// <summary>
-        /// Предложить отсвить отзыв
-        /// </summary>
-        private FeedBackOfferMessage FeedBackOfferMsg { get; set; }
-
-        private AdminViewInvoice InvoiceViewMsg { get; set; }
-
         private int OrderId { get; set; }
 
-        private Orders Order { get; set; }
 
         /// <summary>
         /// Админ. Показать номере телефона клиента
@@ -89,6 +67,8 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Заказа согласован
         /// </summary>
         public const string CmdConfirmOrder = "ConfirmOrder";
+
+        public const string FeedBackOrderCmd = "FeedBackOrder";
 
         /// <summary>
         /// изменить статус заказа
@@ -167,15 +147,8 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 if (base.Argumetns.Count > 0)
                 {
-
+                    //Команды которые относяттся к этому модулю в массиве аргементов первым элементом всегла должен быть id заказа
                     OrderId = Argumetns[0];
-                    OrderAdminMsg = new AdminOrderMessage(this.OrderId,FollowerId);
-                    OrderPositionListMsg = new OrderPositionListMessage(this.OrderId);
-                    FeedBackOfferMsg = new FeedBackOfferMessage(this.OrderId);
-                    using (MarketBotDbContext db = new MarketBotDbContext())
-                        Order = db.Orders.Where(o => o.Id == this.OrderId).Include(o => o.Confirm).
-                            Include(o => o.Done).Include(o => o.Delete).Include(o => o.OrderProduct).
-                            Include(o => o.Follower).Include(o => o.FeedBack).Include(o=>o.OrderAddress).Include(o=>o.CurrentStatusNavigation).Include(o=>o.Invoice).Include(o=>o.OrdersInWork).FirstOrDefault();
 
                 }
 
@@ -217,7 +190,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     case CmdStatusEditor:
                         return await SendStatusEditor();
 
-
                     ///Пользователь нажал на кнопку "Назад"
                     case CmdBackToOrder:
                         return await BackToOrder();
@@ -232,7 +204,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await FreeOrder();
 
                     case CmdUpdateOrderStatus:
-                        return await UpdateOrderStatus(Argumetns[1]);
+                        return await InsertOrderStatus(Argumetns[1]);
 
                     case "StatusAddComment":
                         return await SendForceReplyMessage(ForceReplyAddCommentToStatus + Argumetns[0].ToString());
@@ -250,10 +222,13 @@ namespace MyTelegramBot.Bot.AdminModule
                         return await ConfirmOverridePerformer();
 
                     case ViewInvoiceCmd:
-                        return await SendViewInvoice(MessageId);
+                        return await SendViewInvoice();
 
                     case ViewPaymentCmd:
-                        return await SendViewPayment(Argumetns[0],MessageId);
+                        return await SendViewPayment(Argumetns[1],MessageId);
+
+                    case FeedBackOrderCmd:
+                        return await SendFeedBackOrder(Argumetns[0]);
 
                     default:
                         break;
@@ -263,17 +238,10 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(PaymentCmd))
                     return await SendViewPayment();
 
-                //Администратор нажал на кнопку "Удалить заказ"
-                if (base.CommandName == CmdOrderDelete && Order != null)
-                    return await SendForceReplyMessage(ForceReplyOrderDelete + Order.Number.ToString());
-
-                //Администратор нажал на кнопку "Заказ согласован"
-                if (base.CommandName == CmdConfirmOrder && Order != null)
-                    return await SendForceReplyMessage(ForceReplyOrderConfirm + Order.Number.ToString());
 
                 /// /order показать заказ для админа
                 if (base.CommandName.Contains(GetOrderCmd))
-                    return await GetOrder();
+                    return await GetOrderByNumber();
 
                 //пользователь на нажал на кнопку добавить комент к статусу
                 if (OriginalMessage.Contains(ForceReplyAddCommentToStatus))
@@ -291,16 +259,21 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        private async Task<IActionResult> SendViewInvoice(int MessageId=0)
+        /// <summary>
+        /// отправить сообщение со счетом на оплату
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendViewInvoice()
         {
-          // var invoice= InvoiceFunction.GetInvoiceByOrderId(Argumetns[0]);
 
-            InvoiceViewMsg = new AdminViewInvoice(Argumetns[0]);
+            var Invoice = InvoiceFunction.GetInvoiceByOrderId(OrderId);
 
-            var mess = InvoiceViewMsg.BuildMsg();
+            BotMessage = new AdminViewInvoice(Invoice);
+
+            var mess = BotMessage.BuildMsg();
 
             if (mess != null)
-                await SendMessage(mess, MessageId);
+                await EditMessage(mess);
 
             else
                 await AnswerCallback("Счет на оплату отсутствует", true);
@@ -320,8 +293,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 var Payment = PaymentsFunction.GetPayment(Id);
 
-                Messages.Admin.PaymentViewMessage viewMessage = new PaymentViewMessage(Payment);
-                await SendMessage(viewMessage.BuildMsg());
+                BotMessage = new PaymentViewMessage(Payment);
+                await SendMessage(BotMessage.BuildMsg());
                 return OkResult;
             }
 
@@ -337,16 +310,16 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <param name="InvoiceId"></param>
         /// <param name="MessageId"></param>
         /// <returns></returns>
-        private async Task<IActionResult> SendViewPayment(int InvoiceId,int MessageId=0)
+        private async Task<IActionResult> SendViewPayment(int PaymentId, int MessageId=0)
         {
             try
             {
-                var Payment = PaymentsFunction.GetPaymentByInvoiceId(InvoiceId);
+                var Payment = PaymentsFunction.GetPayment(PaymentId);
 
                 if (Payment != null)
                 {
-                    Messages.Admin.PaymentViewMessage viewMessage = new PaymentViewMessage(Payment);
-                    await SendMessage(viewMessage.BuildMsg(), MessageId);
+                    BotMessage = new PaymentViewMessage(Payment);
+                    await SendMessage(BotMessage.BuildMsg(), MessageId);
                 }
 
                 else
@@ -361,36 +334,46 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
+
+        private async Task<IActionResult> SendFeedBackOrder(int OrderId)
+        {
+            BotMessage = new ViewFeedBackOrderMessage(OrderId);
+            var mess = BotMessage.BuildMsg();
+
+            if (mess != null)
+                await EditMessage(mess);
+
+            else
+                await AnswerCallback("Отзыва еще нет", true);
+
+            return OkResult;
+        }
+
+
         /// <summary>
         /// Подтверждение того что пользователь назначает исполнителем себя вместо кого-то
         /// </summary>
         /// <returns></returns>
         private async Task<IActionResult> ConfirmOverridePerformer()
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                OrdersInWork ordersInWork = new OrdersInWork
-                {
-                    FollowerId = FollowerId,
-                    InWork = true,
-                    Timestamp = DateTime.Now,
-                    OrderId = Order.Id
-                };
 
-                db.OrdersInWork.Add(ordersInWork);
+            var Order = OrderFunction.GetOrder(OrderId);
 
-                db.SaveChanges();
+            var Inwork = OrderFunction.InsertOrderInWork(OrderId, FollowerId);
 
-                OrderAdminMsg = new AdminOrderMessage(this.Order.Id, base.FollowerId);
-                await EditMessage(OrderAdminMsg.BuildMsg());
+            Order.OrdersInWork.Add(Inwork);
 
-                string notify = "Заказ №" + this.Order.Number.ToString() + " взят в работу. Пользователь " + GeneralFunction.FollowerFullName(base.FollowerId);
+            BotMessage = new AdminOrderMessage(Order, FollowerId);
 
-                var OrderMiniViewMsg = new OrderMiniViewMessage(notify, this.Order.Id);
-                await SendMessageAllBotEmployeess(OrderMiniViewMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
 
-                return OkResult;
-            }
+            //уведомляем всех о том что кто то взял заказ в обработку
+            string notify = "Заказ №" + Order.Number.ToString() + " взят в работу. Пользователь " + GeneralFunction.FollowerFullName(base.FollowerId);
+            BotMessage = new OrderMiniViewMessage(notify, Order.Id);
+            await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+
+            return OkResult;
+            
         }
 
         /// <summary>
@@ -399,9 +382,9 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> SendHistoryOrderStatus()
         {
-            OrderStatusHistoryMessage orderStatusHistoryMsg = new OrderStatusHistoryMessage(Argumetns[0]);
+            BotMessage = new OrderStatusHistoryMessage(Argumetns[0]);
 
-            await EditMessage(orderStatusHistoryMsg.BuildMsg());
+            await EditMessage(BotMessage.BuildMsg());
 
             return OkResult;
         }
@@ -412,16 +395,12 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> BackToStatusEditor()
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                var OrderStatus = db.OrderStatus.Find(Argumetns[1]);
+            int OrderStatusId = Argumetns[1];
 
-                db.OrderStatus.Remove(OrderStatus);
+            OrderFunction.RemoveStatus(OrderStatusId);
 
-                db.SaveChanges();
-
-                return await SendStatusEditor();
-            }
+            return await SendStatusEditor();
+            
         }
 
         /// <summary>
@@ -430,52 +409,49 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> ConfirmNewStatus()
         {
-            MarketBotDbContext db = new MarketBotDbContext();
-
-            if (Argumetns != null && Argumetns.Count == 2)
+            try
             {
-                var OrderStatus = db.OrderStatus.Find(Argumetns[1]);
-
-                OrderStatus.Enable = true;
-
-                OrderStatus.Timestamp = DateTime.Now;
-
-                this.Order.CurrentStatus = OrderStatus.Id;
-
-                var order = db.Orders.Find(OrderStatus.OrderId);
-
-                order.CurrentStatus = OrderStatus.Id;
-
-                db.SaveChanges();
-
-                db.Dispose();
-
-                //меняем текущее сообщение на сообщение с описание заказа
-                await GetOrderAdmin(base.MessageId);
-
-                OrderStatusConfirmMessage statusConfirmMsg = new OrderStatusConfirmMessage(this.Order, OrderStatus);
-
-                //уведомляем всех о новом статусе заказа
-                await base.SendMessageAllBotEmployeess(statusConfirmMsg.BuildNotyfiMessage());
-
-                if (OrderStatus.StatusId == Core.ConstantVariable.OrderStatusVariable.Completed)
+                if (Argumetns != null && Argumetns.Count == 2)
                 {
-                    var stock = this.Order.UpdateStock();
+                    var status = OrderFunction.ConfirmOrderStatus(Argumetns[1]);
 
-                    FeedBackOfferMsg = new FeedBackOfferMessage(this.Order); // предлагаем пользователю оставить отзыв
+                    //меняем текущее сообщение на сообщение с описание заказа
+                    await GetOrderAdmin(base.MessageId);
 
-                    await SendMessage(this.Order.Follower.ChatId, FeedBackOfferMsg.BuildMsg());
+                    var Order = OrderFunction.GetOrder(OrderId);
 
-                    StockChangesMessage stockChangesMessage = new StockChangesMessage(stock, this.Order.Id);
+                    //уведомляем всех о новом статусе заказа
+                    string textmsg = "Пользователь:" + GeneralFunction.FollowerFullName(Order.CurrentStatusNavigation.FollowerId)
+                        + "изменил статус заказа №" + Order.Number.ToString()
+                        + Core.BotMessage.NewLine() + Order.CurrentStatusNavigation.Status.Name + ": " + Order.CurrentStatusNavigation.Text;
+                    BotMessage = new OrderMiniViewMessage(textmsg, Order.Id);
+                    await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
 
-                    SendMessageAllBotEmployeess(stockChangesMessage.BuildMsg());
+                    ///Если поставили статус "Выполено" то пользователю оформившему данные заказ приходил сообщение с просьбой 
+                    ///оставить отзыв. Остатки на скалде пересчитываются и операторам приходит уведомление об изменениях в остатках
+                    if (status != null && status.StatusId == Core.ConstantVariable.OrderStatusVariable.Completed)
+                    {
+                        var stock = Order.UpdateStock();
+
+                        BotMessage = new FeedBackOfferMessage(Order);
+
+                        await SendMessage(Order.Follower.ChatId, BotMessage.BuildMsg());
+
+                        BotMessage = new StockChangesMessage(stock, Order.Id);
+
+                        await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+                    }
+
+                    return OkResult;
                 }
 
+                else
+                    return OkResult;
+            }
+            catch
+            {
                 return OkResult;
             }
-
-            else
-                return OkResult;
         }
 
         /// <summary>
@@ -485,22 +461,18 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> AddCommentToStatus()
         {
             int OrderStatusId = 0;
-            MarketBotDbContext db = new MarketBotDbContext();
             try
             {
-                OrderStatusId= Convert.ToInt32(base.OriginalMessage.Substring(ForceReplyAddCommentToStatus.Length));
 
-                OrderStatus orderStatus = db.OrderStatus.Find(OrderStatusId);
+                OrderStatusId = Convert.ToInt32(base.OriginalMessage.Substring(ForceReplyAddCommentToStatus.Length));
 
-                orderStatus.Text = base.ReplyToMessageText;
+                var orderStatus = OrderFunction.AddCommentToStatus(OrderStatusId, ReplyToMessageText);
 
-                this.Order = db.Orders.Find(orderStatus.OrderId);
+                var Order = OrderFunction.GetOrder(Convert.ToInt32(orderStatus.OrderId));
 
-                db.SaveChanges();
+                BotMessage = new OrderStatusConfirmMessage(Order, orderStatus);
 
-                OrderStatusConfirmMessage statusConfirmMsg = new OrderStatusConfirmMessage(this.Order, orderStatus);
-
-                await SendMessage(statusConfirmMsg.BuildMsg());
+                await SendMessage(BotMessage.BuildMsg());
 
                 return OkResult;
             }
@@ -509,66 +481,43 @@ namespace MyTelegramBot.Bot.AdminModule
                 return OkResult;
             }
 
-            finally
-            {
-                db.Dispose();
-            }
         }
 
         /// <summary>
-        /// Изменить статус заказа
+        /// Добавить новый статус заказа
         /// </summary>
         /// <param name="NewStatusId"></param>
         /// <returns></returns>
-        private async Task<IActionResult> UpdateOrderStatus(int NewStatusId)
+        private async Task<IActionResult> InsertOrderStatus(int NewStatusId)
         {
-            MarketBotDbContext db = new MarketBotDbContext();
+            var Order = OrderFunction.GetOrder(OrderId);
 
-
-            if (this.Order != null)
+            if (Order != null)
             {
-                OrderStatus orderStatus = new OrderStatus
-                {
-                    Enable = false,
-                    FollowerId = FollowerId,
-                    OrderId = Order.Id,
-                    Timestamp = DateTime.Now,
-                    StatusId = NewStatusId
-                };
+                var orderStatus = OrderFunction.InsertOrderStarus(OrderId, NewStatusId, FollowerId, false);
 
-                db.OrderStatus.Add(orderStatus);
+                BotMessage = new OrderStatusConfirmMessage(Order, orderStatus);
 
-                db.SaveChanges();
+                await EditMessage(BotMessage.BuildMsg());
 
-
-                db.Dispose();
-
-                OrderStatusConfirmMessage statusConfirmMsg = new OrderStatusConfirmMessage(this.Order, orderStatus);
-
-                await EditMessage(statusConfirmMsg.BuildMsg());
-
-                if (NewStatusId == Core.ConstantVariable.OrderStatusVariable.Completed)
-                {
-
-                }
-
-                return OkResult;
+             
             }
 
-            else
-                return OkResult;
+            return OkResult;
         }
 
         /// <summary>
-        /// Отправить сообщения с кнопками статусов заказа
+        /// Отправить сообщения с кнопками статусов заказа (1. Согласован 2. Отменен 3. Удален и тд)
         /// </summary>
         /// <returns></returns>
         private async Task<IActionResult> SendStatusEditor()
         {
-            if (this.Order != null)
+            var Order = OrderFunction.GetOrder(OrderId);
+
+            if (Order != null)
             {
-                OrderStatusEditorMessage OrderStatusEditorMsg = new OrderStatusEditorMessage(this.Order);
-                await EditMessage(OrderStatusEditorMsg.BuildMsg());
+                BotMessage= new OrderStatusEditorMessage(Order);
+                await EditMessage(BotMessage.BuildMsg());
                 return OkResult;
             }
 
@@ -578,26 +527,12 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        private async Task<IActionResult> SendInvoice()
-        {
-            try
-            {
-                if (this.Order.Invoice != null && InvoiceViewMsg!=null)
-                    await EditMessage(InvoiceViewMsg.BuildMsg());
 
-                if (this.Order.Invoice == null)
-                    await base.AnswerCallback("Счет отсутствует. Способ оплаты при получении", true);
-
-                return OkResult;
-            }
-
-            catch
-            {
-                return OkResult;
-            }
-        }
-
-        private async Task<IActionResult> GetOrder()
+        /// <summary>
+        /// /order[номер закааз]
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> GetOrderByNumber()
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
@@ -607,8 +542,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
                     int id = db.Orders.Where(o => o.Number == number).FirstOrDefault().Id;
 
-                    OrderAdminMsg = new AdminOrderMessage(id);
-                    await SendMessage(OrderAdminMsg.BuildMsg());
+                    BotMessage = new AdminOrderMessage(id,FollowerId);
+                    await SendMessage(BotMessage.BuildMsg());
 
                     return OkResult;
                 }
@@ -627,46 +562,21 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> FreeOrder()
         {
-            try
-            {
-                if (Order != null)
-                {
-                    using (MarketBotDbContext db = new MarketBotDbContext())
-                    {
-                        OrdersInWork ordersInWork = new OrdersInWork
-                        {
-                            Timestamp = DateTime.Now,
-                            InWork = false,
-                            OrderId = Order.Id,
-                            FollowerId = FollowerId
-                        };
 
-                        db.OrdersInWork.Add(ordersInWork);
+            var Inwork = OrderFunction.InsertOrderInWork(OrderId, FollowerId, false);
 
-                        if (db.SaveChanges() > 0)
-                        {
-                            Order.OrdersInWork.Add(ordersInWork);
-                            OrderAdminMsg = new AdminOrderMessage(Order, FollowerId);
-                            await base.EditMessage(OrderAdminMsg.BuildMsg());
+            var Order = OrderFunction.GetOrder(OrderId);
+                        
+            BotMessage = new AdminOrderMessage(Order, FollowerId);
+            await base.EditMessage(BotMessage.BuildMsg());
 
-                            string notify = "Пользователь " + GeneralFunction.FollowerFullName(FollowerId) + " освободил заказ №" + Order.Number.ToString();
+            string notify = "Пользователь " + GeneralFunction.FollowerFullName(FollowerId) + " освободил заказ №" + Order.Number.ToString();
 
-                            var OrderMiniViewMsg = new OrderMiniViewMessage(notify, this.Order.Id);
-                            await SendMessageAllBotEmployeess(OrderMiniViewMsg.BuildMsg());
+            BotMessage= new OrderMiniViewMessage(notify, Order.Id);
+            await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
 
-                        }
-                        return OkResult;
-                    }
-                }
-
-                else
-                    return OkResult;
-            }
-
-            catch
-            {
-                return OkResult;
-            }
+            return OkResult;
+            
         }
 
 
@@ -676,30 +586,28 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> SendContactUser()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+
+            var order = OrderFunction.GetOrder(OrderId);
+
+            if (order != null && order.Follower!=null && order.Follower.Telephone != null && order.Follower.Telephone != "")
             {
-
-                var order = db.Orders.Where(o => o.Id == OrderId).Include(o => o.Follower).FirstOrDefault();
-
-                if (order.Follower != null && order.Follower.Telephone != null && order.Follower.Telephone != "")
+                Contact contact = new Contact
                 {
-                    Contact contact = new Contact
-                    {
-                        FirstName = order.Follower.FirstName,
-                        PhoneNumber = order.Follower.Telephone
+                    FirstName = order.Follower.FirstName,
+                    PhoneNumber = order.Follower.Telephone
 
-                    };
+                };
 
-                    await SendContact(contact);
+                await SendContact(contact);
 
-                }
+            }
 
-                if (order.Follower != null && order.Follower.UserName != null && order.Follower.UserName != "")
-                    await SendUrl("https://t.me/" + order.Follower.UserName);
+            if (order != null && order.Follower!=null && order.Follower.UserName != null && order.Follower.UserName != "")
+                await SendUrl("https://t.me/" + order.Follower.UserName);
   
 
-                return OkResult;
-            }
+            return OkResult;
+            
         }
 
         /// <summary>
@@ -708,38 +616,32 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> SendOrderAddressOnMap()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            var Address = OrderFunction.GetAddress(OrderId);
+
+            if (Address != null && Address.Adress.House!=null)
             {
-                var Address = db.OrderAddress.Where(o => o.OrderId == OrderId).Include(o => o.Adress.House).FirstOrDefault();
-
-
                 Location location = new Location
                 {
                     Latitude = Convert.ToSingle(Address.Adress.House.Latitude),
                     Longitude = Convert.ToSingle(Address.Adress.House.Longitude)
                 };
 
-                if (await SendLocation(location) != null)
-                    return OkResult;
-
-                else
-                    return OkResult;
+                await SendLocation(location);
+                       
             }
-
+            return OkResult;
+            
         }
 
 
         private async Task<IActionResult> GetOrderAdmin(int MessageId=0)
         {
-            if (OrderAdminMsg == null)
-                OrderAdminMsg = new AdminOrderMessage(OrderId,FollowerId);
+            BotMessage = new AdminOrderMessage(OrderId,FollowerId);
 
-            if (await SendMessage(OrderAdminMsg.BuildMsg(),MessageId) != null)
-                return base.OkResult;
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
+            return base.OkResult;
 
-            else
-                return base.OkResult;
         }
 
         /// <summary>
@@ -748,79 +650,56 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> SendEditorOrderPositionList()
         {
-            if (await EditMessage(OrderPositionListMsg.BuildMsg()) != null)
-                return base.OkResult;
+            BotMessage = new OrderPositionListMessage(this.OrderId);
+            await EditMessage(BotMessage.BuildMsg());
+            return base.OkResult;
 
-            else
-                return base.OkResult;
         }
 
         private async Task<IActionResult> TakeOrder()
         {
-            try
+            var Order = OrderFunction.GetOrder(OrderId);
+
+
+            //Заказ ни кем не обрабатывается 
+            if(Order!=null && Order.OrdersInWork.Count == 0 
+                || Order != null && Order.OrdersInWork.Count>0 && Order.OrdersInWork.LastOrDefault().InWork==false)
             {
-                using(MarketBotDbContext db=new MarketBotDbContext())
-                {
-                    OrdersInWork inWork = new OrdersInWork { FollowerId = FollowerId, Timestamp = DateTime.Now, OrderId = Order.Id, InWork = true };
-                    db.OrdersInWork.Add(inWork);
+                Order.OrdersInWork.Add(OrderFunction.InsertOrderInWork(OrderId, FollowerId));
+                BotMessage = new AdminOrderMessage(Order,FollowerId);
+                await EditMessage(BotMessage.BuildMsg());
 
-                    var InWorkNow = Order.OrdersInWork.OrderByDescending(o => o.Id).FirstOrDefault();
-
-                    //заказ не находится ни у кого в обработке
-                    if (Order!=null  && InWorkNow==null && db.SaveChanges() > 0 ||
-                        Order != null && InWorkNow != null&&
-                        InWorkNow.InWork==false && db.SaveChanges() > 0)
-                    {
-                        Order.OrdersInWork.Add(inWork);
-                        OrderAdminMsg = new AdminOrderMessage(Order,FollowerId);
-                        await EditMessage(OrderAdminMsg.BuildMsg());
-                        string notify = "Заказ №" + this.Order.Number.ToString() + " взят в работу. Пользователь " + GeneralFunction.FollowerFullName(base.FollowerId);
-
-                        var OrderMiniViewMsg = new OrderMiniViewMessage(notify, this.Order.Id);
-                        await SendMessageAllBotEmployeess(OrderMiniViewMsg.BuildMsg());
-                      
-                    }
-
-                    //заказ уже кем то обрабатывается
-                    if (InWorkNow != null && InWorkNow.FollowerId != FollowerId && InWorkNow.InWork==true)
-
-                    {
-                        OverridePerformerConfirmMessage overridePerformerConfirmMsg = new OverridePerformerConfirmMessage(this.Order, InWorkNow);
-                        var mess = overridePerformerConfirmMsg.BuildMsg();
-                        await EditMessage(mess);
-                    }
-
-                    //заявка уже в обработке у пользователя
-                    if (InWorkNow != null && InWorkNow.FollowerId == FollowerId && InWorkNow.InWork == true)
-                    {
-                        OrderAdminMsg = new AdminOrderMessage(Order, FollowerId);
-                        await EditMessage(OrderAdminMsg.BuildMsg());
-                    }
-
-                        return OkResult;
-                }
-            }
-
-            catch
-            {
+                //уведомляем всех о том что кто-то взял заказ работу
+                string notify = "Заказ №" + Order.Number.ToString() + " взят в работу. Пользователь " + GeneralFunction.FollowerFullName(base.FollowerId);
+                BotMessage = new OrderMiniViewMessage(notify, this.OrderId);
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
                 return OkResult;
             }
-        }
 
-        /// <summary>
-        /// Предложение оставить отзыв
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendFeedBackOffer()
-        {
-            if (Order != null && Order.Follower != null && await SendMessage(Order.Follower.ChatId, FeedBackOfferMsg.BuildMsg()) != null)
+            //заявка в обработке у тек. пользователя
+            if(Order != null && Order.OrdersInWork.Count > 0 && Order.OrdersInWork.LastOrDefault().InWork == true &&
+                Order.OrdersInWork.LastOrDefault().FollowerId==FollowerId)
+            {
+                BotMessage = new AdminOrderMessage(Order, FollowerId);
+                await EditMessage(BotMessage.BuildMsg());
                 return OkResult;
+            }
+
+            //заказ в обработке у кого то другого. Отправляем сообщение с вопрос о переназначении исполнителя
+            if (Order != null && Order.OrdersInWork.Count > 0 && Order.OrdersInWork.LastOrDefault().InWork == true &&
+                Order.OrdersInWork.LastOrDefault().FollowerId != FollowerId)
+            {
+                BotMessage = new OverridePerformerConfirmMessage(Order, Order.OrdersInWork.LastOrDefault());
+                var mess = BotMessage.BuildMsg();
+                await EditMessage(mess);
+                return OkResult;
+            }
 
             else
                 return OkResult;
 
-
         }
+
 
         /// <summary>
         /// Назад
@@ -828,23 +707,9 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> BackToOrder()
         {
-            if (OrderAdminMsg != null && await EditMessage(OrderAdminMsg.BuildMsg()) != null)
-                return base.OkResult;
-
-            if (OrderAdminMsg == null && this.OrderId > 0)
-            {
-                OrderAdminMsg = new AdminOrderMessage(this.OrderId);
-                await EditMessage(OrderAdminMsg.BuildMsg());
-                return OkResult;
-            }
-
-            else
-            {
-                OrderId = Argumetns[0];
-                OrderAdminMsg = new AdminOrderMessage(this.OrderId);
-                await EditMessage(OrderAdminMsg.BuildMsg());
-                return OkResult;
-            }
+            BotMessage = new AdminOrderMessage(OrderId, FollowerId);
+            await EditMessage(BotMessage.BuildMsg());
+            return OkResult;
 
         }
 

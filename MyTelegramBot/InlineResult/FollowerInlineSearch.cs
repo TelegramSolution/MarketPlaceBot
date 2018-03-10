@@ -11,6 +11,7 @@ using System.Data.SqlClient;
 using Newtonsoft.Json;
 using MyTelegramBot.Bot;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.Messages.Admin;
 
 namespace MyTelegramBot.InlineResult
 {
@@ -65,29 +66,25 @@ namespace MyTelegramBot.InlineResult
             foreach (var follower in FollowerList)
             {
                 string telephoneLine = "";
-                string BlockedLine = "";
-                string UnBlockedLine = "";
+
+                FollowerControlMessage followerControlMessage = new FollowerControlMessage(follower.Id);
+                var message = followerControlMessage.BuildMsg();
 
                 if (follower.Telephone != null && follower.Telephone != "")
                     telephoneLine =BotMessage.NewLine()+"Телефон: " + follower.Telephone;
 
-                if (follower.Blocked)
-                    UnBlockedLine = BotMessage.NewLine() + "Разблокировать /userunblock" + follower.Id;
-
-                else
-                    BlockedLine = BotMessage.NewLine() + "Заблокировать /userblock" + follower.Id;
 
                 textcontent[i] = new InputTextMessageContent();
                 textcontent[i].ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html;
                 textcontent[i].DisableWebPagePreview = true;
-                textcontent[i].MessageText = follower.FirstName + " " + follower.LastName + BotMessage.NewLine() +
-                    "Профиль:" + "https://t.me/"+follower.UserName+telephoneLine+BlockedLine+UnBlockedLine;
+                textcontent[i].MessageText = message.TextMessage;
 
                 article[i] = new InlineQueryResultArticle();
                 article[i].HideUrl = false;
                 article[i].Id = follower.Id.ToString();
                 article[i].Title = follower.FirstName + " " + follower.LastName;
                 article[i].Description = telephoneLine;
+                article[i].ReplyMarkup = followerControlMessage.SetInline();
 
                 article[i].ThumbUrl = "https://cdn3.iconfinder.com/data/icons/user-avatars-1/512/users-11-2-256.png";
                 article[i].Url= "https://t.me/" + follower.UserName; 

@@ -42,7 +42,7 @@ namespace MyTelegramBot.Messages
                     foreach(PaymentType pt in methods)
                     {
                         PaymentsMethodsListBtns [counter] = new InlineKeyboardCallbackButton[1];
-                        PaymentsMethodsListBtns [counter][0] = new InlineKeyboardCallbackButton(pt.Name, BuildCallData(OrderBot.PaymentMethodCmd, OrderBot.ModuleName,pt.Id));
+                        PaymentsMethodsListBtns [counter][0] = new InlineKeyboardCallbackButton(pt.Name, BuildCallData(OrderBot.SelectPaymentMethodCmd, OrderBot.ModuleName,pt.Id));
                         counter++;
                     }
 
