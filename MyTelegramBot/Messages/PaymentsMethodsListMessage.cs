@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
@@ -41,7 +42,7 @@ namespace MyTelegramBot.Messages
                     foreach(PaymentType pt in methods)
                     {
                         PaymentsMethodsListBtns [counter] = new InlineKeyboardCallbackButton[1];
-                        PaymentsMethodsListBtns [counter][0] = new InlineKeyboardCallbackButton(pt.Name, BuildCallData(OrderBot.PaymentMethodCmd, OrderBot.ModuleName,pt.Id));
+                        PaymentsMethodsListBtns [counter][0] = new InlineKeyboardCallbackButton(pt.Name, BuildCallData(OrderBot.SelectPaymentMethodCmd, OrderBot.ModuleName,pt.Id));
                         counter++;
                     }
 

@@ -18,8 +18,14 @@ namespace MyTelegramBot.Services.Qiwi
         private static string _token;
         private static HttpClient _httpClient;
 
-
-        public static async Task<PaymentHistory.DataItem> SearchPayment (string Comment, string token, string telephone)
+        /// <summary>
+        /// Найти платеж по комменатрий.
+        /// </summary>
+        /// <param name="Comment">комментарий</param>
+        /// <param name="token">токен доступа к апи</param>
+        /// <param name="telephone">Телефон к которому привязана уч. запись</param>
+        /// <returns></returns>
+        public static async Task<PaymentHistory.DataItem> SearchPayment (string Comment, string token, string PhoneNumber)
         {
 
             try
@@ -28,7 +34,7 @@ namespace MyTelegramBot.Services.Qiwi
                 source[0] = QiwiApiSharp.Enumerations.Source.QW_RUB;
 
                 Initialize(token);
-                var history = await PaymentHistoryAsync(telephone, 10, Operation.IN, source);
+                var history = await PaymentHistoryAsync(PhoneNumber, 10, Operation.IN, source);
                 var payment= history.data.Where(h => h.comment == Comment).FirstOrDefault();
                 return payment;
             }

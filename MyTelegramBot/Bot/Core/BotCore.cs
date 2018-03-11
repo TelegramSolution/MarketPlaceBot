@@ -16,13 +16,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Telegram.Bot.Types.Payments;
+using System.Text;
+using System.Collections.Specialized;
 
-namespace MyTelegramBot.Bot
+namespace MyTelegramBot.Bot.Core
 {
     public abstract class BotCore
     {
 
         private TelegramBotClient TelegramClient { get; set; }
+
+        /// <summary>
+        /// Сообщение которое будем отправлять в ответ
+        /// </summary>
+        protected BotMessage BotMessage { get; set; }
 
         /// <summary>
         /// Объект апдейт
@@ -65,14 +73,10 @@ namespace MyTelegramBot.Bot
         protected int MessageId { get; set; }
 
         /// <summary>
-        /// 200 ответ
+        /// 200 ответ. На любоемое сообщение отвечаем боту Ок. В противном случаем он будет долбить это сообщение пока не получит ок
         /// </summary>
         protected OkResult OkResult { get; set; }
 
-        /// <summary>
-        /// 404 ответ
-        /// </summary>
-        protected NotFoundResult NotFoundResult { get; set; }
 
         /// <summary>
         /// Объект описывающий событие нажатой Inline кнопки
@@ -138,10 +142,8 @@ namespace MyTelegramBot.Bot
         /// </summary>
         protected Configuration ConfigurationBot { get; set; }
 
-        /// <summary>
-        /// Узнаем какой тип файла пришел. Док, фото, аудио и тд
-        /// </summary>
-        protected EnumMediaFile EnumMediaFile { get; set; }
+
+        protected int MediaFileTypeId { get; set; }
 
         public BotCore(Update update)
         {
@@ -153,7 +155,6 @@ namespace MyTelegramBot.Bot
 
                 this.Argumetns = new List<int>();
                 this.OkResult = new OkResult();
-                this.NotFoundResult = new NotFoundResult();
                 OriginalMessage = String.Empty;
                 ReplyToMessageText = String.Empty;
                 this.CommandName = String.Empty;
@@ -169,7 +170,7 @@ namespace MyTelegramBot.Bot
                 if (this.Update.Message != null) // Пришло текстовое сообщение
                     UpdateParser(update.Message);
 
-                Constructor();
+                Initializer();
 
             }
 
@@ -180,7 +181,7 @@ namespace MyTelegramBot.Bot
 
         }
 
-        protected abstract void Constructor();
+        protected abstract void Initializer();
 
         /// <summary>
         /// id пользователя в в БД
@@ -213,7 +214,7 @@ namespace MyTelegramBot.Bot
         /// Проверяем явлется ли оператором
         /// </summary>
         /// <returns></returns>
-        protected bool IsOperator(int FollowerID=0)
+        protected bool IsOperator(int FollowerID = 0)
         {
             try
             {
@@ -228,7 +229,7 @@ namespace MyTelegramBot.Bot
                 using (MarketBotDbContext db = new MarketBotDbContext())
                 {
 
-                   var admin = db.Admin.Where(a => a.FollowerId == id && a.Enable).FirstOrDefault();
+                    var admin = db.Admin.Where(a => a.FollowerId == id && a.Enable).FirstOrDefault();
 
                     if (admin != null)
                         return true;
@@ -274,11 +275,11 @@ namespace MyTelegramBot.Bot
                 BotInfo bot = new BotInfo();
                 using (MarketBotDbContext db = new MarketBotDbContext())
                 {
-                    bot = db.BotInfo.Where(b=>b.Name==name).Include(b=>b.Configuration).FirstOrDefault();
+                    bot = db.BotInfo.Where(b => b.Name == name).Include(b => b.Configuration).FirstOrDefault();
 
                     if (bot != null)
                     {
-                        this.BotOwner =Convert.ToInt32(bot.OwnerChatId);
+                        this.BotOwner = Convert.ToInt32(bot.OwnerChatId);
                         return bot;
                     }
 
@@ -298,9 +299,9 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+                using (MarketBotDbContext db = new MarketBotDbContext())
                 {
-                   return db.Configuration.Where(c => c.BotInfoId == BotId).Include(c=>c.Currency).FirstOrDefault();
+                    return db.Configuration.Where(c => c.BotInfoId == BotId).Include(c => c.Currency).FirstOrDefault();
                 }
             }
 
@@ -320,10 +321,10 @@ namespace MyTelegramBot.Bot
                 BotCommand = JsonConvert.DeserializeObject<BotCommand>(callbackQuery.Data);
                 FollowerId = GetFollowerID(this.ChatId);
 
-                if(callbackQuery.Message!=null)
+                if (callbackQuery.Message != null)
                     MessageId = callbackQuery.Message.MessageId;
                 //если пришло сообщение из группового чата
-                if (callbackQuery.Message!=null && callbackQuery.Message.Chat != null)
+                if (callbackQuery.Message != null && callbackQuery.Message.Chat != null)
                     this.GroupChatId = callbackQuery.Message.Chat.Id;
 
 
@@ -362,8 +363,13 @@ namespace MyTelegramBot.Bot
             if (message.Text != null)
                 this.CommandName = message.Text;
 
-            //Протицированное сообщение
-            if (message.ReplyToMessage != null && message.ReplyToMessage.From != null && message.ReplyToMessage.From.Username == GeneralFunction.GetBotName())
+            //если пришла команда вида /cmd@Botname
+            if (this.CommandName != null && this.CommandName.Contains('@'))
+                this.CommandName = this.CommandName.Substring(0, this.CommandName.IndexOf('@'));
+
+            //пользователь процитировал сообщение от бота
+            if (message.ReplyToMessage != null && message.ReplyToMessage.From != null
+                && message.ReplyToMessage.From.Username == GeneralFunction.GetBotName())
             {
                 OriginalMessage = message.ReplyToMessage.Text;
                 ReplyToMessageText = message.Text;
@@ -391,42 +397,46 @@ namespace MyTelegramBot.Bot
             if (message.Photo != null)
             {
                 this.PhotoId = message.Photo[message.Photo.Length - 1].FileId;
-                EnumMediaFile = EnumMediaFile.Photo;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Photo;
             }
 
             if (message.Video != null)
             {
                 this.VideoId = message.Video.FileId;
-                EnumMediaFile = EnumMediaFile.Video;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Video;
             }
 
             if (message.Audio != null)
             {
                 this.AudioId = message.Audio.FileId;
-                EnumMediaFile = EnumMediaFile.Audio;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Audio;
             }
 
             if (message.Document != null)
             {
                 this.FileId = message.Document.FileId;
-                EnumMediaFile = EnumMediaFile.Document;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Document;
             }
 
             if (message.VideoNote != null)
             {
                 this.VideoNoteId = message.VideoNote.FileId;
-                EnumMediaFile = EnumMediaFile.VideoNote;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.VideoNote;
+
             }
 
             if (message.Voice != null)
             {
                 this.VoiceId = message.Voice.FileId;
-                EnumMediaFile = EnumMediaFile.Voice;
+                this.MediaFileTypeId = Core.ConstantVariable.MediaTypeVariable.Voice;
             }
-            
+
         }
 
-        public abstract Task<IActionResult> Response();
+        public virtual Task<IActionResult> Response()
+        {
+            return null;
+        }
 
         /// <summary>
         /// Отправить сообщение 
@@ -443,22 +453,22 @@ namespace MyTelegramBot.Bot
                 replyMarkup = botMessage.MessageReplyMarkup;
 
 
-                if (botMessage != null&& this.Update.CallbackQuery != null && this.CallBackQueryId != null)
+                if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && EditMessageId != 0)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, false, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, ReplyToMessageId, replyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, true, false, ReplyToMessageId, replyMarkup);
 
                 else
                     return null;
             }
 
-            catch
+            catch(Exception e)
             {
-                //await telegram.SendTextMessageAsync(this.ChatId, botMessage.Text, ParseMode.Html, false, false, ReplyToMessageId, botMessage.InlineKeyboard);
+               // await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 return null;
             }
@@ -473,15 +483,21 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                if (mediaGroup!=null && mediaGroup.ListMedia != null && mediaGroup.ListMedia.Count > 0)
+                Message[] message=null;
+
+                if (mediaGroup != null && mediaGroup.ListMedia != null && mediaGroup.ListMedia.Count > 0)
                 {
-                   var res= await TelegramClient.SendMediaGroupAsync(ChatId, mediaGroup.ListMedia);
+                    if(mediaGroup.ListMedia.Count<10)
+                        message = await TelegramClient.SendMediaGroupAsync(ChatId, mediaGroup.ListMedia);
+
+                    if (mediaGroup.ListMedia.Count > 10) // альбом не может содержать больше 10 фотографий
+                        message = await TelegramClient.SendMediaGroupAsync(ChatId, mediaGroup.ListMedia.Take(10));
 
                     int counter = 0;
-                    foreach (Message mess in res) // проверяем есть ли FileId у отправленных фотографий. Если нет, то заносим в БД
+                    foreach (Message mess in message) // проверяем есть ли FileId у отправленных фотографий. Если нет, то заносим в БД
                     {
                         if (mediaGroup.FsIdTelegramFileId.ElementAt(counter).Value == null)
-                            InsertToAttachmentTelegram(mess.Photo[mess.Photo.Length-1].FileId, mediaGroup.FsIdTelegramFileId.ElementAt(counter).Key);
+                            InsertToAttachmentTelegram(mess.Photo[mess.Photo.Length - 1].FileId, mediaGroup.FsIdTelegramFileId.ElementAt(counter).Key);
 
                         counter++;
                     }
@@ -493,7 +509,7 @@ namespace MyTelegramBot.Bot
                 return true;
             }
 
-            catch
+            catch (Exception e)
             {
                 return false;
             }
@@ -508,15 +524,15 @@ namespace MyTelegramBot.Bot
         {
             IReplyMarkup replyMarkup;
             replyMarkup = botMessage.MessageReplyMarkup;
-           
+
             try
             {
 
-                if (botMessage != null&& this.Update.CallbackQuery != null && this.CallBackQueryId != null)
+                if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
-                if (botMessage != null && botMessage.TextMessage!=null)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, false, replyMarkup);
+                if (botMessage != null && botMessage.TextMessage != null)
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
 
 
 
@@ -548,31 +564,31 @@ namespace MyTelegramBot.Bot
                     await AnswerCallback(message.CallBackTitleText);
 
                 //максимальная длина подписи для фотографии 200 символов
-                if (message.MediaFile!=null && message.MediaFile.Caption != null 
+                if (message.MediaFile != null && message.MediaFile.Caption != null
                     && message.MediaFile.Caption != "" && message.MediaFile.Caption.Length < 200)
-                    mess= await TelegramClient.SendPhotoAsync(ChatId, message.MediaFile.FileTo, message.MediaFile.Caption, false, 0, message.MessageReplyMarkup);
+                    mess = await TelegramClient.SendPhotoAsync(ChatId, message.MediaFile.FileTo, message.MediaFile.Caption, false, 0, message.MessageReplyMarkup);
 
                 if (message.MediaFile != null && message.MediaFile.Caption == null)
-                    mess= await TelegramClient.SendPhotoAsync(ChatId, message.MediaFile.FileTo, "", false, 0, message.MessageReplyMarkup);
+                    mess = await TelegramClient.SendPhotoAsync(ChatId, message.MediaFile.FileTo, "", false, 0, message.MessageReplyMarkup);
 
                 //если подпись для фотографии больше 200 символом, то разибваем на два сообщения 1) Фото 2) Текст
                 if (message.MediaFile != null && message.MediaFile.Caption != null && message.MediaFile.Caption != "" && message.MediaFile.Caption.Length >= 200)
                 {
-                    mess= await TelegramClient.SendPhotoAsync(this.ChatId, message.MediaFile.FileTo, "");
+                    mess = await TelegramClient.SendPhotoAsync(this.ChatId, message.MediaFile.FileTo, "");
                     await SendMessage(this.ChatId, new BotMessage { TextMessage = message.MediaFile.Caption, MessageReplyMarkup = message.MessageReplyMarkup });
                 }
 
                 // если фотки нет
-                if (message.MediaFile != null && message.MediaFile.Caption!=null && message.MediaFile.Caption!="" && message.MediaFile.FileTo.Content==null
-                    && message.MediaFile.FileTo.FileId==null)
-                    mess= await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
+                if (message.MediaFile != null && message.MediaFile.Caption != null && message.MediaFile.Caption != "" && message.MediaFile.FileTo.Content == null
+                    && message.MediaFile.FileTo.FileId == null)
+                    mess = await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
 
-                if(message.MediaFile ==null && message.TextMessage!=null)
+                if (message.MediaFile == null && message.TextMessage != null)
                     mess = await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
 
                 //Если мы отрпавляем файл для этого бота первый раз, то Записываем FileId в базу для этог бота, что бы в следующий раз не отслылать целый файл
                 //а только FileId на сервере телеграм
-                if (mess != null && mess.Photo!=null && message.MediaFile.AttachmentFsId>0 && message.MediaFile.FileTo.FileId==null)
+                if (mess != null && mess.Photo != null && message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId == null)
                     InsertToAttachmentTelegram(message.MediaFile, mess.Photo[mess.Photo.Length - 1].FileId);
 
                 return mess;
@@ -595,10 +611,10 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                if (mediaFile.AttachmentFsId > 0 && FileId !="")
+                if (mediaFile.AttachmentFsId > 0 && FileId != "")
                     using (MarketBotDbContext db = new MarketBotDbContext())
                     {
-                       var Attach=db.AttachmentTelegram.Where(a => a.AttachmentFsId == mediaFile.AttachmentFsId && a.BotInfoId == BotInfo.Id).FirstOrDefault();
+                        var Attach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == mediaFile.AttachmentFsId && a.BotInfoId == BotInfo.Id).FirstOrDefault();
 
                         if (Attach == null)
                         {
@@ -614,7 +630,7 @@ namespace MyTelegramBot.Bot
                             return attachment.Id;
                         }
 
-                        if(Attach!=null && Attach.FileId == null)
+                        if (Attach != null && Attach.FileId == null)
                         {
                             Attach.FileId = FileId;
                             db.SaveChanges();
@@ -642,9 +658,9 @@ namespace MyTelegramBot.Bot
         /// <param name="FileId"></param>
         /// <param name="AttachmentFsId"></param>
         /// <returns></returns>
-        protected int InsertToAttachmentTelegram (string FileId,int AttachmentFsId)
+        protected int InsertToAttachmentTelegram(string FileId, int AttachmentFsId)
         {
-            using(MarketBotDbContext db=new MarketBotDbContext())
+            using (MarketBotDbContext db = new MarketBotDbContext())
             {
                 AttachmentTelegram attachmentTelegram = new AttachmentTelegram
                 {
@@ -655,11 +671,11 @@ namespace MyTelegramBot.Bot
 
                 db.AttachmentTelegram.Add(attachmentTelegram);
 
-                return db.SaveChanges();                   
+                return db.SaveChanges();
             }
         }
 
-        protected async Task<bool> AnswerCallback(string text = null, bool ShowAlert=false)
+        protected async Task<bool> AnswerCallback(string text = null, bool ShowAlert = false)
         {
             try
             {
@@ -691,7 +707,7 @@ namespace MyTelegramBot.Bot
                     Force = true,
                     Selective = true
                 };
-        
+
                 return await TelegramClient.SendTextMessageAsync(ChatId, text, ParseMode.Html, false, false, 0, forceReply);
 
             }
@@ -725,7 +741,7 @@ namespace MyTelegramBot.Bot
                 if (this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback();
 
-                   return await TelegramClient.SendLocationAsync(ChatId, location.Latitude, location.Longitude);
+                return await TelegramClient.SendLocationAsync(ChatId, location.Latitude, location.Longitude);
 
             }
 
@@ -735,7 +751,7 @@ namespace MyTelegramBot.Bot
             }
         }
 
-        protected async Task<Message> SendMessage(long ChatId, BotMessage botMessage, bool DisableNotifi=false)
+        protected async Task<Message> SendMessage(long ChatId, BotMessage botMessage, bool DisableNotifi = false)
         {
             try
             {
@@ -762,10 +778,11 @@ namespace MyTelegramBot.Bot
         /// </summary>
         /// <param name="id">FileId файл на сервере телеграм</param>
         /// <returns>Возращает id записи из таблицы AttachmentFS</returns>
-        protected async Task<int> InsertToAttachmentFs(string id=null)
+        protected async Task<int> InsertToAttachmentFs(string id = null)
         {
-            if(id==null)
+            if (id == null)
                 id = FileId;
+            MarketBotDbContext db = new MarketBotDbContext();
 
             try
             {
@@ -779,56 +796,58 @@ namespace MyTelegramBot.Bot
                 AttachmentFs attachmentFs = new AttachmentFs
                 {
                     Fs = memoryStream.ToArray(),
-                    GuId=Guid.NewGuid(),
-                    Caption= Caption,
-                    AttachmentTypeId=HowMediaType(EnumMediaFile)
+                    GuId = Guid.NewGuid(),
+                    Caption = Caption,
+                    AttachmentTypeId = MediaFileTypeId
 
                 };
 
-                using (MarketBotDbContext db = new MarketBotDbContext())
+                db.AttachmentFs.Add(attachmentFs);
+
+                int type = HowMediaType(Update.Message); // узнаем какой типа файла. Фото, Аудио и тд
+
+                //Когда оператора будет смотреть заявку через того же бота, через коготого пользователь
+                //оформлял заявку, мы отправим ему ID файла на сервере телеграм вместо целой картинки. Это будет быстрее.
+                //А если оператор будет смотреть заявку из другого бота (например старого удалят), то мы сможем отрпавить файл картинки
+
+                //максимальный размер файла 15 мб
+                if (file != null && file.FileSize <= 15 * 1024 * 1024 && memoryStream != null && await db.SaveChangesAsync() > 0 && type > 0)
                 {
-                    db.AttachmentFs.Add(attachmentFs);
+                    AttachmentTelegram attachment = new AttachmentTelegram();
+                    attachment.FileId = id;
+                    attachment.AttachmentFsId = attachmentFs.Id;
+                    attachment.BotInfoId = BotInfo.Id;
 
-                    int type = HowMediaType(Update.Message); // узнаем какой типа файла. Фото, Аудио и тд
+                    db.AttachmentTelegram.Add(attachment);
 
-                    //Когда оператора будет смотреть заявку через того же бота, через коготого пользователь
-                    //оформлял заявку, мы отправим ему ID файла на сервере телеграм вместо целой картинки. Это будет быстрее.
-                    //А если оператор будет смотреть заявку из другого бота (например старого удалят), то мы сможем отрпавить файл картинки
-
-
-                    //максимальный размер файла 15 мб
-                    if (file!=null && file.FileSize<=15*1024*1024 && memoryStream!=null && await db.SaveChangesAsync() > 0 && type > 0)
-                    {
-                        AttachmentTelegram attachment = new AttachmentTelegram();
-                        attachment.FileId = id;
-                        attachment.AttachmentFsId = attachmentFs.Id;
-                        attachment.BotInfoId = BotInfo.Id;
-
-                        db.AttachmentTelegram.Add(attachment);
-
-                        if (await db.SaveChangesAsync() > 0)
-                            return Convert.ToInt32(attachment.AttachmentFsId);
-
-                        else
-                            return -1;
-                    }
-
-                    if (file.FileSize > 15 * 1024 * 1024)
-                    {
-                        await SendMessage(new BotMessage { TextMessage = "Ошибка. Файл не может быть больше 15 мб!" });
-                        return -1;
-                    }
+                    if (await db.SaveChangesAsync() > 0)
+                        return Convert.ToInt32(attachment.AttachmentFsId);
 
                     else
                         return -1;
                 }
-            }
+
+                if (file.FileSize > 15 * 1024 * 1024)
+                {
+                    await SendMessage(new BotMessage { TextMessage = "Ошибка. Файл не может быть больше 15 мб!" });
+                    return -1;
+                }
+
+                else
+                    return -1;
+                }
+            
 
             catch (Exception exp)
             {
                 return -1;
             }
-            
+
+            finally
+            {
+                db.Dispose();
+            }
+
         }
 
         /// <summary>
@@ -836,11 +855,11 @@ namespace MyTelegramBot.Bot
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        protected async Task<Telegram.Bot.Types.File> GetFileAsync (string id)
+        protected async Task<Telegram.Bot.Types.File> GetFileAsync(string id)
         {
             try
             {
-               return await TelegramClient.GetFileAsync(id);
+                return await TelegramClient.GetFileAsync(id);
             }
 
             catch
@@ -849,53 +868,30 @@ namespace MyTelegramBot.Bot
             }
         }
 
+
         private int HowMediaType(Message message)
         {
 
             if (message.Photo != null)
-                return 1;
+                return Core.ConstantVariable.MediaTypeVariable.Photo;
 
             if (message.Video != null)
-                return 2;
+                return Core.ConstantVariable.MediaTypeVariable.Video;
 
             if (message.Audio != null)
-                return 3;
+                return Core.ConstantVariable.MediaTypeVariable.Audio;
 
             if (message.Voice != null)
-                return 4;
+                return Core.ConstantVariable.MediaTypeVariable.Voice;
 
             if (message.VideoNote != null)
-                return 5;
+                return Core.ConstantVariable.MediaTypeVariable.VideoNote;
 
             else return -1;
 
         }
 
-        private int HowMediaType(EnumMediaFile mediaFile)
-        {
-            if (mediaFile== EnumMediaFile.Photo)
-                return 1;
-
-            if (mediaFile == EnumMediaFile.Video)
-                return 2;
-
-            if (mediaFile == EnumMediaFile.Audio)
-                return 3;
-
-            if (mediaFile == EnumMediaFile.Voice)
-                return 4;
-
-            if (mediaFile == EnumMediaFile.VideoNote)
-                return 5;
-
-            if (mediaFile == EnumMediaFile.Document)
-                return 6;
-
-            else return -1;
-
-        }
-
-        private async Task<Message> SendVoice (BotMessage message)
+        private async Task<Message> SendVoice(BotMessage message)
         {
             try
             {
@@ -965,19 +961,19 @@ namespace MyTelegramBot.Bot
             try
             {
 
-                if (message.MediaFile.TypeFileTo== EnumMediaFile.Audio)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Audio)
                     return await SendAudio(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Video)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Video)
                     return await SendVideo(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Voice)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Voice)
                     return await SendVoice(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Video)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.VideoNote)
                     return await SendVideoNote(message);
 
-                if (message.MediaFile.TypeFileTo == EnumMediaFile.Photo)
+                if (message.MediaFile.FileTypeId == Core.ConstantVariable.MediaTypeVariable.Photo)
                     return await SendPhoto(message);
 
                 else
@@ -1044,7 +1040,7 @@ namespace MyTelegramBot.Bot
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        protected virtual async Task<IActionResult> ForceReplyBuilder(string text)
+        protected virtual async Task<IActionResult> SendForceReplyMessage(string text)
         {
             if (this.Update.CallbackQuery != null)
                 await AnswerCallback();
@@ -1053,7 +1049,28 @@ namespace MyTelegramBot.Bot
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
+        }
+
+        protected async Task<IActionResult> SendTextMessageAndForceReply(string TextMesage, string ForceReplyMessage)
+        {
+            try
+            {
+                if (TextMesage != null && ForceReplyMessage != null && TextMesage != "" && ForceReplyMessage != "")
+                {
+                    await SendMessage(new BotMessage { TextMessage = TextMesage });
+                    return await SendForceReplyMessage(ForceReplyMessage);
+
+                }
+
+                else
+                    return OkResult;
+            }
+
+            catch
+            {
+                return OkResult;
+            }
         }
 
 
@@ -1064,44 +1081,42 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         protected async Task<bool> SendMessageAllBotEmployeess(BotMessage message)
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+
+            var operators = BusinessLayer.ConfigurationFunction.GetOperatorList();
+
+            try
             {
-                var list = db.Admin.Where(a => a.Enable && a.FollowerId != FollowerId).Include(a=>a.Follower).ToList();
-                
-                try
+
+                if (BotInfo.Configuration.OwnerPrivateNotify)
+                    await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), message);
+
+                if (operators != null)
                 {
-                    
-                    if(db.Configuration.Where(o => o.BotInfoId == BotOwner).FirstOrDefault()!=null &&
-                        db.Configuration.Where(o=>o.BotInfoId==BotOwner).FirstOrDefault().OwnerPrivateNotify)
-                        await SendMessage(BotOwner, message);
-
-                    if (list != null)
+                    foreach (var admin in operators)
                     {
-                        foreach (var admin in list)
-                        {
-                            if (admin.NotyfiActive)
-                            {
-                                await SendMessage(admin.Follower.ChatId, message,true);
-                                System.Threading.Thread.Sleep(300);
-                            }
-                        }
+                        System.Threading.Thread.Sleep(300);
 
-                        await SendMessageToGroupChat(message);
-
-                        return 
-                            true;
+                        if (admin.NotyfiActive)
+                                await SendMessage(admin.Follower.ChatId, message, true);
+ 
                     }
 
-                    else
-                        return false;
-                }
+                    await SendMessageToGroupChat(message);
 
-                catch
-                {
-                    return 
-                        false;
-                }
+                    return true;
+
             }
+
+                else
+                    return false;
+            }
+
+            catch
+            {
+                return false;
+
+            }
+            
         }
 
         /// <summary>
@@ -1113,13 +1128,82 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                using(MarketBotDbContext db=new MarketBotDbContext())
-                {
-                    this.GroupChatId = Convert.ToInt64(db.Configuration.FirstOrDefault().PrivateGroupChatId);
-                     return await SendMessage(this.GroupChatId, message);
-                }
+                return await SendMessage(Convert.ToInt32(BotInfo.Configuration.PrivateGroupChatId), message);
             }
 
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// отправить телеграм инвойс
+        /// </summary>
+        /// <param name="telegramDebitCardInvoice"></param>
+        /// <returns></returns>
+        protected async Task<Message> SendInvoice(TelegramDebitCardInvoice telegramDebitCardInvoice)
+        {
+            try
+            {
+
+                return await TelegramClient.SendInvoiceAsync(ChatId,
+                      title: telegramDebitCardInvoice.Title,
+                      description: telegramDebitCardInvoice.Desc,
+                      payload: telegramDebitCardInvoice.PayLoad,
+                      startParameter: telegramDebitCardInvoice.StartParametr,
+                      providerToken: telegramDebitCardInvoice.ProviderToken,
+                      currency: telegramDebitCardInvoice.CurrencyCode,
+                      prices: telegramDebitCardInvoice.labeledPrice);
+
+            }
+
+            catch
+            {
+                return null;
+            }
+        }
+
+        protected async Task<bool> answerPreCheckoutQuery(bool Ok, string ErrorText = null)
+        {
+            try
+            {
+                return await TelegramClient.AnswerPreCheckoutQueryAsync(Update.PreCheckoutQuery.Id, Ok, ErrorText);
+
+            }
+
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Изменить инлайн клавиартуру в сообщении
+        /// </summary>
+        /// <param name="replyMarkup"></param>
+        /// <returns></returns>
+        protected async Task<Message> EditInlineReplyKeyboard(IReplyMarkup replyMarkup)
+        {
+            try
+            {
+                return await TelegramClient.EditMessageReplyMarkupAsync(ChatId, MessageId, replyMarkup);
+            }
+
+            catch
+            {
+                return null;
+            }
+        }
+
+        protected async Task<Message> SendUrl(string url,IReplyMarkup replyMarkup=null)
+        {
+            try
+            {
+                await AnswerCallback();
+
+                return  await TelegramClient.SendTextMessageAsync(ChatId, url, replyMarkup: replyMarkup, parseMode: ParseMode.Html);
+            }
             catch
             {
                 return null;

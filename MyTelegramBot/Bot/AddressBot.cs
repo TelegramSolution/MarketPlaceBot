@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
-    public class AddressBot:Bot.BotCore
+    public class AddressBot:BotCore
     {
 
         public const string ModuleName = "Addr";
@@ -39,7 +40,7 @@ namespace MyTelegramBot.Bot
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             try
             {
@@ -121,12 +122,12 @@ namespace MyTelegramBot.Bot
 
             if (blocked)
             {
-                await AnswerCallback("Вы заблокированы администратором системы!", true);
+                await SendMessage(new BotMessage { TextMessage = "Вы заблокированы администратором системы!" });
                 return base.OkResult;
             }
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
 
         }
 
@@ -211,7 +212,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
         }
 
@@ -225,7 +226,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -238,7 +239,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
     }
 }

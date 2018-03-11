@@ -37,9 +37,7 @@ namespace MyTelegramBot
         public virtual DbSet<House> House { get; set; }
         public virtual DbSet<Invoice> Invoice { get; set; }
         public virtual DbSet<Notification> Notification { get; set; }
-        public virtual DbSet<OrderAction> OrderAction { get; set; }
         public virtual DbSet<OrderAddress> OrderAddress { get; set; }
-        public virtual DbSet<OrderHistory> OrderHistory { get; set; }
         public virtual DbSet<OrderProduct> OrderProduct { get; set; }
         public virtual DbSet<Orders> Orders { get; set; }
         public virtual DbSet<OrdersInWork> OrdersInWork { get; set; }
@@ -354,10 +352,6 @@ namespace MyTelegramBot
 
             modelBuilder.Entity<FeedBack>(entity =>
             {
-                entity.HasIndex(e => e.OrderId)
-                    .HasName("IX_Feedback")
-                    .IsUnique();
-
                 entity.Property(e => e.DateAdd).HasColumnType("datetime");
 
                 entity.Property(e => e.Text)
@@ -365,8 +359,8 @@ namespace MyTelegramBot
                     .IsUnicode(false);
 
                 entity.HasOne(d => d.Order)
-                    .WithOne(p => p.FeedBack)
-                    .HasForeignKey<FeedBack>(d => d.OrderId)
+                    .WithMany(p => p.FeedBack)
+                    .HasForeignKey(d => d.OrderId)
                     .HasConstraintName("FK_Feedback_Orders");
 
                 entity.HasOne(d => d.Product)
@@ -554,24 +548,17 @@ namespace MyTelegramBot
 
                 entity.Property(e => e.DateAdd).HasColumnType("datetime");
 
+                entity.Property(e => e.Text)
+                    .HasMaxLength(5000)
+                    .IsUnicode(false);
+
                 entity.HasOne(d => d.Follower)
                     .WithMany(p => p.Notification)
                     .HasForeignKey(d => d.FollowerId)
                     .HasConstraintName("FK_Notification_Follower");
-
-                entity.HasOne(d => d.Product)
-                    .WithMany(p => p.Notification)
-                    .HasForeignKey(d => d.ProductId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Notification_Product");
             });
 
-            modelBuilder.Entity<OrderAction>(entity =>
-            {
-                entity.Property(e => e.Name)
-                    .HasMaxLength(500)
-                    .IsUnicode(false);
-            });
+
 
             modelBuilder.Entity<OrderAddress>(entity =>
             {
@@ -593,24 +580,6 @@ namespace MyTelegramBot
                     .HasConstraintName("FK_OrderAdress_Order");
             });
 
-            modelBuilder.Entity<OrderHistory>(entity =>
-            {
-                entity.Property(e => e.Text)
-                    .HasMaxLength(500)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Timestamp).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Action)
-                    .WithMany(p => p.OrderHistory)
-                    .HasForeignKey(d => d.ActionId)
-                    .HasConstraintName("FK_OrderHistory_OrderAction");
-
-                entity.HasOne(d => d.Follower)
-                    .WithMany(p => p.OrderHistory)
-                    .HasForeignKey(d => d.FollowerId)
-                    .HasConstraintName("FK_OrderHistory_Follower");
-            });
 
             modelBuilder.Entity<OrderProduct>(entity =>
             {
@@ -658,25 +627,11 @@ namespace MyTelegramBot
                     .HasForeignKey(d => d.BotInfoId)
                     .HasConstraintName("FK_Orders_BotInfo");
 
-                entity.HasOne(d => d.Confirm)
-                    .WithMany(p => p.OrdersConfirm)
-                    .HasForeignKey(d => d.ConfirmId)
-                    .HasConstraintName("FK_Orders_OrderHistory_Confirm");
 
                 entity.HasOne(d => d.CurrentStatusNavigation)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.CurrentStatus)
                     .HasConstraintName("FK_Orders_OrderStatus");
-
-                entity.HasOne(d => d.Delete)
-                    .WithMany(p => p.OrdersDelete)
-                    .HasForeignKey(d => d.DeleteId)
-                    .HasConstraintName("FK_Orders_Orders_Delete");
-
-                entity.HasOne(d => d.Done)
-                    .WithMany(p => p.OrdersDone)
-                    .HasForeignKey(d => d.DoneId)
-                    .HasConstraintName("FK_Orders_OrderHistory_Done");
 
                 entity.HasOne(d => d.Follower)
                     .WithMany(p => p.Orders)
@@ -719,9 +674,9 @@ namespace MyTelegramBot
                 entity.Property(e => e.Timestamp).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Status)
-                   .WithMany(p => p.OrderStatus)
-                   .HasForeignKey(d => d.StatusId)
-                   .HasConstraintName("FK_OrderStatus_Status");
+                    .WithMany(p => p.OrderStatus)
+                    .HasForeignKey(d => d.StatusId)
+                    .HasConstraintName("FK_OrderStatus_Status");
             });
 
             modelBuilder.Entity<OrderTemp>(entity =>
@@ -762,7 +717,7 @@ namespace MyTelegramBot
                     .HasMaxLength(500)
                     .IsUnicode(false);
 
-                entity.Property(e => e.DataAdd).HasColumnType("datetime");
+                entity.Property(e => e.TimestampDataAdd).HasColumnType("datetime");
 
                 entity.Property(e => e.TxId)
                     .HasMaxLength(200)
@@ -852,8 +807,17 @@ namespace MyTelegramBot
                 entity.HasOne(d => d.Category)
                     .WithMany(p => p.Product)
                     .HasForeignKey(d => d.CategoryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Product_Category");
+
+                entity.HasOne(d => d.CurrentPrice)
+                    .WithMany(p => p.Product)
+                    .HasForeignKey(d => d.CurrentPriceId)
+                    .HasConstraintName("FK_Product_ProductPrice");
+
+                entity.HasOne(d => d.MainPhotoNavigation)
+                    .WithMany(p => p.Product)
+                    .HasForeignKey(d => d.MainPhoto)
+                    .HasConstraintName("FK_Product_AttachmentFs");
 
                 entity.HasOne(d => d.Unit)
                     .WithMany(p => p.Product)
@@ -890,7 +854,7 @@ namespace MyTelegramBot
                     .HasForeignKey(d => d.CurrencyId)
                     .HasConstraintName("FK_ProductPrice_Currency");
 
-                entity.HasOne(d => d.Product)
+                entity.HasOne(d => d.ProductNavigation)
                     .WithMany(p => p.ProductPrice)
                     .HasForeignKey(d => d.ProductId)
                     .OnDelete(DeleteBehavior.ClientSetNull)

@@ -14,46 +14,26 @@ using Newtonsoft.Json;
 using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 
-namespace MyTelegramBot.Bot
+namespace MyTelegramBot.Bot.Core
 {
     public class MediaFile
     {
         public FileToSend FileTo { get; set; }
 
-        public EnumMediaFile TypeFileTo { get; set; }
+        /// <summary>
+        /// тип файла 1- фото, 2 - , 3- и т.д
+        /// </summary>
+        public int FileTypeId { get; set; }
 
         /// <summary>
-        /// Id файла в таблице AttachmentFs (таблица в которой храняться сами файлы)
+        /// Id файла в таблице AttachmentFs (таблица в которой хранятся сами файлы)
         /// </summary>
         public int AttachmentFsId { get; set; }
 
         /// <summary>
-        /// текстовое сообщние под файлом
+        /// текстовое сообщние под файлом (фотографией или видео)
         /// </summary>
         public string Caption { get; set; }
 
-        public static EnumMediaFile HowMediaType(int? TypeId)
-        {
-            if (TypeId == 1)
-                return EnumMediaFile.Photo;
-
-            if (TypeId == 2)
-                return EnumMediaFile.Video;
-
-            if (TypeId == 3)
-                return EnumMediaFile.Audio;
-
-            if (TypeId == 4)
-                return EnumMediaFile.Voice;
-
-            if (TypeId == 5)
-                return EnumMediaFile.VideoNote;
-
-            if (TypeId == 6)
-                return EnumMediaFile.Document;
-
-            else
-                return EnumMediaFile.Document;
-        }
     }
 }

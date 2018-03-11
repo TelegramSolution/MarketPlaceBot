@@ -8,65 +8,22 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot
 {
-    public partial class OrderBot:Bot.BotCore
+    public partial class OrderBot:BotCore
     {
         public const string ModuleName = "Order";
 
-        /// <summary>
-        /// Сообщение с просибой отправить свой номер телефона
-        /// </summary>
-        private RequestPhoneNumberMessage RequestPhoneNumberMsg { get; set; }
+        public const string ViewInvoiceCmd = "ViewInvoice";
 
-        /// <summary>
-        /// Сообщение с предаварительным описанием заказа. Без номер и т.д
-        /// </summary>
-        private OrderTempMessage OrderPreviewMsg { get; set; }
+        public const string BackToMyOrderCmd = "BackToMyOrder";
 
-        /// <summary>
-        /// Сообщение с вариантами оплаты
-        /// </summary>
-        private PaymentsMethodsListMessage PaymentsMethodsListMsg { get; set; }
+        public OrderFunction OrderFunction { get; set; }
 
-        /// <summary>
-        /// Адреса пользователя
-        /// </summary>
-        private AddressListMessage ViewShipAddressMsg { get; set; }
-
-        /// <summary>
-        /// Сообщение с описанием заказа
-        /// </summary>
-        private OrderViewMessage OrderViewMsg { get; set; }
-
-       
-        private NewFeedBackAddedMessage NewFeedBackAddedMsg { get; set; }
-
-        /// <summary>
-        /// Сообщение с позициями заказа. Каждай позиция отдельная кнопка
-        /// </summary>
-
-        private MyOrdersMessage MyOrdersMsg { get; set; }
-
-        /// <summary>
-        /// сообщение с кнопками добавления отзыва к товару
-        /// </summary>
-        private FeedBackToProductEditorMessage FeedBackToProductEditorMsg { get; set; }
-
-        private Messages.Admin.AdminOrderMessage OrderAdminMsg { get; set; }
-
-        private InvoiceViewMessage InvoiceViewMsg { get; set; }
-
-        private CheckPayMessage CheckPayMsg { get; set; }
-
-        private MethodOfObtainingMessage MethodOfObtainingMsg { get; set; }
-
-        /// <summary>
-        /// сообщение с кнопками оценок для отзыва к заказу от 1 до 5
-        /// </summary>
-        private RaitingMessage RaitingMsg { get; set; }
-
+      
         private int OrderId { get; set; }
 
         private Orders Order { get; set; }
@@ -80,10 +37,6 @@ namespace MyTelegramBot.Bot
         /// </summary>
         public const string SelectPickupPointCmd = "SelectPickupPoint";
 
-        /// <summary>
-        /// сообщение со списком пунктов самовывоза
-        /// </summary>
-        public PickupPointListMessage PickupPointListMsg { get; set; }
 
         /// <summary>
         /// Пользователь выбрал адрес доставки
@@ -118,7 +71,6 @@ namespace MyTelegramBot.Bot
 
         public const string CmdAddFeedBack = "AddFeedBack";
 
-        public const string MyOrdersListCmd = "MyOrdersList";
 
         public const string MyOrder = "/myorder";
 
@@ -130,7 +82,7 @@ namespace MyTelegramBot.Bot
         /// <summary>
         /// Выбран один из варинатов оплаты
         /// </summary>
-        public const string PaymentMethodCmd = "GetPaymentMethod";
+        public const string SelectPaymentMethodCmd = "SelectPaymentMethod";
 
         /// <summary>
         /// Список все доступных варинатов оплаты
@@ -175,6 +127,9 @@ namespace MyTelegramBot.Bot
 
         public const string CmdSaveFeedBack = "SaveFeedBack";
 
+        public const string CmdDebitCardСheckout = "DebitCardСheckout";
+
+      
 
         int AddressId { get; set; }
 
@@ -188,30 +143,22 @@ namespace MyTelegramBot.Bot
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             if (Update.Message != null && Update.Message.ReplyToMessage != null)
                 CommandName = Update.Message.ReplyToMessage.Text;
 
             try
             {
-                PaymentsMethodsListMsg = new PaymentsMethodsListMessage();
                 if (base.Argumetns.Count > 0)
                 {
                     OrderId = Argumetns[0];
-                    OrderViewMsg = new OrderViewMessage(this.OrderId);
-                    MyOrdersMsg = new MyOrdersMessage(base.FollowerId,BotInfo.Id);
                     using (MarketBotDbContext db = new MarketBotDbContext())
-                        Order = db.Orders.Where(o => o.Id == this.OrderId).Include(o => o.Confirm).
-                            Include(o => o.Done).Include(o => o.Delete).
+                        Order = db.Orders.Where(o => o.Id == this.OrderId).
                             Include(o => o.OrderProduct).Include(o => o.Follower).Include(o => o.FeedBack).Include(o=>o.Invoice).FirstOrDefault();
-                    CheckPayMsg = new CheckPayMessage(Order);
 
                 }
 
-                RequestPhoneNumberMsg = new RequestPhoneNumberMessage(base.FollowerId);
-                ViewShipAddressMsg = new AddressListMessage(base.FollowerId);
-                OrderPreviewMsg = new OrderTempMessage(base.FollowerId,BotInfo.Id);
 
             }
 
@@ -248,13 +195,13 @@ namespace MyTelegramBot.Bot
 
                 ///Пользвовательно нажал на кнопку "Комментарий к заказу"
                 case CmdOrderDesc:
-                    return await SendForceReplyAddDesc();
+                    return await base.SendForceReplyMessage(CmdEnterDesc);
 
                 /// Поользователь присал новый комментриай к заказу процитировав сообщение бота "Введите комментарий".
                 /// Коммент сохрнаятеся в бд,а После этого бот присылает
                 /// обновелнное описание заказа
                 case CmdEnterDesc:
-                    return await AddOrderTempDesc();
+                    return await AddCommentToOrderTmp();
 
                 //Пользователь нажал на кнопку "Отправить заказ"
                 case CmdOrderSave:
@@ -265,16 +212,12 @@ namespace MyTelegramBot.Bot
                     return await SelectAddressDelivery(Argumetns[0]);
 
                 //Пользователь нажал на один из доступных вариантов оплаты
-                case PaymentMethodCmd:
+                case SelectPaymentMethodCmd:
                     return await SelectPaymentMethod();
-
-                //Пользователь нажал на кнопку Мои заказы
-                case MyOrdersListCmd:
-                    return await SendMyOrderList();
 
                 //Пользователь записал свой ник в настройках, и нажал далее на картинке
                 case "VerifyUserName":
-                    return await UserNameCheck();
+                    return await AddUserName();
 
                 case "BackToMyOrder":
                    return await BackToOrder();
@@ -290,6 +233,9 @@ namespace MyTelegramBot.Bot
 
                 case CmdAddFeedBack:
                     return await SendFeedBackMyOrder(Argumetns[0]);
+
+                case CmdDebitCardСheckout:
+                    return await SendDebitCardInvoice();
 
                     //пользователь нажал на кнопку с товаром что бы добавить к нему отзыв
                 case CmdAddFeedBackProduct:
@@ -331,6 +277,12 @@ namespace MyTelegramBot.Bot
 
             if (base.OriginalMessage.Contains(AddCommentFeedBackForce))
                 return await SaveFeedBackComment();
+
+            if (Update.PreCheckoutQuery != null)
+                return await answerPreCheckoutOrder();
+
+            if (Update.Message!=null && Update.Message.SuccessfulPayment != null) // поступил платеж через банк. карту.
+                return await SuccessfulPaymentCreditCard();
 
             else
                 return null;

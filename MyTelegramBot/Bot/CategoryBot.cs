@@ -5,6 +5,7 @@ using Telegram.Bot.Types;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
@@ -25,7 +26,7 @@ namespace MyTelegramBot.Bot
            
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             try
             {
@@ -128,7 +129,7 @@ namespace MyTelegramBot.Bot
             
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> GetAllProduct()
@@ -138,7 +139,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         /// <summary>
@@ -153,7 +154,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
     }
 }

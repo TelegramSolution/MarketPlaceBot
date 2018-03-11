@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// CallBack сообщение с обновленным количеством товара в заказе
     /// </summary>
-    public class OrderPositionProccess: Bot.BotMessage
+    public class OrderPositionProccess: BotMessage
     {
         private int PositionId { get; set; }
 

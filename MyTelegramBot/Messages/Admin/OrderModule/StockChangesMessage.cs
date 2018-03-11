@@ -9,41 +9,61 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
+
+
 namespace MyTelegramBot.Messages.Admin
 {
     /// <summary>
     /// Сообщение с текущими остатками по товорам которые только что бы приобретены. 
     /// Это сообщение отсылается после того как Оператор нажал "Выполнено"
     /// </summary>
-    public class StockChangesMessage:Bot.BotMessage
+    public class StockChangesMessage:BotMessage
     {
-        private List<Stock> StockList { get; set; }
-        public StockChangesMessage(List<Stock> stock)
+        private List<IGrouping<Product, Stock>> StockList { get; set; }
+
+        MarketBotDbContext db { get; set; }
+
+        private InlineKeyboardCallbackButton OpenOrderBtn { get; set; }
+
+        private int OrderId { get; set; }
+        public StockChangesMessage(List<IGrouping<Product, Stock>> stock, int OrderID)
         {
             this.StockList = stock;
+            this.OrderId = OrderID;
         }
 
         public override BotMessage BuildMsg()
         {
-            int counter = 1;
-            base.TextMessage = Bold("Изменения в остатках:")+NewLine();
-            foreach (Stock s in StockList)
+            // db = new MarketBotDbContext();
+            if (StockList!=null && OrderId > 0)
             {
-                if (s.Product.Unit == null)
-                    using (MarketBotDbContext db = new MarketBotDbContext())
-                        s.Product.Unit = db.Units.Where(u => u.Id == s.Product.UnitId).FirstOrDefault();
+                base.TextMessage = Bold("Изменения в остатках:") + NewLine();
 
-                if(s.Balance>0)
-                base.TextMessage += counter.ToString() + ") " + s.Product.Name + " осталось " + s.Balance.ToString() + " " + s.Product.Unit.ShortName
-                     + " | " + s.DateAdd.ToString() + NewLine();
 
-                if(s.Balance<1)
-                    base.TextMessage += counter.ToString() + ") " + s.Product.Name + " осталось " + s.Balance.ToString() + " " + s.Product.Unit.ShortName
-                        + " | " + s.DateAdd.ToString() +Bold(" Обратите внимание! Пользователь не сможет добавить товар в корзину! ") + NewLine();
+                foreach (var group in StockList)
+                {
+                    base.TextMessage += NewLine() + base.BlueRhombus + group.Key.Name + " /adminproduct" + group.Key.Id.ToString() + NewLine() +
+                        Bold("Было:") + (group.OrderBy(s => s.Balance).LastOrDefault().Balance - group.OrderBy(s => s.Balance).LastOrDefault().Quantity).ToString()
+                        + " " + group.Key.Unit.ShortName + " " + NewLine() +
+                        Bold("Стало:") + group.OrderBy(s => s.Balance).FirstOrDefault().Balance + " " + group.Key.Unit.ShortName + " " + NewLine();
+                }
 
-                counter++;
+                OpenOrderBtn = BuildInlineBtn("Открыть заказ", BuildCallData(Bot.AdminModule.OrderProccesingBot.CmdOpenOrder, Bot.AdminModule.OrderProccesingBot.ModuleName, this.OrderId));
+
+                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                new[]{
+                    new[]
+                    {
+                        OpenOrderBtn
+                    },
+                    });
+
+                return this;
             }
-            return this;
+
+            else
+            return null;
         }
     }
 }

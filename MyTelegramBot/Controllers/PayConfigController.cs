@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Services;
 namespace MyTelegramBot.Controllers
 {
+    /// <summary>
+    /// настройка платежей. ПЕРЕДЕЛАТЬ!!!
+    /// </summary>
     [Produces("application/json")]
     public class PayConfigController : Controller
     {
         PaymentTypeConfig PaymentTypeConfig;
 
-        PaymentTypeEnum PaymentTypeEnum;
 
         MarketBotDbContext db;
 
@@ -19,13 +21,12 @@ namespace MyTelegramBot.Controllers
         {
             db = new MarketBotDbContext();
 
-            PaymentTypeEnum = PaymentTypeEnum.Qiwi;
 
             List<PaymentTypeConfig> list = new List<PaymentTypeConfig>();
 
-            list = db.PaymentTypeConfig.Where(p => p.PaymentId == PaymentType.GetTypeId(PaymentTypeEnum)).OrderByDescending(p => p.Id).ToList();
+            list = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI).OrderByDescending(p => p.Id).ToList();
 
-            PaymentType paymentType = db.PaymentType.Find(PaymentType.GetTypeId(PaymentTypeEnum));
+            PaymentType paymentType = db.PaymentType.Find(Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI);
 
             Tuple<List<PaymentTypeConfig>, PaymentType> model = new Tuple<List<PaymentTypeConfig>, PaymentType>(list, paymentType);
 
@@ -36,21 +37,19 @@ namespace MyTelegramBot.Controllers
         {
             db = new MarketBotDbContext();
 
-            PaymentTypeEnum =  PaymentTypeEnum.Litecoin;
 
-
-            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == PaymentType.GetTypeId(PaymentTypeEnum)).OrderByDescending(p => p.Id).FirstOrDefault();
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin).OrderByDescending(p => p.Id).FirstOrDefault();
 
             if (PaymentTypeConfig == null)
             {
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "9332",
                     Enable = true,
-                    PaymentId = PaymentType.GetTypeId(PaymentTypeEnum)
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Litecoin
                 };
 
             }
@@ -67,20 +66,18 @@ namespace MyTelegramBot.Controllers
         {
             db = new MarketBotDbContext();
 
-            PaymentTypeEnum = PaymentTypeEnum.BitcoinCash;
-
-            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == PaymentType.GetTypeId(PaymentTypeEnum)).OrderByDescending(p => p.Id).FirstOrDefault();
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.BitcoinCash).OrderByDescending(p => p.Id).FirstOrDefault();
 
             if (PaymentTypeConfig == null)
             {
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "8332",
                     Enable = true,
-                    PaymentId = PaymentType.GetTypeId(PaymentTypeEnum)
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.BitcoinCash
                 };
 
             }
@@ -97,20 +94,19 @@ namespace MyTelegramBot.Controllers
         {
             db = new MarketBotDbContext();
 
-            PaymentTypeEnum = PaymentTypeEnum.Bitcoin;
 
-            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == PaymentType.GetTypeId(PaymentTypeEnum)).OrderByDescending(p => p.Id).FirstOrDefault();
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Bitcoin).OrderByDescending(p => p.Id).FirstOrDefault();
 
             if (PaymentTypeConfig == null)
             {
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "8332",
                     Enable = true,
-                    PaymentId = PaymentType.GetTypeId(PaymentTypeEnum)
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Bitcoin
                 };
 
             }
@@ -127,20 +123,19 @@ namespace MyTelegramBot.Controllers
         {
             db = new MarketBotDbContext();
 
-            PaymentTypeEnum = PaymentTypeEnum.Doge;
 
-            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == PaymentType.GetTypeId(PaymentTypeEnum)).OrderByDescending(p => p.Id).FirstOrDefault();
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Doge).OrderByDescending(p => p.Id).FirstOrDefault();
 
             if (PaymentTypeConfig == null)
             {
                 PaymentTypeConfig = new PaymentTypeConfig
                 {
                     Host = "127.0.0.1",
-                    Login = "root",
-                    Pass = "toor",
+                    Login = "",
+                    Pass = "",
                     Port = "8332",
                     Enable = true,
-                    PaymentId = PaymentType.GetTypeId(PaymentTypeEnum)
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Doge
                 };
 
             }
@@ -149,6 +144,64 @@ namespace MyTelegramBot.Controllers
             ViewBag.Text = "В папке с установленными Doge Core создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 20гб)." +
                 "Содержимое бат файла:";
             ViewBag.Bat = "dogecoin-qt.exe -server -rest -rpcuser=root -rpcpassword=toor -rpcport=8332";
+
+            return View("CryptoCurrency", PaymentTypeConfig);
+        }
+
+        public IActionResult Dash()
+        {
+            db = new MarketBotDbContext();
+
+
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Dash).OrderByDescending(p => p.Id).FirstOrDefault();
+
+            if (PaymentTypeConfig == null)
+            {
+                PaymentTypeConfig = new PaymentTypeConfig
+                {
+                    Host = "127.0.0.1",
+                    Login = "",
+                    Pass = "",
+                    Port = "9999",
+                    Enable = true,
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Dash
+                };
+
+            }
+
+            ViewBag.Title = "Dash";
+            ViewBag.Text = "В папке с установленными Dash Core создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 10гб)." +
+                "Содержимое бат файла:";
+            ViewBag.Bat = "dash-qt.exe -server -rest -rpcuser=root -rpcpassword=toor -rpcport=9999";
+
+            return View("CryptoCurrency", PaymentTypeConfig);
+        }
+
+        public IActionResult Zcash()
+        {
+            db = new MarketBotDbContext();
+
+
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Zcash).OrderByDescending(p => p.Id).FirstOrDefault();
+
+            if (PaymentTypeConfig == null)
+            {
+                PaymentTypeConfig = new PaymentTypeConfig
+                {
+                    Host = "127.0.0.1",
+                    Login = "",
+                    Pass = "",
+                    Port = "9332",
+                    Enable = true,
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Zcash
+                };
+
+            }
+
+            ViewBag.Title = "Dash";
+            ViewBag.Text = "В папке с установленными zcash4win\\app создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 10гб)." +
+                "Содержимое бат файла:";
+            ViewBag.Bat = "zcashd.exe -server -rest -rpcuser=root -rpcpassword=123 -rpcport=9332 -rpcallowip=127.0.0.1";
 
             return View("CryptoCurrency", PaymentTypeConfig);
         }
@@ -188,26 +241,13 @@ namespace MyTelegramBot.Controllers
         [HttpPost]
         public IActionResult Save([FromBody] PaymentTypeConfig config)
         {
-            if(config!=null)
-                PaymentTypeEnum = PaymentType.GetPaymentTypeEnum(config.PaymentId);
 
-            if (config != null && config.Login == ""  && PaymentTypeEnum == PaymentTypeEnum.Qiwi)
+            if (config != null && config.Login == ""  && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
                 return Json("Заполните поле Номер телефона");
 
-            if (config != null && config.Pass == "" && PaymentTypeEnum == PaymentTypeEnum.Qiwi)
+            if (config != null && config.Pass == "" && config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
                 return Json("Заполните поле Токен доступа");
 
-            if (config != null && config.Pass == "" && PaymentTypeEnum == PaymentTypeEnum.Litecoin)
-                return Json("Заполните поле Пароль");
-
-            if (config != null && config.Login == "" && PaymentTypeEnum == PaymentTypeEnum.Litecoin)
-                return Json("Заполните поле Логин");
-
-            if (config != null && config.Host == "" && PaymentTypeEnum == PaymentTypeEnum.Litecoin)
-                return Json("Заполните поле Адрес RPC сервера");
-
-            if (config != null && config.Port == "" && PaymentTypeEnum == PaymentTypeEnum.Litecoin)
-                return Json("Заполните поле Порт RPC сервера");
 
             if (config != null && SaveChanges(config)>=0)
                 return Json("Сохранено");
@@ -276,7 +316,7 @@ namespace MyTelegramBot.Controllers
                     Pass = token,
                     Port = "80",
                     Enable = true,
-                    PaymentId = PaymentType.GetTypeId(PaymentTypeEnum.Qiwi)
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI
                 };
 
                 db.PaymentTypeConfig.Add(PaymentTypeConfig);
@@ -360,10 +400,8 @@ namespace MyTelegramBot.Controllers
         [HttpPost]
         public async Task<IActionResult> TestConnection([FromBody] PaymentTypeConfig config)
         {
-            if (config != null)
-                PaymentTypeEnum = PaymentType.GetPaymentTypeEnum(config.PaymentId);
 
-            if (PaymentTypeEnum == PaymentTypeEnum.Qiwi)
+            if (config.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI)
             {
                 if (await Services.Qiwi.QiwiFunction.TestConnection(config.Login, config.Pass))
                     return new JsonResult("Успех");
@@ -372,26 +410,14 @@ namespace MyTelegramBot.Controllers
                     return new JsonResult("Ошибка соединения");
             }
 
-            if (PaymentTypeEnum != PaymentTypeEnum.Qiwi && config!=null)
+            if (config.PaymentId != Bot.Core.ConstantVariable.PaymentTypeVariable.QIWI && config!=null)
             {
                 string FirstBlockHash = String.Empty;
 
-                if (PaymentTypeEnum == PaymentTypeEnum.Litecoin)
-                    FirstBlockHash = "80ca095ed10b02e53d769eb6eaf92cd04e9e0759e5be4a8477b42911ba49c78f";
-
-                if (PaymentTypeEnum == PaymentTypeEnum.BitcoinCash)
-                    FirstBlockHash = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048";
-
-                if (PaymentTypeEnum == PaymentTypeEnum.Doge)
-                    FirstBlockHash = "82bc68038f6034c0596b6e313729793a887fded6e92a31fbdf70863f89d9bea2";
-
-                if(PaymentTypeEnum==PaymentTypeEnum.Bitcoin)
-                    FirstBlockHash = "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048";
-
                 Services.BitCoinCore.BitCoin ltc = new Services.BitCoinCore.BitCoin(config.Login, config.Pass, config.Host, config.Port);
-                var block = ltc.GetBlockInfo<Services.BitCoinCore.BlockInfo>(FirstBlockHash);
+                var block = ltc.GetInfo<Services.BitCoinCore.GetInfo>();
 
-                if (block != null)
+                if (block != null && block.result!=null && block.result.blocks>0)
                     return new JsonResult("Успех");
 
                 else

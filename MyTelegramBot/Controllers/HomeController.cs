@@ -30,7 +30,7 @@ namespace MyTelegramBot.Controllers
 
             db = new MarketBotDbContext();
 
-            string name = GetBotName();
+            string name = Bot.GeneralFunction.GetBotName();
 
             if (name != null)
             {
@@ -83,7 +83,7 @@ namespace MyTelegramBot.Controllers
             if (db == null)
                 db = new MarketBotDbContext();
 
-            if (_configuration.Delivery == false && _configuration.Delivery == false)
+            if (_configuration.Delivery == false && _configuration.Pickup == false)
                 return Json("Должен быть доступен хотя бы один способ получения заказов");
 
             if(_configuration!=null)
@@ -176,7 +176,9 @@ namespace MyTelegramBot.Controllers
         {
             db = new MarketBotDbContext();
 
-            var bot = db.BotInfo.Where(b => b.Name == GetBotName()).FirstOrDefault();
+            string name = Bot.GeneralFunction.GetBotName();
+
+            var bot = db.BotInfo.Where(b => b.Name == name).FirstOrDefault();
 
             if (bot != null)
             {
@@ -328,14 +330,7 @@ namespace MyTelegramBot.Controllers
             return adminKey;
         }
 
-        private string GetBotName()
-        {
-            var builder = new ConfigurationBuilder()
-            .SetBasePath(System.IO.Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json");
-            string name = builder.Build().GetSection("BotName").Value;
-            return name;
-        }
+
 
         private Telegram.Bot.Types.FileToSend ConvertToFileToSend (IFormFile file)
         {

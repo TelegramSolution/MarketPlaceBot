@@ -11,6 +11,7 @@ namespace MyTelegramBot
         {
             OrderProduct = new HashSet<OrderProduct>();
             OrdersInWork = new HashSet<OrdersInWork>();
+            FeedBack = new HashSet<FeedBack>();
         }
 
         public int Id { get; set; }
@@ -21,21 +22,27 @@ namespace MyTelegramBot
         public bool? Paid { get; set; }
         public int? BotInfoId { get; set; }
         public int? InvoiceId { get; set; }
-        public int? ConfirmId { get; set; }
-        public int? DeleteId { get; set; }
-        public int? DoneId { get; set; }
+
         public int? PickupPointId { get; set; }
 
         public int? CurrentStatus { get; set; }
 
         public BotInfo BotInfo { get; set; }
-        public OrderHistory Confirm { get; set; }
-        public OrderHistory Delete { get; set; }
-        public OrderHistory Done { get; set; }
+
         public Follower Follower { get; set; }
+
         public Invoice Invoice { get; set; }
+
         public PickupPoint PickupPoint { get; set; }
-        public FeedBack FeedBack { get; set; }
+
+        /// <summary>
+        /// флаг  указывающий на то, что после выполнения заказа, остатки на складе были обнавлены
+        /// </summary>
+        public bool StockUpdate { get; set; }
+        public ICollection<FeedBack> FeedBack
+        {
+            get; set;
+        }
         public OrderAddress OrderAddress { get; set; }
         public ICollection<OrderProduct> OrderProduct { get; set; }
         public ICollection<OrdersInWork> OrdersInWork { get; set; }
@@ -57,10 +64,10 @@ namespace MyTelegramBot
                     counter++;
 
                     if (p.Product == null)
-                        p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.ProductPrice).FirstOrDefault();
+                        p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.CurrentPrice).FirstOrDefault();
 
                     if (p.Price == null)
-                        p.Price = p.Product.ProductPrice.FirstOrDefault();
+                        p.Price = p.Product.CurrentPrice;
 
 
                     total += p.Price.Value * p.Count;
@@ -119,10 +126,10 @@ namespace MyTelegramBot
                         counter++;
 
                         if (p.Product == null)
-                            p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.ProductPrice).FirstOrDefault();
+                            p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.CurrentPrice).FirstOrDefault();
 
                         if (p.Price == null)
-                            p.Price = p.Product.ProductPrice.FirstOrDefault();
+                            p.Price = p.Product.CurrentPrice;
 
                         total += p.Price.Value * p.Count;
                     }
@@ -186,7 +193,8 @@ namespace MyTelegramBot
 
                     Positions += counter.ToString() + ") " + pos.FirstOrDefault().Product.Name + " " + pos.FirstOrDefault().Price.Value.ToString() +
                         pos.FirstOrDefault().Price.Currency.ShortName + " x " + pos.Count().ToString() + " " + pos.FirstOrDefault().Product.Unit.ShortName + " = "
-                        + (pos.Count() + pos.FirstOrDefault().Price.Value).ToString() + " " + pos.FirstOrDefault().Price.Currency.ShortName + "\r\n";
+                        + (pos.Count() * pos.FirstOrDefault().Price.Value).ToString() + " " + pos.FirstOrDefault().Price.Currency.ShortName + "\r\n";
+                    counter++;
                 }
 
                 return Positions;
@@ -201,6 +209,66 @@ namespace MyTelegramBot
             {
                 db.Dispose();
             }
+        }
+
+        /// <summary>
+        /// После того как заказ выполнен, обновяем данные на складе
+        /// </summary>
+        /// <returns>возвращает ассоциативный массив Ид продукта - > массив вставленных в таблицу Stock значений</returns>
+        public List<IGrouping<Product, Stock>> UpdateStock()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            List<Stock> list = new List<Stock>();
+
+            List<IGrouping<Product, Stock>> result=new List<IGrouping<Product, Stock>>();
+
+
+                if (OrderProduct == null || OrderProduct != null && OrderProduct.Count == 0)
+                    OrderProduct = db.OrderProduct.Where(op => op.OrderId == Id).ToList();
+
+                if(!StockUpdate && OrderProduct!=null && OrderProduct.Count > 0)
+                {
+                    
+                    foreach(OrderProduct op in OrderProduct)
+                    {
+                        var last = db.Stock.Where(s => s.ProductId == op.ProductId).LastOrDefault().Balance;
+
+                        if (op.Product == null)
+                            op.Product = db.Product.Where(p=>p.Id==op.ProductId).Include(o=>o.Unit).FirstOrDefault();
+
+                        Stock stock = new Stock
+                        {
+                            Balance = last - op.Count,
+                            Quantity = -op.Count,
+                            DateAdd = DateTime.Now,
+                            Text = "Заказ " + Number.ToString(),
+                            ProductId=op.ProductId
+
+                        };
+
+                        db.Stock.Add(stock);
+
+                        db.SaveChanges();
+
+                        list.Add(stock);
+                    }
+
+                    this.StockUpdate = true;
+
+                    db.Update<Orders>(this);
+
+                    db.SaveChanges();
+
+                    result = list.GroupBy(s => s.Product).ToList();
+                
+
+                db.Dispose();
+                return result;
+            }
+
+            else
+                return null;
         }
     }
 }

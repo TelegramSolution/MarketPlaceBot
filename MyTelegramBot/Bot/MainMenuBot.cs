@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
@@ -21,7 +22,7 @@ namespace MyTelegramBot.Bot
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             MainMenuMsg = new MainMenuBotMessage();
             ContactMsg = new ContactMessage();
@@ -47,6 +48,7 @@ namespace MyTelegramBot.Bot
             else return null;
         }
 
+
         private async Task<IActionResult> SendMainMenu(int MessageId=0)
         {
             AddUser();
@@ -54,7 +56,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> SendContactList()
@@ -63,7 +65,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private void AddUser()

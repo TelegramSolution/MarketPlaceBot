@@ -18,5 +18,7 @@ namespace MyTelegramBot
 
         public ICollection<Configuration> Configuration { get; set; }
         public ICollection<ProductPrice> ProductPrice { get; set; }
+
+
     }
 }

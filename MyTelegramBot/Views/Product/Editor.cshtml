@@ -47,8 +47,9 @@
                 <p>
     
                     <label>Стоимость</label><br />
-    
-                    <input type="text" name=ProductPrice[0].Value value=@Model.ProductPrice.FirstOrDefault().Value class="form-control" />
+                @Html.TextBoxFor(m=>m.CurrentPrice.Value, new { @class = "form-control" })
+                    @Html.HiddenFor(m=>m.CurrentPrice.ProductId)
+                   @*<input type="text" name=ProductPrice[0].Value value=@Model.CurrentPrice.Value class="form-control" />*@ 
 
             </p>
 
@@ -56,17 +57,17 @@
                 <label>Валюта</label><br />
                 @*@Html.DropDownListFor(Model => Model.ProductPrice.FirstOrDefault().CurrencyId, ViewBag.Currency as SelectList, new { @class = "form-control" , @name= "ProductPrice[0].CurrencyId" })*@
 
-                @if (@Model.ProductPrice.FirstOrDefault().CurrencyId == 1)
+                @if (@Model.CurrentPrice.CurrencyId == 1)
                 {
-                    <select class="form-control" id="ProductPrice[0].CurrencyId" name="ProductPrice[0].CurrencyId" disabled="disabled">
+                    <select class="form-control" id="CurrentPrice.CurrencyId" name="CurrentPrice.CurrencyId" disabled="disabled">
                         <option selected="selected" value="1">&#x420;&#x443;&#x431;&#x43B;&#x44C;</option>
                         <option value="2">&#x413;&#x440;&#x438;&#x432;&#x43D;&#x430;</option> 
                     </select>
                 }
 
-                @if (@Model.ProductPrice.FirstOrDefault().CurrencyId == 2)
+                @if (@Model.CurrentPrice.CurrencyId == 2)
                 {
-                    <select class="form-control" id="ProductPrice[0].CurrencyId" name="ProductPrice[0].CurrencyId" disabled="disabled">
+                    <select class="form-control" id="CurrentPrice.CurrencyId" name="CurrentPrice.CurrencyId" disabled="disabled">
                         <option selected="selected" value="2">&#x413;&#x440;&#x438;&#x432;&#x43D;&#x430;</option>
                         <option value="1">&#x420;&#x443;&#x431;&#x43B;&#x44C;</option>
                     </select>
@@ -82,11 +83,6 @@
             <p>
                 <label>Категория</label><br />
                 @Html.DropDownListFor(Model => Model.CategoryId, ViewBag.Category as SelectList, new { @class = "form-control" })
-            </p>
-
-            <p>
-                <label>Ссылка на фотографию для Inline режима</label><br />
-                @Html.TextBoxFor(m => m.PhotoUrl, new { @class = "form-control" })
             </p>
 
             <p>

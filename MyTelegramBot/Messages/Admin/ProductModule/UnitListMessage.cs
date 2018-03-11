@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types.InlineQueryResults;
 using MyTelegramBot.Bot;
 using Newtonsoft.Json;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {

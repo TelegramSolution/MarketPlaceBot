@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot
 {
@@ -67,13 +68,13 @@ namespace MyTelegramBot
                     Count && Price.Currency != null)
                     return Product.Name + " " + Price.Value.ToString() + " " + Price.Currency.ShortName +
                         " x " + Count.ToString() + " " + Product.Unit.ShortName + " = " + (Count * Price.Value).ToString() + " " + Price.Currency.ShortName
-                        + " |" + Bot.BotMessage.Bold("в наличии: " + Product.Stock.FirstOrDefault().Balance.ToString() + " " + Product.Unit.ShortName);
+                        + " |" + BotMessage.Bold("в наличии: " + Product.Stock.FirstOrDefault().Balance.ToString() + " " + Product.Unit.ShortName);
 
                 //в наличии 0
                 if (Price != null && Product != null && Product.Unit != null && Product.Stock.Count == 0 && Price.Currency != null)
                     return Product.Name + " " + Price.Value.ToString() + " " + Price.Currency.ShortName +
                         " x " + Count.ToString() + " " + Product.Unit.ShortName + " = " + (Count * Price.Value).ToString() + " " + Price.Currency.ShortName
-                        + " |" + Bot.BotMessage.Bold(" в наличии: 0 " + Product.Unit.ShortName);
+                        + " |" + BotMessage.Bold(" в наличии: 0 " + Product.Unit.ShortName);
 
                 else
                     return String.Empty;

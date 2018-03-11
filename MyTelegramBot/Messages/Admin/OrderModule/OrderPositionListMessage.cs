@@ -6,6 +6,7 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types.ReplyMarkups;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -37,23 +38,24 @@ namespace MyTelegramBot.Messages.Admin
                 OrderNumber = db.Orders.Where(o => o.Id == OrderId).FirstOrDefault().Number;
             }
 
+            var group = OrderProductList.GroupBy(p => p.ProductId).ToList(); // групируем по товару
+
             if (OrderProductList != null)
             {
-                int Amount = OrderProductList.Count();
 
-                PostitionsBtn = new InlineKeyboardCallbackButton[Amount + 1][];
+                PostitionsBtn = new InlineKeyboardCallbackButton[group.Count() + 1][];
                 base.BackBtn = new InlineKeyboardCallbackButton("Назад",BuildCallData("BackToOrder", OrderBot.ModuleName, OrderId));
 
                 int Counter = 0;
 
-                foreach (var product in OrderProductList)
+                foreach (var product in group)
                 {
                     PostitionsBtn[Counter] = new InlineKeyboardCallbackButton[1];
-                    PostitionsBtn[Counter][0] = ProductPosition(product.Id, (Counter + 1).ToString() + ") " + product.Product.Name + " - " + product.Count.ToString() + " шт.");
+                    PostitionsBtn[Counter][0] = ProductPosition(product.Key, (Counter + 1).ToString() + ") " + product.FirstOrDefault().Product.Name + " - " + product.Count().ToString() + " шт.");
                     Counter++;
                 }
-                PostitionsBtn[Amount] = new InlineKeyboardCallbackButton[1];
-                PostitionsBtn[Amount][0] = BackBtn;
+                PostitionsBtn[PostitionsBtn.Length-1] = new InlineKeyboardCallbackButton[1];
+                PostitionsBtn[PostitionsBtn.Length-1][0] = BackBtn;
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(PostitionsBtn);
                 base.TextMessage = "Изменить содержание заказа "+ OrderNumber.ToString();
             }

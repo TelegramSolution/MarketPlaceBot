@@ -7,6 +7,8 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using System.Security.Cryptography;
 using System.Text;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Messages
 {
@@ -55,15 +57,15 @@ namespace MyTelegramBot.Messages
         public override BotMessage BuildMsg()
         {
             
-            db = new MarketBotDbContext();
+            if (FeedBack == null && FeedBackId>0)
+                FeedBack = FeedbackFunction.GetFeedBack(FeedBackId);
 
-            if (FeedBackId > 0) // отзыв уже сохранен в базе
+            if (FeedBack!=null && FeedBack.Id > 0) // отзыв уже сохранен в базе
             {
-                FeedBack = db.FeedBack.Where(f => f.Id == FeedBackId).Include(f => f.Product).FirstOrDefault();
                 Product = FeedBack.Product;
                 BackBtn = BuildInlineBtn("Назад", BuildCallData(Bot.OrderBot.CmdBackFeedBackView, Bot.OrderBot.ModuleName,Convert.ToInt32(FeedBack.OrderId),FeedBackId));
-                SaveBtn = BuildInlineBtn("Сохранить", BuildCallData(Bot.OrderBot.CmdSaveFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBackId),base.DoneEmodji);
-                AddCommentBtn = BuildInlineBtn("Добавить комментарий", BuildCallData(Bot.OrderBot.CmdAddCommentFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBackId),base.PenEmodji);
+                SaveBtn = BuildInlineBtn("Сохранить", BuildCallData(Bot.OrderBot.CmdSaveFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBack.Id),base.DoneEmodji);
+                AddCommentBtn = BuildInlineBtn("Добавить комментарий", BuildCallData(Bot.OrderBot.CmdAddCommentFeedBack, Bot.OrderBot.ModuleName, Convert.ToInt32(FeedBack.OrderId), FeedBack.Id),base.PenEmodji);
                 base.TextMessage =base.BlueRhombus+ "Название товара:" + Product.Name + NewLine() +
                     Bold("Оценка:") + FeedBack.RaitingValue + NewLine() +
                     Bold("Время:") + FeedBack.DateAdd.ToString() + NewLine() +
@@ -83,8 +85,9 @@ namespace MyTelegramBot.Messages
                 });
             }
 
-            if(FeedBackId==0 && OrderId>0 && ProductId > 0) //отзыва еще нет
+            if(FeedBack==null && OrderId>0 && ProductId > 0) //отзыва еще нет
             {
+                db = new MarketBotDbContext();
                 Product = db.Product.Find(ProductId);
                 BackBtn = BuildInlineBtn("Назад", BuildCallData(Bot.OrderBot.CmdBackFeedBackView, Bot.OrderBot.ModuleName, OrderId));
                 RaitingBtns = new InlineKeyboardCallbackButton[5];
@@ -107,6 +110,7 @@ namespace MyTelegramBot.Messages
                                     },
                                 
                 });
+                db.Dispose();
             }
 
             return this;

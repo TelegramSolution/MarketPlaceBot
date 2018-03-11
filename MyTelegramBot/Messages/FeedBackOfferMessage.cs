@@ -6,13 +6,14 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Предложение оставить отзыв к заказу
     /// </summary>
-    public class FeedBackOfferMessage:Bot.BotMessage
+    public class FeedBackOfferMessage:BotMessage
     {
         private int OrderId { get; set; }
 
@@ -92,7 +93,7 @@ namespace MyTelegramBot.Messages
             {
                 SavedFeedBack+=counter.ToString() + ") " + feed.Product.Name + NewLine()+
                     Bold("Оценка:") + feed.RaitingValue.ToString() + NewLine() +
-                    Bold("Комментарий:") + feed.Text + NewLine();
+                    Bold("Комментарий:") + feed.Text + NewLine() + NewLine();
             }
 
             base.MessageReplyMarkup = new InlineKeyboardMarkup(FeedBackProductsBtn);

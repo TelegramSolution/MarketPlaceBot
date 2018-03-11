@@ -5,7 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Bot\AdminModule\HelpProcess.cs" />
     <Compile Remove="Bot\AdminModule\ImportCSVBot.cs" />
+    <Compile Remove="Bot\Order\InsertNewOrder.cs" />
+    <Compile Remove="Controllers\OrderController.cs" />
+    <Compile Remove="InlineResult\AdditionalProductPhotoSearchInline.cs" />
     <Compile Remove="Messages\MethodOfObtainingInfoMessage.cs" />
     <Compile Remove="Model\CustomExceptionFilterAttribute.cs" />
   </ItemGroup>
@@ -34,6 +38,7 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.6.16" />
     <PackageReference Include="jQuery" Version="3.2.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.4" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.Design" Version="1.1.3" />
@@ -57,9 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="db.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Files\Пример.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

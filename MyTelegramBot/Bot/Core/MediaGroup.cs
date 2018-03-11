@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace MyTelegramBot.Bot
+namespace MyTelegramBot.Bot.Core
 {
     public class MediaGroup
     {

@@ -9,37 +9,13 @@ using System.IO;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
     public class AdminBot : BotCore
     {
         public const string ModuleName = "Admin";
-
-        private AdminPanelCmdMessage AdminCmdListMsg { get; set; }
-
-        private CategoryListMessage CategoryListMsg { get; set; }
-
-        private AdminProductListMessage AdminProductListMsg { get; set; }
-
-        private AdminProductFuncMessage AdminProductFuncMsg { get; set; }
-
-        private ContactEditMessage ContactEditMsg { get; set; }
-
-        private AdminAllProductsViewMessage AdminAllProductsViewMsg { get; set; }
-
-        private AdminCurrentStockMessage AdminCurrentStockMsg { get; set; }
-
-        private AdminPayMethodsSettings AdminPayMethodsSettingsMsg { get; set; }
-
-        private AdminQiwiSettingsMessage AdminQiwiSettingsMsg { get; set; }
-
-        private StatisticMessage StatisticMsg { get; set; }
-
-        private AdminControlMessage AdminControlMsg { get; set; }
-
-        private AvailableCitiesMessage AvailableCitiesMsg { get; set; }
-
 
         public const string ProductCreateCmd = "ProductCreate";
 
@@ -61,31 +37,15 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private const string AdminKeyCmd = "/adminkey";
 
-        public const string ImportCsvCmd = "ImportCsv";
+        /// <summary>
+        /// заблокировать
+        /// </summary>
+        public const string BlockFollowerCmd = "BlockFollower";
 
-        public const string OrderExportCmd = "OrderExport";
-
-        public const string StockExportCmd = "StockExport";
-
-        public const string NoConfirmOrderCmd = "NoConfirmOrder";
-
-        public const string ContactEditCmd = "ContactEdit";
-
-        public const string VkEditCmd = "VkEdit";
-
-        public const string InstagramEditCmd = "InstagramEdit";
-
-        public const string ChatEditCmd = "ChatEdit";
-
-        public const string ChannelEditCmd = "ChannelEdit";
-
-        private const string ForceReplyVk = "Vk.com";
-
-        private const string ForceReplyInstagram = "Instagram.com";
-
-        private const string ForceReplyChat = "Чат";
-
-        private const string ForceReplyChannel = "Канал";
+        /// <summary>
+        /// Разблокировать
+        /// </summary>
+        public const string UnBlockFollowerCmd = "UnBlockFollower";
 
         public const string PaymentTypeEnableCmd = "PaymentTypeEnable";
 
@@ -113,6 +73,33 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private const string OwnerReg = "/owner";
 
+        public const string ViewFollowerListCmd = "ViewFollowerList";
+
+        public const string ViewOrdersListCmd = "ViewOrderList";
+
+        public const string ViewPaymentsListCmd = "ViewPaymentsList";
+
+        public const string ViewCitiesCmd = "ViewCities";
+
+        public const string ViewOperatosCmd = "ViewOperatos";
+
+        public const string ViewPickupPointCmd = "ViewPickupPoint";
+
+        public const string AddPickupPoint = "/addpickuppoint";
+
+        public const string AddPickupPointForceReply = "Добавить пункт самовывоза";
+
+        public const string EnablePickUpPointCmd = "/pickupenable";
+
+        public const string DisablePickUpPointCmd = "/pickupdisable";
+
+        public const string ViewStockProdCmd = "ViewStockProd";
+
+        public const string StockHistoryProudctCmd="/stockhistory";
+
+        public const string BlockUserCmd = "/userblock";
+
+        public const string UnblockUserCmd = "/userunblock";
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -120,25 +107,14 @@ namespace MyTelegramBot.Bot.AdminModule
           
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             try
             {
-                AdminQiwiSettingsMsg = new AdminQiwiSettingsMessage();
-                AdminCmdListMsg = new AdminPanelCmdMessage(base.FollowerId);
-                ContactEditMsg = new ContactEditMessage();
-                AdminAllProductsViewMsg = new AdminAllProductsViewMessage();
-                AdminCurrentStockMsg = new AdminCurrentStockMessage();
-                AdminPayMethodsSettingsMsg = new AdminPayMethodsSettings();
-                AdminControlMsg = new AdminControlMessage();
-                StatisticMsg = new StatisticMessage();
-                AvailableCitiesMsg = new AvailableCitiesMessage();
                 
                 if (base.Argumetns.Count > 0)
                 {
                     Parametr = base.Argumetns[0];
-                    AdminProductListMsg = new AdminProductListMessage(this.Parametr);
-                    AdminProductFuncMsg = new AdminProductFuncMessage(Parametr);
                 }
 
 
@@ -164,11 +140,6 @@ namespace MyTelegramBot.Bot.AdminModule
                         case BackToAdminPanelCmd:
                             return await BackToAdminPanel();
 
-                        case NoConfirmOrderCmd:
-                            return await NoConfirmOrder();
-
-                        case "/stockexport":
-                            return await StockExport();
 
                         case "/allprod":
                             return await SendAllProductsView();
@@ -182,58 +153,50 @@ namespace MyTelegramBot.Bot.AdminModule
                         case "/off":
                             return await OnOffPrivateMessage(false);
 
-                        default:
+
+                        case ViewOrdersListCmd:
+                            return await SendOrderList();
+
+                    case ViewStockProdCmd:
+                        return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
+
+                    case BlockFollowerCmd:
+                        return await BlockUser();
+
+                    case UnBlockFollowerCmd:
+                        return await UnBlockUser();
+
+                    default:
                             break;
                     }
-                
+
+                if (base.CommandName.Contains(StockHistoryProudctCmd))
+                    await SendProductStockHistory(Convert.ToInt32(base.CommandName.Substring(StockHistoryProudctCmd.Length)));
+
+
             }
 
             if (IsOwner())
             {
                 switch (base.CommandName)
                 {
+                    case ViewFollowerListCmd:
+                        return await SendFollowerList();
 
-                    //Пользователь нажал на кнопку "Добавить товар", ему пришло Сообщение с иструкцией по добавлению
-                    case "/newprod":
-                        return await SendInsertProductFAQ();
+                    case ViewPickupPointCmd:
+                        return await SendPickupPointList();
 
-                    //Пользователь нажал на "Изменить товар", ему пришло сообещние с выбором категории
-                    case ProductEditCmd:
-                        return await EditProduct();
 
-                    //Пользователь нажал на кнопку "Импорт из CSV" ему пришло сообщение с интрукцией
-                    case "/import":
-                        return await SendImportFAQ();
+                    case AddPickupPoint: // пользователь нажал на кнопку добавить пункт самовывоза
+                        return await SendForceReplyMessage(AddPickupPointForceReply);
 
-                    case ContactEditCmd:
-                        return await ContactEdit();
-
-                    case VkEditCmd:
-                        return await ForceReplyBuilder(ForceReplyVk);
-
-                    case InstagramEditCmd:
-                        return await ForceReplyBuilder(ForceReplyInstagram);
-
-                    case ChatEditCmd:
-                        return await ForceReplyBuilder(ForceReplyChat);
-
-                    case ChannelEditCmd:
-                        return await ForceReplyBuilder(ForceReplyChannel);
-
-                    case "/export":
-                        return await OrderExport();
 
                     case PayMethodsListCmd:
                         return await SendPaymentMethods();
 
-                    case PaymentTypeEnableCmd:
-                        return await PaymentMethodEnable();
 
-                    case StatCmd:
-                        return await SendStat();
-
-                    case "/operators":
-                        return await SendOperatorList();
+                    case ViewOperatosCmd:
+                        return await SendOperatorList(MessageId);
 
                     case "GenerateKey":
                         return await GenerateKey();
@@ -241,14 +204,16 @@ namespace MyTelegramBot.Bot.AdminModule
                     case AddGroup:
                        return await AddBotToChat();
 
-                    case "/cities":
-                        return await SendAvailableCities();
+                    case ViewCitiesCmd:
+                        return await SendAvailableCities(base.MessageId);
 
                     case "/newcity":
-                        return await ForceReplyBuilder("Введите название города");
+                        return await SendForceReplyMessage("Введите название города");
 
                     case "GetCategoryStock":
                         return await SendCurrentStock(Argumetns[0],MessageId);
+
+                   
 
                     default:
                         break;
@@ -260,21 +225,18 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(RemoveAvailableCityCmd))
                     return await RemoveAvailableCity();
 
-                if (base.OriginalMessage.Contains(ForceReplyVk))
-                    return await UpdateVk();
-
-                if (base.OriginalMessage.Contains(ForceReplyInstagram))
-                    return await UpdateInstagram();
-
-                if (base.OriginalMessage.Contains(ForceReplyChat))
-                    return await UpdateChat();
-
-                if (base.OriginalMessage.Contains(ForceReplyChannel))
-                    return await UpdateChannel();
 
                 if (base.CommandName.Contains(RemoveOperatorCmd))
                     return await RemoveOperator();
 
+                if (base.OriginalMessage.Contains(AddPickupPointForceReply))
+                    return await InsertPicupPoint();
+
+                if (base.CommandName.Contains(EnablePickUpPointCmd))
+                    return await EnablePickUpPoint(EnablePickUpPointCmd);
+
+                if (base.CommandName.Contains(DisablePickUpPointCmd))
+                    return await EnablePickUpPoint(DisablePickUpPointCmd);
 
 
                 else
@@ -293,6 +255,182 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+
+        /// <summary>
+        /// заблокировать пользователя
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> BlockUser()
+        {
+            var follower = BusinessLayer.FollowerFunction.Block(Argumetns[0]);
+
+            if (follower!=null)
+            {
+                BotMessage = new FollowerControlMessage(follower);
+                await EditMessage(BotMessage.BuildMsg());
+
+                //уведомим струдников 
+                string message = "Пользователь " + follower.FirstName + " " + follower.LastName + " Заблокирован." + BotMessage.NewLine() +
+                                "Оператор:" + GeneralFunction.FollowerFullName(FollowerId);
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
+            }
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Разблокировать пользо
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> UnBlockUser()
+        {
+            var follower = BusinessLayer.FollowerFunction.UnBlock(Argumetns[0]);
+
+            if (follower != null)
+            {
+                BotMessage = new FollowerControlMessage(follower);
+                await EditMessage(BotMessage.BuildMsg());
+
+                //уведомим струдников 
+                string message = "Пользователь " + follower.FirstName + " " + follower.LastName + " Разблокирован." + BotMessage.NewLine() +
+                                "Оператор:" + GeneralFunction.FollowerFullName(FollowerId);
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
+            }
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendProductStockHistory(int ProductId,int PageNumber=1,int MessageId=0)
+        {
+            if (ProductId>0)
+                BotMessage = new ProductStockHistoryMessage(ProductId, PageNumber);
+
+            var mess = BotMessage.BuildMsg();
+
+            if (mess != null)
+                await SendMessage(mess, MessageId);
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> EnablePickUpPoint(string Command)
+        {
+            int id =Convert.ToInt32(base.CommandName.Substring(Command.Length));
+
+            using(MarketBotDbContext db=new MarketBotDbContext())
+            {
+                var pickup = db.PickupPoint.Find(id);
+
+                if (pickup != null && pickup.Enable == false)
+                {
+                    pickup.Enable = true;
+                    db.SaveChanges();
+                    return await SendPickupPointList();
+                }
+
+                if (pickup != null && pickup.Enable)
+                {
+                    pickup.Enable = false;
+                    db.SaveChanges();
+                    return await SendPickupPointList();
+                }
+
+
+                else
+                    await SendPickupPointList();
+
+                return OkResult;
+            }
+        }
+
+        private async Task<IActionResult> InsertPicupPoint()
+        {
+            using (MarketBotDbContext db=new MarketBotDbContext())
+            {
+                if (db.PickupPoint.Where(p => p.Name == ReplyToMessageText).FirstOrDefault() == null)
+                {
+                    PickupPoint pickupPoint = new PickupPoint
+                    {
+                        Enable = true,
+                        Name = ReplyToMessageText,
+
+                    };
+
+                    db.PickupPoint.Add(pickupPoint);
+                    db.SaveChanges();
+                    await SendPickupPointList();
+                }
+
+                else
+                {
+                    await SendMessage(new BotMessage { TextMessage = "Уже существует" });
+                    await SendPickupPointList();
+                }
+
+                return OkResult;
+            }
+        }
+
+        private async Task<IActionResult> SendPickupPointList(int MessageId=0)
+        {
+            if (Argumetns!=null && Argumetns.Count > 0)
+                BotMessage = new PickUpPointListMessage(Argumetns[0]);
+
+            else
+                BotMessage = new PickUpPointListMessage();
+
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
+
+            return OkResult;
+
+        }
+
+        /// <summary>
+        /// Отправить список всех заказов
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendOrderList()
+        {
+            if (Argumetns != null && Argumetns.Count > 0)
+                BotMessage = new OrdersListMessage(Argumetns[0]);
+
+            else
+                BotMessage = new OrdersListMessage();
+
+            var mess = BotMessage.BuildMsg();
+
+            if (mess != null)
+                await EditMessage(mess);
+
+            else
+                await AnswerCallback("Данные отсутствуют", true);
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Отправить список всех пользователей
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendFollowerList()
+        {
+            if (Argumetns != null && Argumetns.Count>0)
+                BotMessage = new FollowerListMessage(Argumetns[0]);
+
+            else
+                BotMessage = new FollowerListMessage();
+
+            var mess = BotMessage.BuildMsg();
+
+            if (mess != null)
+                await EditMessage(mess);
+
+            else
+                await AnswerCallback("Данные отсутствуют", true);
+
+            return OkResult;
         }
 
         /// <summary>
@@ -354,17 +492,18 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Отправить сообщение со списком доступных городов
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendAvailableCities()
+        private async Task<IActionResult> SendAvailableCities(int MessageId=0)
         {
             try
             {
-               await SendMessage(AvailableCitiesMsg.BuildMsg());
+               BotMessage = new AvailableCitiesMessage();
+               await SendMessage(BotMessage.BuildMsg(), MessageId);
                return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -378,22 +517,33 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 using (MarketBotDbContext db=new MarketBotDbContext())
                 {
-                    AvailableСities availableСities = new AvailableСities
+                    if (db.AvailableСities.Where(c => c.CityName == ReplyToMessageText).FirstOrDefault() == null)
                     {
-                        CityName = ReplyToMessageText,
-                        Timestamp = DateTime.Now
-                    };
 
-                    db.AvailableСities.Add(availableСities);
-                    db.SaveChanges();
+                        AvailableСities availableСities = new AvailableСities
+                        {
+                            CityName = ReplyToMessageText,
+                            Timestamp = DateTime.Now
+                        };
 
-                    return await SendAvailableCities();
+                        db.AvailableСities.Add(availableСities);
+                        db.SaveChanges();
+
+                        await SendAvailableCities();
+                    }
+
+                    else
+                    {
+                        await SendMessage(new BotMessage { TextMessage = "Этот город уже добавлен в список" });
+                    }
+
+                    return OkResult;
                 }
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -423,7 +573,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -448,7 +598,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
 
 
@@ -472,17 +622,17 @@ namespace MyTelegramBot.Bot.AdminModule
 
                     if (db.SaveChanges() > 0)
                     {
-                        await SendMessage(new BotMessage { TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:" + Bot.BotMessage.NewLine()+ Bot.BotMessage.Italic("/key " + key.KeyValue) });
+                        await SendMessage(new BotMessage { TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:" + BotMessage.NewLine()+ BotMessage.Italic("/key " + key.KeyValue) });
                         return OkResult;
                     }
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
 
                 }
             }
 
-            else return NotFoundResult;
+            else return OkResult;
            
         }
 
@@ -490,20 +640,18 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Отправить сообщение со списком всех операторов
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendOperatorList()
+        private async Task<IActionResult> SendOperatorList(int MessageId=0)
         {
             try
             {
-                if(AdminControlMsg!=null && await SendMessage(AdminControlMsg.BuildMsg()) != null)
-                    return OkResult;
-
-                else
-                    return NotFoundResult;
+                BotMessage = new OperatosListMessage();
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
+                return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -515,13 +663,14 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                await SendMessage(AdminPayMethodsSettingsMsg.BuildMsg(),MessageId);
+                BotMessage = new AdminPayMethodsSettings();
+                await SendMessage(BotMessage.BuildMsg(),MessageId);
                 return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -533,13 +682,13 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                AdminCurrentStockMsg = new AdminCurrentStockMessage(CategoryId);
-                await SendMessage(AdminCurrentStockMsg.BuildMsg(), MessageId);
+                BotMessage = new CurrentStockMessage(CategoryId);
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
             catch
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -551,163 +700,18 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                await SendMessage(AdminAllProductsViewMsg.BuildMsg());
+                BotMessage = new AdminAllProductsViewMessage();
+                await SendMessage(BotMessage.BuildMsg());
                 return OkResult;
             }
 
             catch
             {
-                return NotFoundResult; 
+                return OkResult; 
             }
         }
 
 
-        /// <summary>
-        /// Отправить сообщение со статистикой
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendStat()
-        {           
-
-            try
-            {
-                
-                TimeSpan diff = DateTime.Now - LastReportsRequest();
-                if (diff.Minutes >= 5)
-                {
-                    var msgs = StatisticMsg.BuildMessage();
-                    await SendMessage(msgs[0]);
-                    await SendDocument(msgs[1]);
-                    await SendDocument(msgs[2]);
-                    InsertReportsRequest();
-                    return OkResult;
-                }
-
-                else
-                {
-                    await SendMessage(new BotMessage { TextMessage = "Не более одного запроса в 5 минут" });
-                    return OkResult;
-                }
-            }
-
-            catch
-            {
-                return NotFoundResult;
-            }
-        }
-
-        /// <summary>
-        /// Вкл/откл метод оплаты
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> PaymentMethodEnable()
-        {
-            try
-            {
-                using(MarketBotDbContext db=new MarketBotDbContext())
-                {
-                  var conf= db.PaymentTypeConfig.Where(p => p.PaymentId == Argumetns[0]).OrderByDescending(p=>p.Id).FirstOrDefault();
-
-                    var type = db.PaymentType.Where(p => p.Id == Argumetns[0]).FirstOrDefault();
-
-
-                    if (conf != null && type.Enable == true 
-                        || PaymentType.GetPaymentTypeEnum(Argumetns[0]) == Services.PaymentTypeEnum.PaymentOnReceipt &&
-                        type.Enable == true) // пользователь хочет отключить метод оплаты. 
-                                             //Проверям настроен ли он вообще.Если пользователь хочет отключить
-                                             //метод оплаты "при получении" то conf может быть пустым т.к этот метод оплаты не требует настроек
-                    {
-                        type.Enable = false;
-                        db.SaveChanges();
-                        return await SendPaymentMethods(base.MessageId);
-                    }
-
-                    if (conf != null && type.Enable == false 
-                        || PaymentType.GetPaymentTypeEnum(Argumetns[0]) == Services.PaymentTypeEnum.PaymentOnReceipt &&
-                        type.Enable == false)
-                    {
-                        type.Enable = true;
-                        db.SaveChanges();
-                        return await SendPaymentMethods(base.MessageId);
-                    }
-
-                    if (conf == null && PaymentType.GetPaymentTypeEnum(Argumetns[0])!= Services.PaymentTypeEnum.PaymentOnReceipt) 
-                        // метод оплаты не настроен, кроме метода оплаты "При получении"
-                    {
-                        await AnswerCallback("Ошибка. Данный способ оплаты не настроен", true);
-                        return OkResult;
-                    }
-
-                    else
-                       return OkResult;
-                }
-            }
-
-            catch
-            {
-                return OkResult;
-            }
-
-        }
-
-        /// <summary>
-        /// Сообщение с не согласоваными заказми
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> NoConfirmOrder()
-        {
-            NoConfirmOrdersMessage no = new NoConfirmOrdersMessage();
-            await EditMessage(no.BuildMsg());
-            return OkResult;
-        }
-
-        /// <summary>
-        /// Экспорт всех заказов
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> OrderExport()
-        {
-
-            TimeSpan diff = DateTime.Now - LastReportsRequest();
-
-            if (diff.Minutes > 1)
-            {
-                InsertReportsRequest();
-                OrderExport export = new OrderExport();
-
-                await SendDocument(new FileToSend { Content = export.Export(), Filename = "Orders.csv" }, "Все заказы в БД");
-                return OkResult;
-            }
-
-            else
-            {
-                await SendMessage(new BotMessage { TextMessage = "Не более одного запроса в минуту" });
-                return base.OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Экспорт всех данных из таблицы с остатками
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> StockExport()
-        {
-            TimeSpan diff = DateTime.Now - LastReportsRequest();
-
-            if (diff.Minutes > 1)
-            {
-                InsertReportsRequest();
-                StockExport export =new StockExport();
-                await SendDocument(new FileToSend { Content = export.Export(), Filename = "Stock.csv" });
-                return OkResult;
-            }
-
-            else
-            {
-                await SendMessage(new BotMessage { TextMessage = "Не более одного запроса в минуту" });
-                return base.OkResult;
-            }
-        }
 
         /// <summary>
         /// Записываем в бд об успешном запросе
@@ -747,184 +751,8 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
-        /// <summary>
-        /// Изменит текущее сообщение с кнопками контактов.
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> ContactEdit()
-        {
-            if (ContactEditMsg != null &&await EditMessage(ContactEditMsg.BuildMsg()) != null)
-                return base.OkResult;
 
-            else
-                return base.NotFoundResult;
-        }
 
-        /// <summary>
-        /// Изменить ссылку на вк
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> UpdateVk()
-        {
-            using(MarketBotDbContext db=new MarketBotDbContext())
-            {
-               var company= db.Company.Where(c => c.Enable == true).FirstOrDefault();
-
-                if (company != null)
-                {
-                    company.Vk = base.ReplyToMessageText;
-                    await db.SaveChangesAsync();
-                }
-
-                return base.OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Изменить ссылку на Инст
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> UpdateInstagram()
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var company = db.Company.Where(c => c.Enable == true).FirstOrDefault();
-
-                if (company != null)
-                {
-                    company.Instagram = base.ReplyToMessageText;
-                    await db.SaveChangesAsync();
-                }
-
-                return base.OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Изменить ссылку на чат
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> UpdateChat()
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var company = db.Company.Where(c => c.Enable == true).FirstOrDefault();
-
-                if (company != null)
-                {
-                    company.Chat = base.ReplyToMessageText;
-                    await db.SaveChangesAsync();
-                }
-
-                return base.OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Изменить ссылку на канал
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> UpdateChannel()
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var company = db.Company.Where(c => c.Enable == true).FirstOrDefault();
-
-                if (company != null)
-                {
-                    company.Chanel = base.ReplyToMessageText;
-                    await db.SaveChangesAsync();
-                }
-
-                return base.OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Сообщение с инстуркцией по импорту данных и csv
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendImportFAQ()
-        {
-            try
-            {
-
-               await base.SendMessage(new BotMessage { TextMessage = "1) Заполните csv файл " + BotMessage.NewLine() + "2) Сохраните файл как Import.csv" + BotMessage.NewLine() + "3) Отправьте файл боту" });
-
-                using(MarketBotDbContext db=new MarketBotDbContext())
-                {
-                    Configuration configuration = db.Configuration.FirstOrDefault();
-
-                    // FileId файла Пример.csv есть в базе
-                    if (configuration!=null && configuration.ExampleCsvFileId!= null) 
-                    {
-                        FileToSend fileToSend = new FileToSend
-                        {
-                            Filename = "Пример.csv",
-                            FileId = configuration.ExampleCsvFileId
-                        };
-
-                        var message = await SendDocument(fileToSend, "Пример заполнения");
-                    }
-
-                    // FileID в базе нет, отправляяем файл и сохраняем в бд FileID
-                    if (configuration!=null && configuration.ExampleCsvFileId==null) 
-                    {
-                    var stream= System.IO.File.Open("Пример.csv", FileMode.Open);
-
-                    FileToSend fileToSend = new FileToSend
-                    {
-                        Filename = "Пример.csv",
-                        Content = stream
-                    };
-
-                    var message = await SendDocument(fileToSend, "Пример заполнения");
-
-                    configuration.ExampleCsvFileId = message.Document.FileId;
-                    db.SaveChanges();
-
-                    }
-
-                    // FileId файла Шаблон.csv есть в базе
-                    if (configuration != null && configuration.TemplateCsvFileId != null)
-                    {
-                        FileToSend fileToSend = new FileToSend
-                        {
-                            Filename = "Шаблон.csv",
-                            FileId = configuration.ExampleCsvFileId
-                        };
-
-                        var message = await SendDocument(fileToSend, "Пример заполнения");
-                    }
-
-                    // FileID в базе нет, отправляяем файл и сохраняем в бд FileID
-                    if (configuration != null && configuration.TemplateCsvFileId == null) 
-                    {
-                        var stream = System.IO.File.Open("Шаблон.csv", FileMode.Open);
-
-                        FileToSend fileToSend = new FileToSend
-                        {
-                            Filename = "Шаблон.csv",
-                            Content = stream
-                        };
-
-                        var message = await SendDocument(fileToSend, "Пример заполнения");
-
-                        configuration.TemplateCsvFileId = message.Document.FileId;
-                        db.SaveChanges();
-
-                    }
-
-                }
-                 
-                return base.OkResult;
-            }
-
-            catch (Exception exp)
-            {
-                return base.NotFoundResult;
-            }
-        }
 
         /// <summary>
         /// Сообщение с панелью администратора
@@ -934,8 +762,8 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-
-                if (AdminCmdListMsg!=null && await SendMessage(AdminCmdListMsg.BuildMsg()) != null)
+                BotMessage = new ControlPanelMessage(base.FollowerId);
+                if (BotMessage != null && await SendMessage(BotMessage.BuildMsg()) != null)
                     return base.OkResult;
 
                 else
@@ -1005,7 +833,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     if (db.SaveChanges() > 0)
                     {
                         string meessage = "Зарегистрирован новый оператор системы: " + db.Follower.Where(f=>f.Id==FollowerId).FirstOrDefault().FirstName
-                            +Bot.BotMessage.NewLine()+"Ключ: "+ adminKey.KeyValue;
+                            +BotMessage.NewLine()+"Ключ: "+ adminKey.KeyValue;
                         await SendMessage(BotOwner, new BotMessage { TextMessage = meessage });
                         return await SendAdminControlPanelMsg();
                     }
@@ -1015,68 +843,8 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
-        /// <summary>
-        /// Присылает сообщение с инструкцией как добавить новый товар в БД.
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendInsertProductFAQ()
-        {
-            string Currencies = "";
-            string Units = "";
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                var CurrencyList = db.Currency.ToList();
-
-                var UnitList = db.Units.ToList();
-
-                foreach(Currency c in CurrencyList)
-                    Currencies += c.Name + " - " + c.ShortName;
-
-                foreach (Units u in UnitList)
-                    Units += u.Name + "-" + u.ShortName;
-            }
-
-            const string quote = "\"";
-            string Example = "Пришлите фотографию товара, а в поле под фотографией(можно без фотографии, просто ответьте на сообщение бота) добавьте комментарий следующего вида:" +
-                             " Название товара, Категория, Цена, Еденица измерения, В наличии, " + quote + "Краткое описание [не обязательно]" + quote + BotMessage.NewLine()
-                             + BotMessage.Bold("Например: ") + "Хреновуха, Настойки,500, шт., 5, " + quote + "40 градусов" + quote + BotMessage.NewLine()
-                             + BotMessage.Bold("Например: ") + "Рис, Крупы,100, кг., 100" + BotMessage.NewLine()
-                             + BotMessage.Bold("Например: ") + "Сникерс, Конфеты, 50, г., 1000" + quote + "Вкусные конфеты. Ага" + quote
-                             + BotMessage.NewLine() + BotMessage.NewLine() + BotMessage.Bold("Доступные валюты: ") + Currencies
-                             + BotMessage.NewLine()+ BotMessage.Bold("Еденицы измерения: ") + Units;
 
 
-            ForceReply forceReply = new ForceReply
-            {
-                Force = true,
-
-                Selective = true
-            };
-
-            if (await SendMessage(new BotMessage { TextMessage = Example }) != null
-                && await SendMessage(new BotMessage { TextMessage = EnterNameNewProductCmd, MessageReplyMarkup = forceReply }) != null)
-                return base.OkResult;
-
-
-            else
-                return base.NotFoundResult;
-        }
-
-
-        /// <summary>
-        /// Пользователь нажал на Изменить продук. Появляется сообещение с выбором категории
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> EditProduct()
-        {
-            //CategoryListMsg = new CategoryListMessage(AdminProductInCategoryCmd, ProductEditBot.ModuleName);
-            //if (await EditMessage(CategoryListMsg.Mess()) != null)
-                return base.OkResult;
-
-
-            //else
-            //    return base.NotFoundResult;
-        }
 
 
         /// <summary>
@@ -1085,39 +853,14 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> BackToAdminPanel()
         {
-            if (await EditMessage(AdminCmdListMsg.BuildMsg()) != null)
+            BotMessage = new ControlPanelMessage(FollowerId);
+            if (await EditMessage(BotMessage.BuildMsg()) != null)
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
-        /// <summary>
-        /// Проверка номера телефона. Длина должна быть 11 символов и начинаться должен с 7
-        /// </summary>
-        /// <param name="number"></param>
-        /// <returns></returns>
-        private bool VerifyPhoneNumber(string number)
-        {
-            try
-            {
-                var seven = number.Substring(0, 1);
-
-                if (number.Length == 11 && seven=="7")
-                {
-                    long value = Convert.ToInt64(number);
-                    return true;
-                }
-
-                else
-                    return false;
-            }
-
-            catch
-            {
-                return false;
-            }
-        }
 
         /// <summary>
         /// вкл/выкл уведомления от бота в лс
@@ -1157,7 +900,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
             catch (Exception e)
             {
-                return NotFoundResult;
+                return OkResult;
             }
         }
 

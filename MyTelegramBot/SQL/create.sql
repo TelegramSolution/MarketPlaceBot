@@ -1,0 +1,10 @@
+
+
+CREATE DATABASE [MarketPlaceBotDb]
+ CONTAINMENT = NONE
+ ON  PRIMARY 
+( NAME = N'MarketPlaceBotDb', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\MarketPlaceBotDb.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB ), 
+ FILEGROUP [Fs] CONTAINS FILESTREAM  DEFAULT
+( NAME = N'MarketPlaceBotDb_fs', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\MarketPlaceBotDb_fs' , MAXSIZE = UNLIMITED)
+ LOG ON 
+( NAME = N'MarketPlaceBotDb_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\MarketPlaceBotDb_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)

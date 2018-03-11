@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages.Admin;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
@@ -16,7 +17,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
 
         }

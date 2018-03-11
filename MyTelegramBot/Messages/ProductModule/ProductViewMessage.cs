@@ -8,13 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types.InlineQueryResults;
 using MyTelegramBot.Bot;
 using Newtonsoft.Json;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с описание товара
     /// </summary>
-    public class ProductViewMessage : Bot.BotMessage
+    public class ProductViewMessage : BotMessage
     {
         private InlineKeyboardCallbackButton AddToBasketBtn { get; set; }
 
@@ -37,9 +38,10 @@ namespace MyTelegramBot.Messages
         /// </summary>
         private InlineKeyboardCallbackButton ViewFeedBackBtn { get; set; }
 
-        private int NextProductId { get; set; }
+        private InlineKeyboardButton PhotoCatalogBtn { get; set; }
 
-        private int PreviousProductId { get; set; }
+        private InlineKeyboardButton SearchProductBtn { get; set; }
+
 
         private int CategoryId { get; set; }
 
@@ -51,6 +53,11 @@ namespace MyTelegramBot.Messages
 
         private int BotId { get; set; }
 
+
+        public ProductViewMessage (Product product)
+        {
+            Product = product;
+        }
 
         public ProductViewMessage(Category category, int BotId)
         {
@@ -72,7 +79,7 @@ namespace MyTelegramBot.Messages
             {
                 this.ProductName = ProductName;
                 using (MarketBotDbContext db = new MarketBotDbContext())
-                    Product = db.Product.Where(p => p.Name == ProductName && p.Enable == true).Include(p => p.ProductPrice).Include(p => p.Stock).FirstOrDefault();
+                    Product = db.Product.Where(p => p.Name == ProductName && p.Enable == true).Include(p => p.CurrentPrice).Include(p => p.Stock).FirstOrDefault();
             }
 
             catch
@@ -88,44 +95,16 @@ namespace MyTelegramBot.Messages
 
                 if (CategoryId > 0)
                     Product = db.Product.Where(p => p.CategoryId == CategoryId && p.Enable == true)
-                        .Include(p => p.ProductPrice).Include(p=>p.ProductPhoto).Include(p => p.Stock).Include(p => p.Unit).FirstOrDefault();
+                        .Include(p => p.CurrentPrice).Include(p=>p.ProductPhoto).Include(p => p.Stock).Include(p => p.Unit).FirstOrDefault();
 
                 if (ProductId > 0)
                     Product = db.Product.Where(p => p.Id == ProductId && p.Enable == true)
-                        .Include(p => p.ProductPrice).Include(p => p.ProductPhoto).Include(p => p.Stock).Include(p=>p.Unit).FirstOrDefault();
+                        .Include(p => p.CurrentPrice).Include(p => p.ProductPhoto).Include(p => p.Stock).Include(p=>p.Unit).FirstOrDefault();
 
                 if (Product != null && Product.Id > 0)
                 {
-                    NextProductId = GetNextProductId(Product.Id, Product.CategoryId);
 
-                    PreviousProductId = GetPreviousId(Product.Id, Product.CategoryId);
-
-                    Url = Product.TelegraphUrl;
-
-                    NextProductBtn = ListingProduct(NextProductId, "\u27a1\ufe0f");
-
-                    PreviousProductBtn = ListingProduct(PreviousProductId, "\u2b05\ufe0f");
-
-                    ReturnToCatalogListBtn = ReturnToCatalogList();
-
-                    ViewBasketBtn = base.BuildInlineBtn("Перейти в корзину", base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName), base.BasketEmodji);
-
-                    ViewAllPhotoBtn = base.BuildInlineBtn("Все фотографии", BuildCallData("ViewAllPhotoProduct", ProductBot.ModuleName, Product.Id),base.PictureEmodji);
-
-                    ViewFeedBackBtn = BuildInlineBtn("Отзывы", BuildCallData(ProductBot.CmdViewFeedBack, ProductBot.ModuleName, Product.Id), base.StartEmodji);
-
-
-                    if (Product.TelegraphUrl!=null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
-                        InfoProductBtn = MoreInfoProduct(Product.Id);
-
-                    if (Product.Stock.Count > 0 && Product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
-                    {
-                        AddToBasketBtn = AddProductToBasket(Product.Id);
-                        RemoveFromBasketBtn = RemoveFromBasket(Product.Id);
-                    }
-
-               
-                                       
+                    Url = Product.TelegraphUrl;                                     
 
                     base.TextMessage = Product.ToString();
 
@@ -133,7 +112,7 @@ namespace MyTelegramBot.Messages
 
                     GetMainPhoto(db, base.TextMessage);
 
-                    SetInlineKeyBoard();
+                    base.MessageReplyMarkup = SetInlineKeyBoard();
 
 
                 }
@@ -182,10 +161,37 @@ namespace MyTelegramBot.Messages
             }
         }
 
-        private void SetInlineKeyBoard()
+
+        public InlineKeyboardMarkup SetInlineKeyBoard()
         {
-            if(InfoProductBtn!=null&&AddToBasketBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+            NextProductBtn = ListingProduct(GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.Next2Emodji);
+
+            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог" + base.PictureEmodji, InlineFind.PhotoCatalog + "|");
+
+            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск" + base.SearchEmodji, InlineFind.SearchProduct + "|");
+
+            PreviousProductBtn = ListingProduct(GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.Previuos2Emodji);
+
+            ReturnToCatalogListBtn = ReturnToCatalogList();
+
+            ViewBasketBtn = base.BuildInlineBtn("Перейти в корзину", base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName), base.BasketEmodji);
+
+            ViewAllPhotoBtn = base.BuildInlineBtn("Все фотографии", BuildCallData("ViewAllPhotoProduct", ProductBot.ModuleName, Product.Id), base.PictureEmodji);
+
+            ViewFeedBackBtn = BuildInlineBtn("Отзывы", BuildCallData(ProductBot.CmdViewFeedBack, ProductBot.ModuleName, Product.Id), base.StartEmodji);
+
+            if (Product.TelegraphUrl != null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
+                InfoProductBtn = MoreInfoProduct(Product.Id);
+
+            if (Product.Stock.Count > 0 && Product.Stock.LastOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
+            {
+                AddToBasketBtn = BuildInlineBtn("+", base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, Product.Id));
+                RemoveFromBasketBtn = BuildInlineBtn("-", base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, Product.Id));
+            }
+
+
+            if (InfoProductBtn != null && AddToBasketBtn != null)
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -195,9 +201,13 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
+                            PhotoCatalogBtn, SearchProductBtn
+                        },
+                new[]
+                        {
                             ViewAllPhotoBtn,InfoProductBtn,ViewFeedBackBtn
-                        }
-                ,
+                        },
+                
                 new[]
                         {
                             RemoveFromBasketBtn,
@@ -210,14 +220,18 @@ namespace MyTelegramBot.Messages
 
                  });
 
-            if(InfoProductBtn==null&&AddToBasketBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+            if (InfoProductBtn == null && AddToBasketBtn != null)
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
                             PreviousProductBtn,
                             ReturnToCatalogListBtn,
                             NextProductBtn
+                        },
+                new[]
+                        {
+                            PhotoCatalogBtn, SearchProductBtn
                         },
                 new[]
                         {
@@ -238,7 +252,7 @@ namespace MyTelegramBot.Messages
                 });
 
             if (InfoProductBtn != null && AddToBasketBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -246,6 +260,11 @@ namespace MyTelegramBot.Messages
                             ReturnToCatalogListBtn,
                             NextProductBtn
                         },
+                new[]
+                        {
+                            PhotoCatalogBtn, SearchProductBtn
+                        },
+
                 new[]
                         {
                             ViewAllPhotoBtn,InfoProductBtn,ViewFeedBackBtn
@@ -261,7 +280,7 @@ namespace MyTelegramBot.Messages
 
 
             if (InfoProductBtn == null && AddToBasketBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
+                return new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
@@ -269,6 +288,11 @@ namespace MyTelegramBot.Messages
                             ReturnToCatalogListBtn,
                             NextProductBtn
                         },
+                new[]
+                        {
+                            PhotoCatalogBtn, SearchProductBtn
+                        },
+
                 new[]
                         {
                             ViewAllPhotoBtn,ViewFeedBackBtn
@@ -281,21 +305,12 @@ namespace MyTelegramBot.Messages
                         }
 
                 });
+
+            else
+                return null;
         }
 
-        private InlineKeyboardCallbackButton AddProductToBasket(int ProductId)
-        {
-            string data= base.BuildCallData(Bot.ProductBot.AddToBasketCmd,ProductBot.ModuleName ,ProductId);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("+" , data);
-            return button;
-        }
 
-        private InlineKeyboardCallbackButton RemoveFromBasket (int ProductId)
-        {
-            string data = base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd,ProductBot.ModuleName ,ProductId);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("-", data);
-            return button;
-        }
 
         private InlineKeyboardCallbackButton ListingProduct(int ProductId, string BtnText)
         {
@@ -329,37 +344,38 @@ namespace MyTelegramBot.Messages
         private void GetMainPhoto(MarketBotDbContext db,string Caption)
         {
             //Ищем фотографии для этого бота
-            var photo = Product.ProductPhoto.Where(p=>p.MainPhoto).OrderByDescending(a => a.AttachmentFsId).FirstOrDefault();
+            var photo = db.AttachmentFs.Find(Convert.ToInt32(this.Product.MainPhoto));
+
             if (photo != null) 
             {
                 //Берем последнюю фотографию
-                var attach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == photo.AttachmentFsId && a.BotInfoId==BotId).OrderByDescending(a=>a.AttachmentFsId).FirstOrDefault();
+                var attach = db.AttachmentTelegram.Where(a => a.AttachmentFsId == photo.Id && a.BotInfoId==BotId).OrderByDescending(a=>a.AttachmentFsId).FirstOrDefault();
 
                 // для бота уже загружена фотография. Вытаскиваем id файла
                 if (attach != null && attach.FileId != null)
                 {
                     base.MediaFile = new MediaFile
                     {
-                        AttachmentFsId=Convert.ToInt32(attach.AttachmentFsId),
+                        AttachmentFsId = Convert.ToInt32(attach.AttachmentFsId),
                         Caption = Caption,
                         FileTo = new Telegram.Bot.Types.FileToSend { FileId = attach.FileId },
-                        TypeFileTo = MediaFile.HowMediaType(db.AttachmentFs.Where(a=>a.Id==attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
+                        
+                        FileTypeId =Convert.ToInt32(db.AttachmentFs.Where(a => a.Id == attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
                     };
                 }
 
                 else
                 {
-                    var attach_fs = db.AttachmentFs.Where(a => a.Id == photo.AttachmentFsId).OrderByDescending(a=>a.Id).FirstOrDefault();
-
                     ///для бота фотография не загружена. Вытаскиваем файл фотографии из бд
-                    if (attach_fs != null && attach_fs.Fs.Length > 0)
+                    if (photo != null && photo.Fs.Length > 0)
                     {
                         base.MediaFile = new MediaFile
                         {
                             Caption = Caption,
-                            FileTo = new Telegram.Bot.Types.FileToSend { Content = new System.IO.MemoryStream(attach_fs.Fs), Filename = "Photo.jpg" },
-                            TypeFileTo = EnumMediaFile.Photo,
-                            AttachmentFsId=attach_fs.Id
+                            FileTo = new Telegram.Bot.Types.FileToSend { Content = new System.IO.MemoryStream(photo.Fs), Filename = "Photo.jpg" },
+                            
+                            AttachmentFsId= photo.Id,
+                            FileTypeId=Bot.Core.ConstantVariable.MediaTypeVariable.Photo
                         };
                     }
 

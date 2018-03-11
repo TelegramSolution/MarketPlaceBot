@@ -6,13 +6,15 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
+
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Все позиции товаров из корзины в виде кнопок
     /// </summary>
-    public class BasketPositionListMessage:Bot.BotMessage
+    public class BasketPositionListMessage:BotMessage
     {
         private int FollowerId { get; set; }
 

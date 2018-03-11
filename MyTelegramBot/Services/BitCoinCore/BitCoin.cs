@@ -64,7 +64,7 @@ namespace MyTelegramBot.Services.BitCoinCore
                 return address.result;
 
             else
-                return String.Empty;
+                return null;
 
         }
 
@@ -101,18 +101,34 @@ namespace MyTelegramBot.Services.BitCoinCore
             }
         }
 
-        public List<Listtransactions> GetListTransactions(string Account)
+        public TransactionInfoList GetListTransactions<TransactionInfoList>()
         {
             try
             {
-                var list = RequestRpcServer<TransactionInfoList>("listtransactions", "*");
-                return list.result.Where(l => l.address == Account).ToList();
+                var list = RequestRpcServer<TransactionInfoList>("listtransactions");
+                 
+                return list;
 
             }
 
             catch
             {
-                return null;
+                return default(TransactionInfoList);
+            }
+        }
+
+        public GetInfo GetInfo<GetInfo>()
+        {
+            try
+            {
+                var res= RequestRpcServer<GetInfo>("getinfo");
+                return res;
+
+            }
+
+            catch (Exception e)
+            {
+                return default (GetInfo);
             }
         }
 

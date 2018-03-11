@@ -124,19 +124,13 @@ namespace MyTelegramBot.Controllers
 
             if (Newprod.CategoryId > 0 && ProductCheck(Newprod.Name) == 0 && photo != null)
             {
-                int ProductId = 0;
 
+                var fs_id = InsertToAttachmentFs(photo);
 
-                var fs = InsertToAttachmentFs(photo);
+                if (fs_id > 0)
+                    Newprod.MainPhotoId = fs_id;
 
-                if (fs > 0)
-                {
-                    ProductId = InsertNewProduct(Newprod);
-
-                    await InsertProductPhoto(ProductId, fs);
-
-                }
-
+                var product = InsertNewProduct(Newprod);
 
             }
 
@@ -174,35 +168,6 @@ namespace MyTelegramBot.Controllers
             }
         }
 
-        private async Task<int> InsertProductPhoto(int ProductId, int AttachemntFsID)
-        {
-            try
-            {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
-                    if (ProductId > 0 && AttachemntFsID > 0)
-                    {
-                        ProductPhoto photo = new ProductPhoto
-                        {
-                            AttachmentFsId = AttachemntFsID,
-                            ProductId = ProductId,
-                            MainPhoto = true
-                        };
-
-                        db.ProductPhoto.Add(photo);
-                        return await db.SaveChangesAsync();
-                    }
-
-                    else
-                        return -1;
-                }
-            }
-
-            catch
-            {
-                return -1;
-            }
-        }
 
         /// <summary>
         /// Скачивает фото по Url
@@ -319,7 +284,7 @@ namespace MyTelegramBot.Controllers
         /// </summary>
         /// <param name="Newprod">объект описывающий новый товар</param>
         /// <returns>Возращает Id</returns>
-        private int InsertNewProduct(ParseStruct Newprod)
+        private Product InsertNewProduct(ParseStruct Newprod)
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
@@ -334,7 +299,8 @@ namespace MyTelegramBot.Controllers
                         DateAdd = DateTime.Now,
                         PhotoUrl=Newprod.PhotoUrl,
                         Enable = true,
-                        UnitId = Newprod.UnitId
+                        UnitId = Newprod.UnitId,
+                        MainPhoto=Newprod.MainPhotoId
                     };
 
                     db.Product.Add(InsertNewProduct);
@@ -364,16 +330,21 @@ namespace MyTelegramBot.Controllers
                         db.ProductPrice.Add(productPrice);
                         db.SaveChanges();
 
-                        return InsertNewProduct.Id;
+                        InsertNewProduct.CurrentPrice = productPrice;
+
+                        db.Update<Product>(InsertNewProduct);
+                        db.SaveChanges();
+
+                        return InsertNewProduct;
                     }
 
                     else
-                        return -1;
+                        return null;
                 }
 
                 catch
                 {
-                    return -1;
+                    return null;
                 }
             }
 
@@ -430,6 +401,8 @@ namespace MyTelegramBot.Controllers
         public int CurrencyId { get; set; }
 
         public int UnitId { get; set; }
+
+        public int MainPhotoId { get; set; }
     }
 }
 

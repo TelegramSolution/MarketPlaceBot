@@ -6,13 +6,14 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с заказом, из таблицы OrderTemp
     /// </summary>
-    public class OrderTempMessage:Bot.BotMessage
+    public class OrderTempMessage:BotMessage
     {
         InlineKeyboardCallbackButton SendBtn { get; set; }
 
@@ -41,7 +42,7 @@ namespace MyTelegramBot.Messages
             this.BotId = BotId;
         }
 
-        public OrderTempMessage BuildMessage()
+        public override BotMessage BuildMsg()
         {
             string Desc = "-";
 
@@ -52,13 +53,12 @@ namespace MyTelegramBot.Messages
             MethodOfObtainingEditor = new InlineKeyboardCallbackButton("Изменить способ получения заказа" + " \ud83d\udd8a", BuildCallData(Bot.OrderBot.MethodOfObtainingListCmd, OrderBot.ModuleName));
             PaymentMethodEditor = new InlineKeyboardCallbackButton("Изменить способ оплаты" + " \ud83d\udd8a", BuildCallData(Bot.OrderBot.GetPaymentMethodListCmd, OrderBot.ModuleName));
 
-
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                OrderTemp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotId).Include(o=>o.PaymentType).FirstOrDefault();
+                OrderTemp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId==BotId).Include(o=>o.PaymentType).LastOrDefault();
                 string PositionInfo = BasketPositionInfo.GetPositionInfo(FollowerId,BotId);
                 Configuration = db.Configuration.Where(c => c.BotInfoId == BotId).FirstOrDefault();
-                double BasketTotalPrice = BasketPositionInfo.BasketTotalPrice(FollowerId, BotId);
+                double BasketTotalPrice = BusinessLayer.BasketFunction.BasketTotalPrice(FollowerId,BotId);
 
                 if (OrderTemp != null)  
                 {
@@ -85,7 +85,6 @@ namespace MyTelegramBot.Messages
 
                     if (OrderTemp.PickupPointId != null)
                         PickupPoint = db.PickupPoint.Find(OrderTemp.PickupPointId);
-
 
 
                     if (OrderTemp.PaymentType != null && OrderTemp.PaymentType.Name != null)
@@ -176,18 +175,19 @@ namespace MyTelegramBot.Messages
                     foreach (int id in IdList)
                     {
 
-                        string name = db.Product.Where(p => p.Id == id).FirstOrDefault().Name;
+                        Product product = db.Product.Where(p => p.Id == id).Include(p=>p.CurrentPrice).FirstOrDefault();
                         int count = basket.Where(p => p.ProductId == id).Count();
-                        var price = db.ProductPrice.Where(p => p.ProductId == id && p.Enabled).Include(p=>p.Currency).FirstOrDefault();
-                        message += counter.ToString() + ") " + name + " " + count.ToString() + 
-                            " x " + price.ToString() + " = " + (count * price.Value).ToString() + price.Currency.ShortName + Bot.BotMessage.NewLine();
-                        total += price.Value * count;
+                        product.CurrentPrice.Currency = db.Currency.Find(product.CurrentPrice.CurrencyId);
+                        message += counter.ToString() + ") " + product.Name + " "  + 
+                        product.CurrentPrice.ToString() + " x " + count.ToString() + " = " + 
+                        (count * product.CurrentPrice.Value).ToString() + product.CurrentPrice.Currency.ShortName + BotMessage.NewLine();
+                        total += product.CurrentPrice.Value * count;
                         counter++;
-                        currency = price.Currency.ShortName;
+                        currency = product.CurrentPrice.Currency.ShortName;
 
                     }
 
-                    return message + Bot.BotMessage.NewLine() + Bot.BotMessage.Bold("Общая стоимость: ") + total.ToString()+ " " + currency;
+                    return message + BotMessage.NewLine() + BotMessage.Bold("Общая стоимость: ") + total.ToString()+ " " + currency;
                 }
 
                 else
@@ -195,32 +195,5 @@ namespace MyTelegramBot.Messages
             }
         }
 
-        public static double BasketTotalPrice (int FollowerID, int BotId)
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var basket = db.Basket.Where(b => b.FollowerId == FollowerID && b.Enable && b.BotInfoId == BotId);
-
-                var IdList = basket.Select(b => b.ProductId).Distinct().AsEnumerable();
-
-                double total = 0.0;
-
-
-                if (IdList.Count() > 0)
-                {
-                    foreach (int id in IdList)
-                    {
-                        int count = basket.Where(p => p.ProductId == id).Count();
-                        var price = db.ProductPrice.Where(p => p.ProductId == id && p.Enabled).Include(p => p.Currency).FirstOrDefault();                      
-                        total += price.Value * count;
-                    }
-
-                    return total;
-                }
-
-                else
-                    return 0.0;
-            }
-        }
     }
 }

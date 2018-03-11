@@ -6,20 +6,23 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
-    public class HelpDeskViewAttachMessage:Bot.BotMessage
+    public class HelpDeskViewAttachMessage:BotMessage
     {
         private InlineKeyboardCallbackButton GetHelpDeskBtn { get; set; }
 
         HelpDesk HelpDesk { get; set; }
 
-        Bot.BotMessage [] BotMessage { get; set;}
+        BotMessage [] BotMessage { get; set;}
 
         List<HelpDeskAttachment> ListAttachFs { get; set; }
 
         private int BotId { get; set; }
+
+        MarketBotDbContext db = new MarketBotDbContext();
 
         public HelpDeskViewAttachMessage(HelpDesk helpDesk, List<HelpDeskAttachment> list, int BotId)
         {
@@ -28,42 +31,41 @@ namespace MyTelegramBot.Messages.Admin
             this.BotId = BotId;
         }
 
-        public Bot.BotMessage[] BuildMessage()
+        public BotMessage[] BuildMessage()
         {
             if (ListAttachFs != null && ListAttachFs.Count > 0)
             {
-                BotMessage = new Bot.BotMessage[ListAttachFs.Count];
+                BotMessage = new BotMessage[ListAttachFs.Count];
                 int counter = 0;
+                db = new MarketBotDbContext();
 
-                using (MarketBotDbContext db = new MarketBotDbContext())
+                foreach (var attachFs in ListAttachFs)
                 {
-                    foreach (var attachFs in ListAttachFs)
+                    var telegram_attach= db.AttachmentTelegram.Where(a => a.AttachmentFsId == attachFs.AttachmentFsId && a.BotInfoId == BotId).FirstOrDefault();
+                    GetHelpDeskBtn = new InlineKeyboardCallbackButton("Вернуться к заявке №" + HelpDesk.Number.ToString(),
+                                                                        BuildCallData(Bot.AdminModule.HelpDeskProccessingBot.GetHelpDeskCmd, Bot.AdminModule.HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
+                    try
                     {
-                        var telegram_attach= db.AttachmentTelegram.Where(a => a.AttachmentFsId == attachFs.AttachmentFsId && a.BotInfoId == BotId).FirstOrDefault();
-                        GetHelpDeskBtn = new InlineKeyboardCallbackButton("Вернуться к заявке №" + HelpDesk.Number.ToString(),
-                                                                            BuildCallData(Bot.AdminModule.HelpDeskProccessingBot.GetHelpDeskCmd, Bot.AdminModule.HelpDeskProccessingBot.ModuleName, HelpDesk.Id));
-                        try
-                        {
-                            BotMessage[counter] = new Bot.BotMessage();
-                            BotMessage[counter].MediaFile = GetMediaFile(db, telegram_attach);
-                            BotMessage[counter].MessageReplyMarkup = new InlineKeyboardMarkup(
-                            new[]{
-                            new[]
-                            {
-                                GetHelpDeskBtn
-                            },
+                        BotMessage[counter] = new BotMessage();
+                        BotMessage[counter].MediaFile = GetMediaFile(telegram_attach);
+                        BotMessage[counter].MessageReplyMarkup = new InlineKeyboardMarkup(
+                        new[]{
+                        new[]
+                                    {
+                                        GetHelpDeskBtn
+                                    },
 
-                                });
+                         });
 
-                        }
-                        catch (Exception e)
-                        {
-
-                        }
-                        counter++;
                     }
+                    catch (Exception e)
+                    {
+
+                    }
+                    counter++;
                 }
 
+                db.Dispose();
                 return BotMessage;
             }
 
@@ -72,18 +74,18 @@ namespace MyTelegramBot.Messages.Admin
 
         }
 
-        private Bot.MediaFile GetMediaFile(MarketBotDbContext db,AttachmentTelegram telegram_attach)
+        private MediaFile GetMediaFile(AttachmentTelegram telegram_attach)
         {
             try
             {
-                if (telegram_attach != null & telegram_attach.FileId != null)
+                if (telegram_attach != null & telegram_attach.FileId != null) // файл уже загруже на сервер телеграм 
                 {
-                     MediaFile = new Bot.MediaFile
+                     MediaFile = new MediaFile
                     {
                         FileTo = new Telegram.Bot.Types.FileToSend { FileId = telegram_attach.FileId, Filename = "File" },
                         Caption = db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault().Caption,
-                        TypeFileTo = Bot.MediaFile.HowMediaType(db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
-                    };
+                        FileTypeId=Convert.ToInt32(db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault().AttachmentTypeId)
+                     };
 
                     return MediaFile;
                 }
@@ -91,7 +93,7 @@ namespace MyTelegramBot.Messages.Admin
                 {
                     var fs = db.AttachmentFs.Where(a => a.Id == telegram_attach.AttachmentFsId).FirstOrDefault();
 
-                    MediaFile = new Bot.MediaFile
+                    MediaFile = new MediaFile
                     {
                         FileTo = new Telegram.Bot.Types.FileToSend
                         {
@@ -99,8 +101,9 @@ namespace MyTelegramBot.Messages.Admin
                             Filename = "File"
                         },
                         Caption = fs.Name,
-                        TypeFileTo = Bot.MediaFile.HowMediaType(fs.AttachmentTypeId),
-                        AttachmentFsId=Convert.ToInt32(fs.Id)
+                        
+                        AttachmentFsId=Convert.ToInt32(fs.Id),
+                        FileTypeId=Convert.ToInt32(fs.AttachmentTypeId)
                     };
 
                     return MediaFile;

@@ -6,13 +6,14 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с редактированием позиции Корзины
     /// </summary>
-    public class BasketPositionEditMessage:BotMessage
+    public class BasketPositionCallBackAnswerMessage:BotMessage
     {
         private int FollowerId { get; set; }
 
@@ -28,7 +29,7 @@ namespace MyTelegramBot.Messages
 
         Product Product { get; set; }
 
-        public BasketPositionEditMessage(int FollowerId, int ProductId)
+        public BasketPositionCallBackAnswerMessage(int FollowerId, int ProductId)
         {
             this.FollowerId = FollowerId;
             this.ProductId = ProductId;

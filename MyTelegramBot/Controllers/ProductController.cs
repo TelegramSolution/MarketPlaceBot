@@ -20,6 +20,10 @@ namespace MyTelegramBot.Controllers
 
         private readonly IHostingEnvironment _appEnvironment;
 
+        Telegram.Bot.TelegramBotClient TelegramBotClient { get; set; }
+
+        BotInfo BotInfo { get; set; }
+
         public ProductController(IHostingEnvironment appEnvironment)
         {
             _appEnvironment = appEnvironment;
@@ -28,14 +32,19 @@ namespace MyTelegramBot.Controllers
         public IActionResult Index()
         {
             db = new MarketBotDbContext();
-            var products = db.Product.Include(p => p.Category).ToList();
-           
-            foreach(Product p in products)
-                p.ProductPrice = db.ProductPrice.Where(pr => pr.ProductId == p.Id && pr.Enabled == true).Include(pr=>pr.Currency).OrderByDescending(pr => pr.Id).ToList();            
+            var products = db.Product.Where(p=>p.CurrentPrice!=null).Include(p=>p.CurrentPrice).Include(p => p.Category).ToList();
+
+            foreach (var prod in products)
+                if(prod.CurrentPrice!=null)
+                    prod.CurrentPrice.Currency = db.Currency.Find(prod.CurrentPrice.CurrencyId);
 
             return View(products);
         }
 
+        /// <summary>
+        /// Добавить новый
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult Creator()
         {
@@ -54,7 +63,7 @@ namespace MyTelegramBot.Controllers
             product.TelegraphUrl = String.Empty;
             product.Text = String.Empty;
             product.PhotoUrl = String.Empty;
-            product.ProductPrice.Add(new ProductPrice { CurrencyId = conf.Configuration.CurrencyId, Value = 0 });
+            product.CurrentPrice=new ProductPrice { CurrencyId = conf.Configuration.CurrencyId, Value = 0 };
 
             if(catlist.Count>0)
             ViewBag.Category = new SelectList(catlist, "Id", "Name", db.Category.FirstOrDefault().Id);
@@ -68,6 +77,11 @@ namespace MyTelegramBot.Controllers
             return View("Editor", product);
         }
 
+        /// <summary>
+        /// Добавить доп фото
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult Photos(int id)
         {
@@ -86,6 +100,11 @@ namespace MyTelegramBot.Controllers
             return View(list);
         }
 
+        /// <summary>
+        /// удалить фото
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <returns></returns>
         [HttpGet]
 
         public IActionResult DeletePhoto(int Id)
@@ -107,15 +126,21 @@ namespace MyTelegramBot.Controllers
                 return NotFound();
         }
 
+        /// <summary>
+        /// загрузить фотографию
+        /// </summary>
+        /// <param name="ProductId"></param>
+        /// <param name="image"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddPhoto(int ProductId, IList<IFormFile> image)
+        public async Task<IActionResult> AddPhoto(int ProductId, IList<IFormFile> image)
         {
             if(ProductId>0 && image!=null && image.Count > 0)
             {
 
                 foreach (IFormFile file in image)
-                    AddAttachment(file, ProductId, false);
+                    InsertProductPhoto(ProductId,await InsertAttachment(file, ProductId));
 
 
                 RedirectResult redirectResult = new RedirectResult("Photos\\" + ProductId);
@@ -132,11 +157,11 @@ namespace MyTelegramBot.Controllers
         }
 
 
-        [HttpGet]
-        public IActionResult ImportFaq()
-        {
-            return View();
-        }
+        //[HttpGet]
+        //public IActionResult ImportFaq()
+        //{
+        //    return View();
+        //}
 
         [HttpGet]
 
@@ -194,6 +219,11 @@ namespace MyTelegramBot.Controllers
             
         }
 
+        /// <summary>
+        /// Редакатирование товара
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult Editor (int id)
         {
@@ -201,15 +231,11 @@ namespace MyTelegramBot.Controllers
             if (id > 0)
             {
                 db = new MarketBotDbContext();
-                var product = db.Product.Where(p => p.Id == id).Include(p => p.Unit).Include(p=>p.Category).FirstOrDefault();
-
-                product.ProductPhoto.Add(db.ProductPhoto.Where(photo => photo.ProductId == product.Id && photo.MainPhoto).
-                    OrderByDescending(photo=>photo.AttachmentFsId).Include(photo=>photo.AttachmentFs).FirstOrDefault());
-
-                product.ProductPrice.Add(db.ProductPrice.Where(price => price.ProductId == product.Id && price.Enabled == true).OrderByDescending(price => price.Id).FirstOrDefault());
-                if (product.ProductPhoto.FirstOrDefault() != null)
+                var product = db.Product.Where(p => p.Id == id).Include(p => p.Unit).Include(p=>p.CurrentPrice).
+                    Include(p=>p.MainPhotoNavigation).Include(p=>p.Category).FirstOrDefault();
+                if (product.MainPhotoNavigation!= null)
                 {
-                    string imageBase64Data = Convert.ToBase64String(product.ProductPhoto.FirstOrDefault().AttachmentFs.Fs);
+                    string imageBase64Data = Convert.ToBase64String(product.MainPhotoNavigation.Fs);
                     string imageDataURL = string.Format("data:image/png;base64,{0}", imageBase64Data);
                     ViewBag.ImageData = imageDataURL;
                 }
@@ -231,27 +257,30 @@ namespace MyTelegramBot.Controllers
                 return null;
         }
 
+        /// <summary>
+        /// сохранить изменения
+        /// </summary>
+        /// <param name="SaveProduct"></param>
+        /// <param name="image"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Save (Product SaveProduct, IFormFile image = null)
+        public async Task<IActionResult> Save (Product SaveProduct, IFormFile image = null)
         {
             db = new MarketBotDbContext();
 
             bool Check = true;
 
-            var conf = db.BotInfo.Where(b => b.Name == Bot.GeneralFunction.GetBotName()).Include(b => b.Configuration).FirstOrDefault();
+            BotInfo = db.BotInfo.Where(b => b.Name == Bot.GeneralFunction.GetBotName()).Include(b => b.Configuration).FirstOrDefault();
 
-            SaveProduct.ProductPrice.FirstOrDefault().CurrencyId = conf.Configuration.CurrencyId;
+            SaveProduct.CurrentPrice.CurrencyId = BotInfo.Configuration.CurrencyId;
 
             if (SaveProduct!=null)
                 Check = CheckName(SaveProduct.Name);
 
             if (SaveProduct != null && SaveProduct.Id > 0)
-            {
-                Product = db.Product.Where(p => p.Id == SaveProduct.Id).FirstOrDefault(); // находим товар в бд
-                Product.ProductPrice = db.ProductPrice.Where(pr => pr.ProductId == Product.Id && pr.Enabled == true).
-                    Include(pr => pr.Currency).OrderByDescending(pr => pr.Id).ToList();
-            }
+                Product = db.Product.Where(p=>p.Id==SaveProduct.Id).Include(p=>p.CurrentPrice).FirstOrDefault(); // находим товар в бд
+        
 
             if (Product!=null && Product.Name != SaveProduct.Name && Check == false || Product==null && Check==false)
                 return Json("Товар с таким названием уже существует");
@@ -271,28 +300,47 @@ namespace MyTelegramBot.Controllers
                 Product.UnitId = SaveProduct.UnitId;
 
                 // Проверям изменил ли пользователь цену .  Если изменил то добавляем новую запись в БД
-                if (SaveProduct.ProductPrice.FirstOrDefault().Value != Product.ProductPrice.FirstOrDefault().Value 
-                    && SaveProduct.ProductPrice.FirstOrDefault().Value >0)
+                if (SaveProduct.CurrentPrice.Value != Product.CurrentPrice.Value 
+                    && SaveProduct.CurrentPrice.Value >0)
                 {
-                    SaveProduct.ProductPrice.FirstOrDefault().ProductId = Product.ProductPrice.FirstOrDefault().ProductId;
-                    ProductPriceInsert(SaveProduct.ProductPrice.FirstOrDefault());
-                    DisablePrice(Product.ProductPrice.FirstOrDefault());
+                    DisablePrice(Product.CurrentPrice);
+                    Product.CurrentPriceId= ProductPriceInsert
+                    (new ProductPrice
+                    {
+                        CurrencyId = Product.CurrentPrice.CurrencyId,
+                        Value = SaveProduct.CurrentPrice.Value,
+                        ProductId = Product.CurrentPrice.ProductId
+                    }).Id;
+                    
                 }
 
                 if (image != null && SaveProduct!=null && SaveProduct.Id>0) // обновляем фотографию
-                    AddAttachment(image, SaveProduct.Id);
+                    Product.MainPhotoNavigation=await InsertAttachment(image, Product.Id);
 
                 db.SaveChanges();
+                db.Dispose();
                 return new RedirectResult("Editor\\" + SaveProduct.Id);
             }
 
             ///добавление нового товара
             if (SaveProduct != null && SaveProduct.Name != null && SaveProduct.Id == 0 && CheckName(SaveProduct.Name))
             {
-                SaveProduct=ProductInsert(SaveProduct);
+                var price = SaveProduct.CurrentPrice;
+
+                SaveProduct.CurrentPrice = null;
+
+                SaveProduct = ProductInsert(SaveProduct);
+
+                //добавляем цену в бд
+                price.ProductId= SaveProduct.Id;
+                 price= ProductPriceInsert(price);
+
+                SaveProduct.CurrentPriceId = price.Id;
+                db.Update<Product>(SaveProduct);
+                db.SaveChanges();
 
                 if (SaveProduct.Id > 0 && image != null)
-                    AddAttachment(image, SaveProduct.Id);
+                   await InsertAttachment(image, SaveProduct.Id);
 
                 if(SaveProduct.Id>0)
                     return RedirectToAction("Index");
@@ -317,10 +365,10 @@ namespace MyTelegramBot.Controllers
             if (db == null)
                 db = new MarketBotDbContext();
 
-            if (product!=null && product.ProductPrice.FirstOrDefault() != null)
+            if (product!=null && product.CurrentPrice != null)
             {
-                product.ProductPrice.FirstOrDefault().Enabled = true;
-                product.ProductPrice.FirstOrDefault().DateAdd = DateTime.Now;
+                product.CurrentPrice.Enabled = true;
+                product.CurrentPrice.DateAdd = DateTime.Now;
             }
 
             if(product!=null && product.Stock.FirstOrDefault() != null)
@@ -346,21 +394,30 @@ namespace MyTelegramBot.Controllers
         /// <param name="NewPrice"></param>
         /// <param name="OldPrice"></param>
         /// <returns></returns>
-        private ProductPrice ProductPriceInsert(ProductPrice NewPrice)
+        private ProductPrice ProductPriceInsert(ProductPrice Price)
         {
-            if (NewPrice.Value > 0)
+
+            if (Price != null && Price.Value > 0)
             {
-                NewPrice.DateAdd = DateTime.Now;
-                NewPrice.Enabled = true;
-                NewPrice.Volume = 1;
-                db.ProductPrice.Add(NewPrice);
+                ProductPrice productPrice = new ProductPrice
+                {
+                    CurrencyId = Price.CurrencyId,
+                    DateAdd = DateTime.Now,
+                    Enabled = true,
+                    ProductId = Price.ProductId,
+                    Value = Price.Value,
+                    Volume = 1
+                };
+                db.ProductPrice.Add(productPrice);
                 db.SaveChanges();
+                return productPrice;
             }
 
-            return NewPrice;
+            else
+                return null;
         }
 
-        private void AddAttachment(IFormFile file , int ProductId, bool MainMenu=true)
+        private async  Task<AttachmentFs> InsertAttachment(IFormFile file , int ProductId)
         {
             if (db == null)
                 db = new MarketBotDbContext();
@@ -381,17 +438,25 @@ namespace MyTelegramBot.Controllers
 
             db.SaveChanges();
 
+            await SendPhotoAndSaveFileId(fs);
+
+            return fs;
+
+        }
+
+        private ProductPhoto InsertProductPhoto(int ProductId, AttachmentFs attachmentFs)
+        {
             ProductPhoto productPhoto = new ProductPhoto
             {
-                AttachmentFsId = fs.Id,
+                AttachmentFsId = attachmentFs.Id,
                 ProductId = ProductId,
-                MainPhoto= MainMenu
             };
 
             db.ProductPhoto.Add(productPhoto);
 
             db.SaveChanges();
 
+            return productPhoto;
         }
 
         /// <summary>
@@ -427,6 +492,48 @@ namespace MyTelegramBot.Controllers
 
             else
                 return true;
+        }
+
+        private async Task<int> SendPhotoAndSaveFileId(AttachmentFs attachmentFs)
+        {
+            try
+            {
+                if (db == null)
+                    db = new MarketBotDbContext();
+
+                var botInfo = Bot.GeneralFunction.GetBotInfo();
+
+                string token = botInfo.Token;
+
+                TelegramBotClient = new Telegram.Bot.TelegramBotClient(token);
+
+                System.IO.Stream stream = new MemoryStream(attachmentFs.Fs);
+
+                Telegram.Bot.Types.FileToSend fileToSend = new Telegram.Bot.Types.FileToSend
+                {
+                    Content = stream,
+                    Filename = "Photo.jpg"
+                };
+
+               var Message= await TelegramBotClient.SendPhotoAsync(botInfo.OwnerChatId, fileToSend);
+               string Fileid = Message.Photo[Message.Photo.Length - 1].FileId;
+
+                AttachmentTelegram attachmentTelegram = new AttachmentTelegram
+                {
+                    AttachmentFsId = attachmentFs.Id,
+                    BotInfoId = botInfo.Id,
+                    FileId = Fileid
+                };
+
+                db.AttachmentTelegram.Add(attachmentTelegram);
+                return db.SaveChanges();
+
+            }
+
+            catch
+            {
+                return -1;
+            }
         }
     }
 }

@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообещние с содержание корзины
     /// </summary>
-    public class ViewBasketMessage:Bot.BotMessage
+    public class ViewBasketMessage:BotMessage
     {
         private InlineKeyboardCallbackButton ClearBasketBtn { get; set; }
 

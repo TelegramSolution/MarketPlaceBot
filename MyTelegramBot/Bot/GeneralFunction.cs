@@ -200,5 +200,27 @@ namespace MyTelegramBot.Bot
                 return value.Substring(0,value.Length-1);
             }
         }
+
+        public static BotInfo GetBotInfo()
+        {
+            try
+            {
+                string name = GetBotName();
+
+                BotInfo bot = new BotInfo();
+                using (MarketBotDbContext db = new MarketBotDbContext())
+                {
+                    bot = db.BotInfo.Where(b => b.Name == name).Include(b => b.Configuration).FirstOrDefault();
+
+                    return db.BotInfo.FirstOrDefault();
+
+                }
+            }
+
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
     }
 }

@@ -10,6 +10,7 @@ using MyTelegramBot.Bot;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
 using System.IO;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
@@ -47,7 +48,7 @@ namespace MyTelegramBot.Messages
 
             Product = db.Product.Find(this.ProductId);
 
-            var list = db.FeedBack.Where(f => f.ProductId == ProductId).ToList();
+            var list = db.FeedBack.Where(f => f.ProductId == ProductId && f.Enable).ToList();
 
             if (FeedBackId == 0)
                 FeedBack = list.OrderBy(f => f.Id).FirstOrDefault();
@@ -132,14 +133,14 @@ namespace MyTelegramBot.Messages
 
         private int NextFeedbackId (int CurrentFeedBackId)
         {
-            var feedback = db.FeedBack.Where(f => f.Id > CurrentFeedBackId && f.ProductId == ProductId).FirstOrDefault();
+            var feedback = db.FeedBack.Where(f => f.Id > CurrentFeedBackId && f.ProductId == ProductId && f.Enable).FirstOrDefault();
 
             if (feedback != null)
                 return feedback.Id;
 
             else
             {
-               feedback= db.FeedBack.Where(f => f.Id != CurrentFeedBackId && f.ProductId == ProductId).OrderBy(f=>f.Id).FirstOrDefault();
+               feedback= db.FeedBack.Where(f => f.Id != CurrentFeedBackId && f.ProductId == ProductId && f.Enable).OrderBy(f=>f.Id).FirstOrDefault();
 
                 if (feedback != null)
                     return feedback.Id;
@@ -151,14 +152,14 @@ namespace MyTelegramBot.Messages
 
         private int PreviousFeedbackId(int CurrentFeedBackId)
         {
-            var feedback = db.FeedBack.Where(f => f.Id < CurrentFeedBackId && f.ProductId == ProductId).OrderByDescending(f=>f.Id).FirstOrDefault();
+            var feedback = db.FeedBack.Where(f => f.Id < CurrentFeedBackId && f.ProductId == ProductId && f.Enable).OrderByDescending(f=>f.Id).FirstOrDefault();
 
             if (feedback != null)
                 return feedback.Id;
 
             else
             {
-                feedback = db.FeedBack.Where(f => f.Id != CurrentFeedBackId && f.ProductId == ProductId).OrderByDescending(f => f.Id).FirstOrDefault();
+                feedback = db.FeedBack.Where(f => f.Id != CurrentFeedBackId && f.ProductId == ProductId && f.Enable).OrderByDescending(f => f.Id).FirstOrDefault();
 
                 if (feedback != null)
                     return feedback.Id;

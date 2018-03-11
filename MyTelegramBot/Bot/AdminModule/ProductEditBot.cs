@@ -9,32 +9,26 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using System.IO;
+using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot
 {
     /// <summary>
     /// Редактирование товара
     /// </summary>
-    public class ProductEditBot: BotCore
+    public class ProductEditBot : BotCore
     {
         public const string ModuleName = "ProdEdit";
 
-        /// <summary>
-        /// Соообщение с категориями
-        /// </summary>
-        private CategoryListMessage CategoryListMsg { get; set; }
+        ///// <summary>
+        ///// Сообщение с админскими функциями для товара
+        ///// </summary>
+        //private ProductFuncMessage AdminProductFuncMsg { get; set; }
 
-        /// <summary>
-        /// Сообщение с товарами в выбранной категории
-        /// </summary>
-        private AdminProductListMessage AdminProductListMsg { get; set; }
+        //private UnitListMessage UnitListMsg { get; set; }
 
-        /// <summary>
-        /// Сообщение с админскими функциями для товара
-        /// </summary>
-        private AdminProductFuncMessage AdminProductFuncMsg { get; set; }
-
-        private UnitListMessage UnitListMsg { get; set; }
+        private ProductFunction ProductFunction { get; set; }
 
         /// <summary>
         /// Id товара
@@ -128,6 +122,8 @@ namespace MyTelegramBot.Bot
 
         public const string ProductEditCategoryReply = "Изменить категорию для товара:";
 
+        public const string ProductAdditionallyPhotoReply = "Добавить доп. фото:";
+
         /// <summary>
         /// Выбрать товар для редактирования
         /// </summary>
@@ -153,19 +149,24 @@ namespace MyTelegramBot.Bot
         /// </summary>
         public const string ProudctUnitCmd = "ProudEditUnit";
 
-        /// <summary>
-        /// Кнопка изменить Валюту
-        /// </summary>
-        public const string ProudctCurrencyCmd = "ProdCurrency";
 
         /// <summary>
-        /// кнопка изменить Inline фото
+        /// добавить доп фото
         /// </summary>
-        public const string ProductInlineImageCmd = "ProdEditInlineImg";
-
-        private const string InlineForceReply = "Изменить Inline фотографию:";
+        public const string InsertAdditionalPhotosCmd = "InsertAdditionalPhotos";
 
 
+        /// <summary>
+        /// показать доп кнопки для изменения настроек товара
+        /// </summary>
+        public const string MoreProdFuncCmd = "MoreProdFunc";
+
+        public const string BackToProductEditorCmd = "BackToProductEditor";
+
+        /// <summary>
+        /// удалить доп фото
+        /// </summary>
+        public const string RemoveAdditionalPhotoCmd = "RemoveAdditionalPhoto";
 
         /// <summary>
         /// Конструктор
@@ -173,10 +174,10 @@ namespace MyTelegramBot.Bot
         /// <param name="_update"></param>
         public ProductEditBot(Update _update) : base(_update)
         {
-        
+
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             try
             {
@@ -187,14 +188,8 @@ namespace MyTelegramBot.Bot
                 if (this.ProductId > 0)
                 {
                     using (MarketBotDbContext db = new MarketBotDbContext())
-                        ProductName = db.Product.Where(p => p.Id == ProductId).FirstOrDefault().Name;
+                        ProductName = db.Product.Find(ProductId).Name;
 
-                    UnitListMsg = new UnitListMessage(this.ProductId);
-
-
-                    AdminProductListMsg = new AdminProductListMessage(this.ProductId);
-
-                    AdminProductFuncMsg = new AdminProductFuncMessage(this.ProductId);
                 }
 
             }
@@ -211,39 +206,12 @@ namespace MyTelegramBot.Bot
             {
                 switch (base.CommandName)
                 {
-                    case AdminProductListMessage.NextPageCmd:
-                        return await SendProductPage(Argumetns[0], Argumetns[1]);
 
-                    case AdminProductListMessage.PreviuousPageCmd:
-                        return await SendProductPage(Argumetns[0], Argumetns[1]);
-
-                    //следеющая стр. с категориями при выборе товара для редактирования
-                    case CategoryListMessage.NextPageCmd:
-                        return await SendCategoryPage(Argumetns[0]);
-
-                    // пред. стр с категориями при выборе товара для редактирования
-                    case CategoryListMessage.PreviuousPageCmd:
-                        return await SendCategoryPage(Argumetns[0]);
-
-                    case ProductEditorCmd:
-                        return await SendCategoryPage();
-
-                    //Пользователь выбрал категорию.  Далее ему показываются все товары в этой категории
-                    case AdminProductInCategoryCmd:
-                        return await AdminProductInCategory();
-
-                        ///Назад к сообщению с описание товара и кнопками упралвния
-                    case "BackToProductEditor":
+                    ///Назад к сообщению с описание товара и кнопками упралвния
+                    case BackToProductEditorCmd:
                         return await SendProductAdminMsg(MessageId);
 
-
-                        ///Пользователь выбрал валюту
-                    case "UpdateProductCurrency":
-                        return await UpdateCurrency();
-
-                    // Пользователь выбрал товар который будет редактировать. 
-                    //Присылается сообщение с описание товара и кнопками ф-ций
-                    case SelectProductCmd:
+                    case ProductEditorCmd:
                         return await SendProductAdminMsg();
 
                     //Пользователь нажан кнопку Показывать/Скрывать от пользователя. 
@@ -254,63 +222,64 @@ namespace MyTelegramBot.Bot
                     ///Пользователь нажал на кнопку Изменить навзание товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новое имя товара
                     case ProductEditNameCmd:
-                        return await ForceReplyBuilder(ProductEditNameRelpy);
+                        return await SendForceReplyMessage(ProductEditNameRelpy);
 
                     ///Пользователь нажал на кнопку Изменить стоимость товара.
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новое значение стоимость для товара
                     case ProductEditPriceCmd:
-                        return await ForceReplyBuilder(ProductEditPriceRelpy);
+                        return await SendForceReplyMessage(ProductEditPriceRelpy);
 
                     ///Пользователь нажал на кнопку Изменить описание товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новое описание товара
                     case ProductEditTextCmd:
-                        return await ForceReplyBuilder(ProductEditTextRelpy);
+                        return await SendForceReplyMessage(ProductEditTextRelpy);
 
                     ///Пользователь нажал на кнопку Изменить остаток товара.
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать на какое значение увеличить/уменьшить кол-во товара
                     case ProductEditStockCmd:
-                        return await ForceReplyBuilder(ProductEditStockReply);
+                        return await SendForceReplyMessage(ProductEditStockReply);
 
                     ///Пользователь нажал на кнопку Изменить ссылку на заметку для товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой указать новую ссылку 
                     case ProductEditUrlCmd:
-                        return await ForceReplyBuilder(ProductEditUrlReply);
+                        return await SendForceReplyMessage(ProductEditUrlReply);
 
                     ///Пользователь нажал на кнопку Изменить фотографию товара. 
                     ///ПОльзователю приходи ForceReply сообщение с просьбой прислать новую фотографию для товара
                     case ProductEditPhotoCmd:
-                        return await ForceReplyBuilder(ProductEditPhotoReply);
+                        return await SendForceReplyMessage(ProductEditPhotoReply);
 
-                    ///Пользователь нажал на кнопку Изменить навзание товара.
                     ///Сообщение меняется на список доступных категорий
                     case ProductEditCategoryCmd:
-                        return await ProductEditCategory();
+                        return await SendCategoryList();
 
                     ///пользваотель выбрал новую категорию для товара. 
                     //Данные обновляются в БД. Сообщение редактируется на Описание товара и кнопки с функциями
                     case ProductUpdateCategoryCmd:
                         return await UpdateProductCategory();
 
-                        //Пользователь нажана на кнопку Inline Фотография.
-                    case ProductInlineImageCmd:
-                        return await ForceReplyBuilder(InlineForceReply);
 
-                        ///ПОльзователь нажал на "Ед. изм" появтляется сообщение со списком ед. измерений
+                    ///ПОльзователь нажал на "Ед. изм" появтляется сообщение со списком ед. измерений
                     case ProudctUnitCmd:
                         return await SendUnitList();
 
-                     //Сохраняем новое значение ед. измерения
+                    //Сохраняем новое значение ед. измерения
                     case "UpdateProductUnit":
                         return await UpdateUnit();
+
+                    case MoreProdFuncCmd:
+                        return await SendMoreFunctionButton();
+
+                        ///пользователь нажал удалить доп. фото
+                    case RemoveAdditionalPhotoCmd:
+                        return await RemoveAdditionalPhoto();
+
+                    case InsertAdditionalPhotosCmd:
+                        return await SendForceReplyMessage(ProductAdditionallyPhotoReply);
 
                     default:
                         break;
                 }
-
-
-                //Пользователь нажал на кнопку Добавить новый товар. Пользователю приходит сообщение с просьбой указать Имя, Название категори, Цена, Комментарий (не обязательной)
-                if (base.OriginalMessage == AdminBot.EnterNameNewProductCmd)
-                    return await AddNewProduct();
 
                 //Пользователь прислал новое имя для товара. данные обновляются в БД. Бот присылает сообщение с Описание товара и кнопки с функциями
                 if (base.OriginalMessage.Contains(ProductEditNameRelpy))
@@ -336,25 +305,14 @@ namespace MyTelegramBot.Bot
                 if (base.OriginalMessage.Contains(ProductEditPhotoReply))
                     return await UpdateMainProductPhoto();
 
-                //пользователь прислал новую ссылку на Inline фотографию
-                if (base.OriginalMessage.Contains(InlineForceReply))
-                    return await UpdateInlinePhotoUrl();
-
                 if (base.OriginalMessage.Contains(ProductEditCategoryReply))
                     return await UpdateProductCategory();
 
-                if (base.CommandName.Contains(SetProductCmd)) // админская командка для быстрого отрытия панели упраления товаром
-                {
-                    int id = Convert.ToInt32(base.CommandName.Substring(SetProductCmd.Length));
+                if (base.CommandName.Contains(SetProductCmd)) // админская командка для быстрого отрытия панели упраления товаро
+                    return await SendProductFunc(Convert.ToInt32(base.CommandName.Substring(SetProductCmd.Length)));
 
-                    Product product = new Product();
-                    using (MarketBotDbContext db = new MarketBotDbContext())
-                        product = db.Product.Where(p => p.Id == id).FirstOrDefault();
-
-                    await SendProductFunc(product);
-
-                    return OkResult;
-                }
+                if (base.OriginalMessage.Contains(ProductAdditionallyPhotoReply))
+                    return await InsertAdditionallyPhoto();
 
                 else
                     return null;
@@ -365,63 +323,43 @@ namespace MyTelegramBot.Bot
         }
 
 
-        private async Task<IActionResult> SendProductPage(int CategoryId, int PageNumber = 1)
+        /// <summary>
+        /// Показать доп кнопки редактора товара
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> SendMoreFunctionButton()
         {
-            AdminProductListMsg = new AdminProductListMessage(CategoryId, PageNumber);
 
-            var mess = AdminProductListMsg.BuildMsg();
+            ProductFuncMessage ProductFuncMsg = new ProductFuncMessage(ProductId);
 
-            if (mess != null)
-                await EditMessage(mess);
+            await EditInlineReplyKeyboard(ProductFuncMsg.MoreBtn());
+
+            return OkResult;
+        }
+
+
+        /// <summary>
+        /// Удалить доп.фото у товара
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> RemoveAdditionalPhoto()
+        {
+            ProductId = Argumetns[0];
+
+            int Attachid = Argumetns[1];
+            
+            ProductFunction = new ProductFunction();
+
+            if (ProductFunction.RemoveAdditionalPhoto(ProductId, Attachid) > 0)
+                await AnswerCallback("Фотография удалена", true);
 
             else
-                await AnswerCallback("Данные отсутсвуют");
+                await AnswerCallback("Фотографии не существует", true);
+
+            ProductFunction.Dispose();
 
             return OkResult;
         }
-
-        /// <summary>
-        /// Пользователь хочет изменить товар. Для начала он выбирает категорию в которой этот товар находится.
-        /// </summary>
-        /// <param name="PageNumber">Номер страницы. Т.к товаров может быть много они бьются на страницы</param>
-        /// <returns></returns>
-        private async Task<IActionResult> SendCategoryPage(int PageNumber = 1)
-        {
-            CategoryListMsg = new CategoryListMessage(ModuleName, AdminProductInCategoryCmd,PageNumber);
-
-            await EditMessage(CategoryListMsg.BuildCategoryAdminPage());
-
-
-            return OkResult;
-        }
-
-        /// <summary>
-        /// Сохраняем новое значение валюты для цены
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> UpdateCurrency()
-        {
-            try
-            {
-                using (MarketBotDbContext db=new MarketBotDbContext())
-                {
-                    var product = db.Product.Where(p => p.Id == ProductId).Include(p => p.ProductPrice).FirstOrDefault();
-
-                    product.ProductPrice.Where(p=>p.Enabled).OrderByDescending(p=>p.Id).FirstOrDefault().CurrencyId = Argumetns[1];
-
-                    db.SaveChanges();
-
-                    return await SendProductFunc(product, base.MessageId);
-                }
-            }
-
-            catch
-            {
-                return NotFoundResult;
-            }
-        }
-
-
 
         /// <summary>
         /// Сохрнаяем новоем значение Ед. измерения для товара
@@ -429,25 +367,19 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateUnit()
         {
-            try
-            {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
-                    var product = db.Product.Where(p => p.Id == ProductId).Include(p => p.ProductPrice).FirstOrDefault();
+            int ProductId = Argumetns[0];
+            int UnitId= Argumetns[1];
 
-                    product.UnitId = Argumetns[1];
+            ProductFunction = new ProductFunction();
 
-                    db.SaveChanges();
+            var product=ProductFunction.UpdateUnit(ProductId, UnitId);
 
-                    return await SendProductFunc(product, base.MessageId);
-                }
-            }
+            ProductFunction.Dispose();
 
-            catch
-            {
-                return NotFoundResult;
-            }
+            return await SendProductFunc(product, base.MessageId);
+
         }
+
 
         /// <summary>
         /// Сообщение со списоком ед. измерения
@@ -457,43 +389,17 @@ namespace MyTelegramBot.Bot
         {
             try
             {
-                if (UnitListMsg != null &&await EditMessage(UnitListMsg.BuildMsg()) != null)
+                BotMessage = new UnitListMessage(ProductId);
+                if (await EditMessage(BotMessage.BuildMsg()) != null)
                     return OkResult;
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
 
             catch
             {
-                return NotFoundResult;
-            }
-        }
-
-        private async Task<IActionResult> UpdateInlinePhotoUrl()
-        {
-            try
-            {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
-                    var product = db.Product.Where(p => p.Id == ProductGet(InlineForceReply)).FirstOrDefault();
-
-                    string Url = base.ReplyToMessageText;
-
-                    if (product != null)
-                    {
-                        product.PhotoUrl = Url;
-                        db.SaveChanges();
-                    }
-
-                    return await SendProductFunc(product);
-                }
-                    
-            }
-
-            catch
-            {
-                return  NotFoundResult;
+                return OkResult;
             }
         }
 
@@ -502,60 +408,39 @@ namespace MyTelegramBot.Bot
         /// Показать все категории
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> ProductEditCategory()
+        private async Task<IActionResult> SendCategoryList()
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                var list = db.Category.ToList();
 
-                string categoryListText = String.Empty;
+            var list = CategoryFunction.GetListCategory();
 
-                foreach (Category cat in list)
-                    categoryListText += cat.Name+", ";
+            string categoryListText = String.Empty;
 
-                await SendMessage(new BotMessage { TextMessage ="Категории:"+ categoryListText });
+            foreach (Category cat in list)
+                categoryListText += cat.Name + ", ";
 
-                await ForceReplyBuilder(ProductEditCategoryReply);
+            await SendMessage(new BotMessage { TextMessage = "Категории:" + categoryListText });
 
-                return OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Все товары в категории
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> AdminProductInCategory()
-        {
-            AdminProductListMsg = new AdminProductListMessage(base.Argumetns[0]);
-
-            var mess= AdminProductListMsg.BuildMsg();
-
-            if (mess != null)
-                await EditMessage(mess);
-
-            else
-                await AnswerCallback("Данные отсутствуют");
+            await SendForceReplyMessage(ProductEditCategoryReply);
 
             return OkResult;
+            
         }
+
 
         /// <summary>
         /// Отправить сообщение с товаром который выбрал Администратор
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendProductAdminMsg(int MessageId=0)
+        private async Task<IActionResult> SendProductAdminMsg(int MessageId = 0)
         {
+            BotMessage = new ProductFuncMessage(ProductId);
 
-            if (await SendMessage(AdminProductFuncMsg.BuildMsg(), MessageId) != null)
-                return base.OkResult;
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
 
-            if (MessageId > 0 && await EditMessage(AdminProductFuncMsg.BuildMsg()) != null)
-                return OkResult;
+            return OkResult;
 
-            else
-                return base.NotFoundResult;
         }
+
 
         /// <summary>
         /// Обновить имя
@@ -563,19 +448,20 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductName()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditNameRelpy)).FirstOrDefault();
+            ProductFunction = new ProductFunction();
 
-                string NewName = base.ReplyToMessageText;
+            string NewName = base.ReplyToMessageText;
 
-                product.Name = NewName;
+            int ProductId = ProductGet(ProductEditNameRelpy);
 
-                db.SaveChanges();
+            var Product = ProductFunction.UpdateName(ProductId, NewName);
 
-                return await SendProductFunc(product);
-            }
+            ProductFunction.Dispose();
+
+            return await SendProductFunc(Product);
+
         }
+
 
         /// <summary>
         /// Обновить описание
@@ -583,19 +469,21 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductText()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditNameRelpy)).FirstOrDefault();
-               
-                string NewText = base.ReplyToMessageText;
+            ProductFunction = new ProductFunction();
 
-                product.Text = NewText;
+            string Text = base.ReplyToMessageText;
 
-                db.SaveChanges();
+            int ProductId = ProductGet(ProductEditNameRelpy);
 
-                return await SendProductFunc(product);
-            }
+            var Product = ProductFunction.UpdateText(ProductId, Text);
+
+            ProductFunction.Dispose();
+
+            return await SendProductFunc(Product);
+
+
         }
+
 
         /// <summary>
         /// Обновить ссылку на заметку
@@ -604,30 +492,23 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> UpdateProductNoteUrl()
         {
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            if (WebUrl != null && WebUrl.Length > 0)
             {
-                Product product = new Product();
-                if (WebUrl != null && WebUrl.Length > 0)
-                {
-                     product =db.Product.Where(p=>p.Id==ProductGet(ProductEditUrlReply)).FirstOrDefault();
+                ProductFunction = new ProductFunction();
 
-                    if (product != null)
-                    {
-                        string NewUrl = base.WebUrl;
+                string Url = base.ReplyToMessageText;
 
-                        product.TelegraphUrl = NewUrl;
+                int ProductId = ProductGet(ProductEditUrlReply);
 
-                        db.SaveChanges();
+                var Product = ProductFunction.UpdateUrl(ProductId, Url);
 
-                        return await SendProductFunc(product);
-                    }
+                ProductFunction.Dispose();
 
-                    else return base.NotFoundResult;
-                }
-
-                else
-                    return await ErrorMessage(ProductEditUrlReply);
+                return await SendProductFunc(Product);
             }
+
+            else
+                return await ErrorMessage(ProductEditUrlReply, "Ошибка. Введите Url");
         }
 
 
@@ -637,35 +518,23 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateMainProductPhoto()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditPhotoReply)).FirstOrDefault();
-                string NewPhoto = base.PhotoId;
 
-                int fs_id= await base.InsertToAttachmentFs(base.PhotoId);
+            int fs_id= await base.InsertToAttachmentFs(base.PhotoId);
 
-                ProductPhoto productPhoto = new ProductPhoto
-                {
-                    AttachmentFsId = fs_id,
-                    ProductId = product.Id,
-                    MainPhoto=true
-                };
+            int Id = ProductGet(ProductEditPhotoReply);
 
-                AttachmentTelegram attachment = new AttachmentTelegram
-                {
-                    AttachmentFsId = fs_id,
-                    FileId = base.PhotoId,
-                    BotInfoId = BotInfo.Id,
+            ProductFunction = new ProductFunction();
 
-                };
+            var product= ProductFunction.UpdatepMainPhoto(Id, fs_id);
 
-                db.ProductPhoto.Add(productPhoto);
-                db.AttachmentTelegram.Add(attachment);
-                db.SaveChanges();
+            AttachmentTelegramFunction.AddAttachmentTelegram(fs_id, BotInfo.Id,base.PhotoId);
 
-                return await SendProductFunc(product);
-            }
+            ProductFunction.Dispose();
+
+            return await SendProductFunc(product);
+            
         }
+
 
         /// <summary>
         /// Обновить стоимость
@@ -673,40 +542,59 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductPrice()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            double NewPrice = 0.0;
+
+            try
             {
-                double NewPrice = 0.0;
-                try
-                {
-                    var product = db.Product.Where(p => p.Id == ProductGet(ProductEditPriceRelpy)).Include(p=>p.ProductPrice).FirstOrDefault();
-                    NewPrice = Convert.ToDouble(base.ReplyToMessageText);
+                int ProductId = ProductGet(ProductEditPriceRelpy);
 
-                    ProductPrice productPrice = new ProductPrice
-                    {
-                        ProductId = product.Id,
-                        DateAdd = DateTime.Now,
-                        Enabled = true,
-                        Value = NewPrice
-                    };
+                ProductFunction = new ProductFunction();
 
-                    var OldPrice = product.ProductPrice.Where(p => p.Enabled).FirstOrDefault();
+                NewPrice = Convert.ToDouble(base.ReplyToMessageText);
 
-                    if (OldPrice != null)
-                        OldPrice.Enabled = false;
+                var product = ProductFunction.UpdatePrice(ProductId, NewPrice, Convert.ToInt32(BotInfo.Configuration.CurrencyId));
 
-                    db.ProductPrice.Add(productPrice);
-                    db.SaveChanges();
 
-                    return await SendProductFunc(product);
-                }
+                ProductFunction.Dispose();
 
-                catch
-                {
-                    return await ErrorMessage(ProductEditPriceRelpy);
-                }
+                return await SendProductFunc(product);
+            }
+
+            catch
+            {
+                return await ErrorMessage(ProductEditPriceRelpy);
             }
 
         }
+
+
+        /// <summary>
+        /// Добавить доп фото
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IActionResult> InsertAdditionallyPhoto()
+        {
+            AttachmentTelegram TgAttach = null;
+
+            int ProductId = ProductGet(ProductAdditionallyPhotoReply);
+
+            ProductFunction = new ProductFunction();
+
+            var ProductPhoto = ProductFunction.InsertAdditionallPhoto(ProductId, await base.GetFileAsync(base.PhotoId), base.Caption);
+
+            if(ProductPhoto!=null && base.PhotoId!=null)
+             TgAttach = AttachmentTelegramFunction.AddAttachmentTelegram(ProductPhoto.AttachmentFsId, BotInfo.Id, base.PhotoId);
+
+            var product = ProductFunction.GetProduct(ProductId);
+
+            ProductFunction.Dispose();
+
+            if (ProductPhoto!=null && ProductPhoto.AttachmentFsId>0 && TgAttach!=null && TgAttach.Id > 0)
+                await SendMessage(new BotMessage { TextMessage = "Добавлено" });
+
+            return await SendProductFunc(product);
+        }
+
 
         /// <summary>
         /// Обновить остатки
@@ -714,46 +602,29 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductStock()
         {
-            int NewStock = 0;
-            int? OldBalance = 0;
+            int Value = 0;
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            int ProductId = ProductGet(ProductEditStockReply);
+
+            ProductFunction = new ProductFunction();
+
+            try
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditStockReply)).Include(p=>p.Stock).FirstOrDefault();
+                Value = Convert.ToInt32(base.ReplyToMessageText);
 
+                var product = ProductFunction.UpdateStock(ProductId, Value, "Значение изменено через панель администратора");
 
+                ProductFunction.Dispose();
 
-                try
-                {
-                    NewStock = Convert.ToInt32(base.ReplyToMessageText);
-
-                    if (product.Stock.Count > 0)
-                        OldBalance = db.Stock.Where(s => s.ProductId == product.Id).OrderByDescending(s => s.Id).FirstOrDefault().Balance;
-
-                    if (OldBalance + NewStock < 0) // Если в наличии 50, а отнимают 100. Новый баланс должен быть равен 0
-                        NewStock =-1* Convert.ToInt32(OldBalance);
-
-                    Stock stock = new Stock
-                    {
-                        ProductId = product.Id,
-                        DateAdd = DateTime.Now,
-                        Quantity = NewStock,
-                        Balance = OldBalance + NewStock,
-                        Text="Добавлено через панель администратора"
-                    };
-
-                    db.Stock.Add(stock);
-                    db.SaveChanges();
-                    return await SendProductFunc(product);
-                }
-
-                catch
-                {
-                    return await ErrorMessage(ProductEditStockReply);
-                }
+                return await SendProductFunc(product);
             }
 
+            catch
+            {
+                return await ErrorMessage(ProductEditStockReply,"Неверный формат данных!");
+            }
         }
+
 
         /// <summary>
         /// Обновить состояние 
@@ -761,28 +632,20 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductEnable()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var product =db.Product.Where(p => p.Id == ProductId).FirstOrDefault();
+            int ProductId = Argumetns[0];
 
-                if (product != null && product.Enable == true || product!=null && product.Enable==null)
-                {
-                    product.Enable = false;
-                    db.SaveChanges();
-                    return await SendProductFunc(product, base.MessageId);
-                }
+            int CurrentEnable = Argumetns[1];
 
-                if (product != null && product.Enable == false || product != null && product.Enable == null)
-                {
-                    product.Enable = true;
-                    db.SaveChanges();
-                    return await SendProductFunc(product, base.MessageId);
-                }
+            ProductFunction = new ProductFunction();
 
-                else
-                    return await SendProductFunc(product, base.MessageId);
-            }
+            if (CurrentEnable == 1)
+                return await SendProductFunc(ProductFunction.UpdateEnable(ProductId, false),base.MessageId);
+
+            else 
+                return await SendProductFunc(ProductFunction.UpdateEnable(ProductId, true), base.MessageId);
+
         }
+
 
         /// <summary>
         /// Обновить категорию
@@ -790,272 +653,32 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductCategory()
         {
+            ProductFunction = new ProductFunction();
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
+            int ProductId = ProductGet(ProductEditCategoryReply);
+
+            string CatName = base.ReplyToMessageText;
+
+            var category = CategoryFunction.GetCategory(CatName);
+
+            if (category != null)
             {
-                var product = db.Product.Where(p => p.Id == ProductGet(ProductEditCategoryReply)).FirstOrDefault();
-
-                string CatName = base.ReplyToMessageText;
-
-                var cat = db.Category.Where(c => c.Name == CatName).FirstOrDefault();
-
-                if (cat != null)
-                {
-                    product.CategoryId = cat.Id;
-                    db.Update(product);
-                    db.SaveChanges();
-                    return await SendProductFunc(product);
-                }
-
-                else
-                {
-                    await SendMessage(new BotMessage { TextMessage = "Категория не найдена!" });
-                    return await ProductEditCategory();
-                }
+                var product= ProductFunction.UpdateCategory(ProductId, category.Id);
+                ProductFunction.Dispose();
+                return await SendProductFunc(product);
             }
+            else
+            {
+                ProductFunction.Dispose();
+                await SendMessage(new BotMessage { TextMessage = "Категория не найдена!" });
+                return await SendCategoryList();
+            }
+
+
 
         }
 
-        /// <summary>
-        /// Добавить товар через бота
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> AddNewProduct()
-        {
-            List<string> SplitData = new List<string>();
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                try
-                {
-                    //string quote = "\"";
-                    //" Название товара, Категория, Цена, Еденица измерения, В наличии, " + quote + "Краткое описание [не обязательно]"
-                    //  "Сникерс, Конфеты, 50, г., 1000" + quote + "Вкусные конфеты. Ага" + quote
-
-                    if (base.Caption != null && ReplyToMessageText==null)
-                    {
-                        string[] SplitTmp = base.Caption.Split(",");
-                        for (int i = 0; i < SplitTmp.Length; i++)
-                            SplitData.Add(SplitTmp[i]);
-                        
-                    }
-
-                    if(base.Caption==null && base.ReplyToMessageText!=null)
-                    {
-                        string[] SplitTmp = base.ReplyToMessageText.Split(",");
-                        for (int i = 0; i < SplitTmp.Length; i++)
-                            SplitData.Add(SplitTmp[i]);
-                    }
-
-                    const string quote = "\"";
-                    string Name = String.Empty;
-                    string CategoryName = String.Empty;
-                    double Price = 0.0;
-                    Currency Currency=new Currency();
-                    string UnitName = "";
-                    Units unit = new Units();
-                    int Stock = 0;
-
-                    string Text = String.Empty;
-
-
-                    for (int i = 0; i < SplitData.Count; i++)
-                        SplitData[i] = SplitData[i].Trim();
-
-                    if (SplitData != null && SplitData.Count > 0)
-                    {
-
-                        Name = SplitData[0];
-
-                        CategoryName = SplitData[1];
-
-                        Price = ToDouble(SplitData[2]);
-
-                        //определям валюту
-                         Currency = db.Currency.Find(BotInfo.Configuration.CurrencyId);
-
-                        //Определяем ед измерения
-                        UnitName = SplitData[3];
-                        if (UnitName != null)
-                            unit = db.Units.Where(u => u.ShortName == UnitName).FirstOrDefault();
-
-                        //В наличии
-                        Stock = ToInt(SplitData[4]);
-                        
-                        if (SplitData.Count>5 && SplitData[5] != "")// Комментарий к товару
-                            Text = SplitData[5].Substring(1, SplitData[5].Length - 2);
-
-
-                        ///ПРоверяем есть ли уже товар с таким название в БД
-                        var ReapetProduct = db.Product.Where(p => p.Name == Name).FirstOrDefault();
-
-                        // Проверям есть ли такая катерогия
-                        var Category = db.Category.Where(c => c.Name == CategoryName).FirstOrDefault();
-
-                        if (ReapetProduct != null) //отправялем сообщение с ошибкой что товар с таким навзание уже существует
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Товар с таким названием уже существует");
-
-                        if (Category == null) //отправялем сообщение с ошибкой что найдена категория
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Категория " + CategoryName + " не найдена");
-
-                        if (Price == -1) //ошибка. Цена не может быть меньше или равно 0
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Ошибка. Не удалось определить цену");
-
-                        if (Price < -1) //ошибка. Цена не может быть меньше или равно 0
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Цена должна быть положительным числом");
-
-                        if (Price ==0) //ошибка. Цена не может быть меньше или равно 0
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Цена не может быть равно 0");
-
-                        if(unit==null)
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Не удалось определить еденицу измерения");
-
-                        if (Stock < 0)
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Не удалось определить кол-во товара в наличии. Это должно быть целое число");
-
-                        if (Stock == 0)
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "кол-во товара в наличии должно быть больше 0.");
-
-                        if (ReapetProduct == null && Category != null && Price > 0 && Currency!=null && unit!=null && Stock>0)
-                        {
-                            var PhotoFs = await InsertToAttachmentFs(base.PhotoId);
-
-                            NewProduct newProduct = new NewProduct
-                            {
-                                Name = Name,
-                                CategoryId = Category.Id,
-                                Text = Text,
-                                Price = Price,
-                                AttacmentFsId = PhotoFs,
-                                Currency = Currency.Id,
-                                Unit = unit.Id,
-                                Volume = 1,
-                                Stock = Stock
-
-                            };
-                           
-
-                            var product = InsertProduct(newProduct);
-
-
-                            return await SendProductFunc(product);
-
-                        }
-
-
-                        else
-                            return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Неизвестная ошибка");
-                    }
-
-                    else
-                        return base.NotFoundResult;
-                }
-
-                catch (Exception exp)
-                {
-                    //не удалось преобразовать в числойвой формат. Пользователь неверно ввел цену
-                    return await ErrorMessage(AdminBot.EnterNameNewProductCmd, "Неизвестная ошибка");
-                }
-            }
-        }
-
-        private int ToInt(string value)
-        {
-            try
-            {
-                return Convert.ToInt32(value);
-            }
-
-            catch
-            {
-                return -1;
-            }
-        }
-
-        private double ToDouble(string value)
-        {
-            try
-            {
-                return Convert.ToDouble(value);
-            }
-
-            catch
-            {
-                return -1;
-            }
-        }
-
-        /// <summary>
-        /// Добавить новый товар в БД
-        /// </summary>
-        /// <param name="newProduct"></param>
-        /// <returns></returns>
-        private Product InsertProduct(NewProduct newProduct)
-        {
-            string idPhoto = String.Empty;
-
-
-            Product product = new Product
-            {
-                Name = newProduct.Name,
-                CategoryId = newProduct.CategoryId,
-                Enable = false,
-                DateAdd = DateTime.Now,
-                Text = newProduct.Text,
-                TelegraphUrl =String.Empty,
-                UnitId=newProduct.Unit
-                 
-            };
-
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                db.Product.Add(product);
-                if (db.SaveChanges() > 0)
-                {
-                    ProductPrice productPrice = new ProductPrice
-                    {
-                        DateAdd = DateTime.Now,
-                        Enabled = true,
-                        ProductId = product.Id,
-                        Value = newProduct.Price,
-                        Volume = newProduct.Volume,
-                        CurrencyId = newProduct.Currency
-                    };
-
-                    Stock stock = new Stock();
-                    stock.ProductId = product.Id;
-                    stock.DateAdd = DateTime.Now;
-                    stock.Quantity = newProduct.Stock;
-                    stock.Balance = newProduct.Stock;
-
-                    if (newProduct.AttacmentFsId > 0) // если есть фотография
-                    {
-                        try
-                        {
-                            ProductPhoto productPhoto = new ProductPhoto
-                            {
-                                AttachmentFsId = newProduct.AttacmentFsId,
-                                ProductId = product.Id,
-                                MainPhoto=true
-                            };
-                            db.ProductPhoto.Add(productPhoto);
-                           int a= db.SaveChanges();
-                        }
-
-                        catch (Exception e)
-                        {
-
-                        }
-                    }
-                    product.ProductPrice.Add(productPrice);
-                    product.Stock.Add(stock);
-                    db.SaveChanges();
-                }
-
-                return product;
-            }
-        }
 
         /// <summary>
         /// Информация о товаре
@@ -1070,7 +693,7 @@ namespace MyTelegramBot.Bot
                 var product = db.Product.Where(p => p.Name == ProductName).FirstOrDefault();
                 if (product != null)
                 {
-                    AdminProductFuncMsg = new AdminProductFuncMessage(product.Id);
+                    BotMessage = new ProductFuncMessage(product.Id);
 
                     return product.Id;
                 }
@@ -1080,42 +703,61 @@ namespace MyTelegramBot.Bot
             }
         }
 
+
         /// <summary>
         /// Отправить сообщение с админскими функциями для товара
         /// </summary>
         /// <param name="product"></param>
         /// <param name="MessageId"></param>
         /// <returns></returns>
-        private async Task<IActionResult> SendProductFunc(Product product, int MessageId=0)
+        private async Task<IActionResult> SendProductFunc(int productId, int MessageId=0)
         {
-            if (product != null)
+            if (productId >0)
             {
-                AdminProductFuncMsg = new AdminProductFuncMessage(product.Id);
+                BotMessage = new ProductFuncMessage(productId);
+                var mess = BotMessage.BuildMsg();
+                await SendMessage(mess, MessageId);
 
-                if (await SendMessage(AdminProductFuncMsg.BuildMsg(), MessageId) != null)
-                    return OkResult;
+                return OkResult;
 
-                else
-                    return NotFoundResult;
             }
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
+
+
+        private async Task<IActionResult> SendProductFunc(Product product, int MessageId = 0)
+        {
+            if (product !=null)
+            {
+                BotMessage = new ProductFuncMessage(product);
+                var mess = BotMessage.BuildMsg();
+                await SendMessage(mess, MessageId);
+
+                return OkResult;
+
+            }
+
+            else
+                return OkResult;
+        }
+
 
         /// <summary>
         /// Создать иОтправить ForceReply сообщение
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        protected override async Task<IActionResult> ForceReplyBuilder(string text)
+        protected override async Task<IActionResult> SendForceReplyMessage(string text)
         {
-            if (await base.ForceReplyBuilder(text + this.ProductName) != null)
+            if (await base.SendForceReplyMessage(text + this.ProductName) != null)
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
+
 
         /// <summary>
         /// Сообщение с ошибкой и новое ForceReply сообщение
@@ -1126,10 +768,10 @@ namespace MyTelegramBot.Bot
         private async Task<IActionResult> ErrorMessage (string ForceReplyText,string ErrorMessage = "Ошибка")
         {
             if (await SendMessage(new BotMessage { TextMessage = ErrorMessage }) != null)
-                return await ForceReplyBuilder(ForceReplyText);
+                return await SendForceReplyMessage(ForceReplyText);
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
     }
 }

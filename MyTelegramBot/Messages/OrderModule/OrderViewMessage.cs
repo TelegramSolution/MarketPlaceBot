@@ -7,6 +7,7 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using System.Security.Cryptography;
 using System.Text;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
@@ -49,15 +50,12 @@ namespace MyTelegramBot.Messages
             {
                 if (this.OrderId > 0) // если в конструктор был передан айди заявки
                     Order = db.Orders.Where(o => o.Id == OrderId).
-                        Include(o => o.Confirm).
-                        Include(o => o.Delete).
-                        Include(o => o.Done).
                         Include(o => o.FeedBack).
                         Include(o => o.OrderProduct).
                         Include(o => o.PickupPoint).
                         Include(o => o.OrderAddress).
                         Include(o => o.BotInfo).
-                        Include(o => o.Invoice).Include(o=>o.CurrentStatusNavigation).
+                        Include(o => o.Invoice).Include(o=>o.CurrentStatusNavigation.Status).
                         Include(o => o.OrderProduct).FirstOrDefault();
 
                 if (Order != null && Order.CurrentStatusNavigation == null)
@@ -81,7 +79,7 @@ namespace MyTelegramBot.Messages
 
                     string paid = "";
 
-                    double total = 0.0; // общая строисоить заказа
+                    double total = Order.TotalPrice(); // общая строисоить заказа
 
                     if(Order.OrderAddress!=null) // способо получения - Доставка
                         Address = db.Address.Where(a => a.Id == Order.OrderAddress.AdressId).
@@ -108,7 +106,7 @@ namespace MyTelegramBot.Messages
                             base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
                                     + Order.PositionToString() + NewLine()
                                     + Bold("Стоимость доставки:") + Order.OrderAddress.ShipPriceValue.ToString() + NewLine()
-                                    + Bold("Общая стоимость: ") + total.ToString() + Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
+                                    + Bold("Общая стоимость: ") + total.ToString() +" "+ Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
                                     + Bold("Комментарий: ") + Order.Text + NewLine()
                                     + Bold("Способо получения закза: ") + " Доставка" + NewLine()
                                     + Bold("Адрес доставки: ") + Address.House.Street.City.Name + ", " + Address.House.Street.Name + ",д. " + Address.House.Number + "," + Address.House.Apartment + NewLine()
@@ -121,7 +119,7 @@ namespace MyTelegramBot.Messages
                         if (Order.PickupPoint != null)
                             base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
                                     + Order.PositionToString() + NewLine()
-                                    + Bold("Общая стоимость: ") + total.ToString() + Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
+                                    + Bold("Общая стоимость: ") + total.ToString() + " " + Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
                                     + Bold("Комментарий: ") + Order.Text + NewLine()
                                     + Bold("Способо получения закза: ") + " Самовывоз" + NewLine()
                                     + Bold("Пункт самовывоза: ") + Order.PickupPoint.Name + NewLine()
@@ -148,6 +146,7 @@ namespace MyTelegramBot.Messages
 
         private void SetButton()
         {
+            if(this.Order!=null && this.Order.CurrentStatusNavigation.StatusId==Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice!=null)               
                 base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
                     new[]{
                                 new[]
@@ -160,6 +159,26 @@ namespace MyTelegramBot.Messages
                                     },
                     });
 
+            if (this.Order != null && this.Order.CurrentStatusNavigation.StatusId == Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice == null)
+                base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                new[]{
+                                new[]
+                                    {
+                                            AddFeedBack()
+                                    },
+
+                });
+
+
+            if (this.Order != null && this.Order.CurrentStatusNavigation.StatusId != Bot.Core.ConstantVariable.OrderStatusVariable.Completed && this.Order.Invoice != null)
+                base.MessageReplyMarkup = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(
+                new[]{
+                                new[]
+                                    {
+                                           ViewInvoice()
+                                    },
+
+                });
 
 
         }
@@ -172,7 +191,7 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton ViewInvoice()
         {
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("Счет на оплату", BuildCallData("ViewInvoice", Bot.OrderBot.ModuleName, Convert.ToInt32(Order.Id)));
+            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("Счет на оплату", BuildCallData(Bot.OrderBot.ViewInvoiceCmd, Bot.OrderBot.ModuleName, Convert.ToInt32(Order.Id)));
             return button;
         }
 

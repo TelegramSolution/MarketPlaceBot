@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.EntityFrameworkCore;
-
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Весь ассортимент категории одним сообщением
     /// </summary>
-    public class ViewAllProductInCategoryMessage : Bot.BotMessage
+    public class ViewAllProductInCategoryMessage : BotMessage
     {
         private List<Product> ProductList { get; set; }
 
@@ -30,15 +30,6 @@ namespace MyTelegramBot.Messages
 
         public const string PreviuousPageCmd = "PrvProdPage";
 
-        /// <summary>
-        /// Номер стр.
-        /// </summary>
-        private int PageNumber { get; set; }
-
-        /// <summary>
-        /// кол-во товаров на стр
-        /// </summary>
-        private const int PageSize = 5;
 
         /// <summary>
         /// Сформированные страницы с товарами
@@ -68,10 +59,11 @@ namespace MyTelegramBot.Messages
         {
             BackBtn = new InlineKeyboardCallbackButton("Назад", BuildCallData("BackCategoryList",Bot.CategoryBot.ModuleName));
             this.CategoryId = CategoryId;
-            this.PageNumber = PageNumber;
+            this.SelectPageNumber = PageNumber;
+            this.PageSize = 5;
         }
 
-        public override Bot.BotMessage BuildMsg()
+        public override BotMessage BuildMsg()
         {
             db = new MarketBotDbContext();
 
@@ -103,19 +95,18 @@ namespace MyTelegramBot.Messages
 
             string message = base.GoldRhobmus + Bold(Category.Name) + base.GoldRhobmus +
                    NewLine() + "Всего товаров в категории: " + ProductList.Count.ToString() +
-                   NewLine() + "Страница " + PageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+                   NewLine() + "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
 
           
 
-            if (Pages.Count > 0 && Pages.Count >= PageNumber)
+            if (Pages.Count > 0 && Pages.Count >= SelectPageNumber && Pages[SelectPageNumber]!=null)
             {
-                var Page = Pages[PageNumber];
+                var Page = Pages[SelectPageNumber];
 
                 foreach (Product product in Page)
                 {
                     message += NewLine() + base.BlueRhombus + product.Name + base.BlueRhombus + NewLine() +
-                    "Цена:" + product.ProductPrice.Where(p => p.Enabled).FirstOrDefault().Value
-                    + db.Currency.Where(c => c.Id == product.ProductPrice.Where(p => p.Enabled).FirstOrDefault().CurrencyId).FirstOrDefault().ShortName;
+                    "Цена:" + product.CurrentPrice.ToString();
 
                     if (product.Stock != null && product.Stock.Count == 0 ||
                     product.Stock != null && product.Stock.Count > 0 && product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance == 0)
@@ -145,12 +136,12 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton SetNextPage()
         {
-            if (Pages.Keys.Last() != PageNumber && Pages[PageNumber + 1] != null) // Находим следующую страницу 
-                return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, PageNumber + 1,CategoryId), base.Next2Emodji);
+            if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
+                return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, SelectPageNumber + 1,CategoryId), base.Next2Emodji);
 
-            if (Pages.Keys.Last() == PageNumber && PageNumber != 1 && Pages[1] != null)
-                // Если текущая страница является последней, то делаем кнопку с сылкой на первую,
-                //но при это проверяем не является ли текущая страница первой
+            if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
+                // Если выбранная пользователем страница является последней, то делаем кнопку с сылкой на первую,
+                //но при это проверяем не является ли выбранная пользователем  страница первой
                 return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, 1,CategoryId), base.Next2Emodji);
 
             else
@@ -158,13 +149,17 @@ namespace MyTelegramBot.Messages
                 
         }
 
+        /// <summary>
+        /// создать кнопку назад, для навигации по страницам
+        /// </summary>
+        /// <returns></returns>
         private InlineKeyboardCallbackButton SetPreviousPage()
         {
             //находим предыдующую стр.
-            if (PageNumber > 1 && Pages[PageNumber - 1] != null)
-                return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, PageNumber - 1, CategoryId), base.Previuos2Emodji, false);
+            if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null)
+                return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, SelectPageNumber - 1, CategoryId), base.Previuos2Emodji, false);
 
-            if (PageNumber == 1 && Pages.Keys.Last() != 1)
+            if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
                 return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, Pages.Keys.Last(), CategoryId), base.Previuos2Emodji, false);
 
             else

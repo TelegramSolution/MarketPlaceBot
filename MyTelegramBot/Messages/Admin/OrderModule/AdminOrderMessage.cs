@@ -9,6 +9,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
@@ -17,7 +18,7 @@ namespace MyTelegramBot.Messages.Admin
     /// </summary>
     public class AdminOrderMessage:BotMessage
     {
-        private InlineKeyboardCallbackButton EditOrderPositionBtn { get; set; }
+        //private InlineKeyboardCallbackButton EditOrderPositionBtn { get; set; }
 
         private InlineKeyboardCallbackButton ViewTelephoneNumberBtn { get; set; }
 
@@ -44,6 +45,8 @@ namespace MyTelegramBot.Messages.Admin
         /// Освободить заявку
         /// </summary>
         private InlineKeyboardCallbackButton FreeOrderBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ViewFeedBackBtn { get; set; }
       
         private List<Payment> Payments { get; set; }
 
@@ -85,48 +88,48 @@ namespace MyTelegramBot.Messages.Admin
             double total = 0.0;
             double ShipPrice = 0;
             string Position = "";
-            int counter = 0;
             string Paid = "";
 
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
+            MarketBotDbContext db = new MarketBotDbContext();
+
                 if(this.Order==null && this.OrderId>0)
                 Order = db.Orders.Where(o => o.Id == OrderId).
                     Include(o=>o.FeedBack).
                     Include(o => o.OrderProduct).
                     Include(o => o.OrderAddress).
                     Include(o=>o.OrdersInWork).
-                    Include(o=>o.Invoice).
-                    Include(o=>o.Confirm).
-                    Include(o => o.Delete).
-                    Include(o => o.Done).
+                    Include(o=>o.Invoice.PaymentType).
                     Include(o=>o.PickupPoint).
                     Include(o=>o.CurrentStatusNavigation).
                     FirstOrDefault();
 
+            if (Order != null)
+            {
                 ///////////Провереряем какой способ оплаты ///////////
-                if (Order.Invoice != null)
+                if (Order.Invoice != null && Order.Invoice.PaymentType != null)
                     PaymentMethodName = db.PaymentType.Find(Order.Invoice.PaymentTypeId).Name;
 
-                    else
-                        PaymentMethodName = "При получении";
+                else
+                    PaymentMethodName = "При получении";
 
                 //Вытаскиваем полный адрес доставки
-                if (Order != null && Order.OrderAddress == null)
+                if (Order.OrderAddress == null)
                     Order.OrderAddress = db.OrderAddress.Where(o => o.OrderId == Order.Id).FirstOrDefault();
 
-                if(Order != null && Order.OrderAddress!=null)
-                    Address = db.Address.Where(a => a.Id == Order.OrderAddress.AdressId).Include(a => a.House).Include(a => a.House.Street).Include(a => a.House.Street.City).FirstOrDefault();
+                if (Order.OrderAddress != null) //Вытаскиваем полный адрес доставки
+                    Address = db.Address.Where(a => a.Id == Order.OrderAddress.AdressId)
+                        .Include(a => a.House)
+                        .Include(a => a.House.Street)
+                        .Include(a => a.House.Street.City).FirstOrDefault();
 
-                //Вытаскиваем полный адрес доставки
 
-                //Вытаскиваем стоимость доставки
-                if (Order != null && Order.OrderAddress != null)
+                //Jghtltktzv стоимость доставки
+                if (Order.OrderAddress != null)
                 {
                     ShipPrice = Order.OrderAddress.ShipPriceValue;
                     total += ShipPrice;
                 }
-                    
+
 
                 if (Order.BotInfo == null)
                     Order.BotInfo = db.BotInfo.Where(b => b.Id == Order.BotInfoId).FirstOrDefault();
@@ -141,43 +144,34 @@ namespace MyTelegramBot.Messages.Admin
                 if (Order.Paid == true)
                     Paid = "Оплачено";
 
-                    else
-                        Paid = "Не оплачено";
+                else
+                    Paid = "Не оплачено";
 
 
                 if (Order.OrderProduct == null || Order.OrderProduct != null && Order.OrderProduct.Count == 0)
                     Order.OrderProduct = db.OrderProduct.Where(o => o.OrderId == Order.Id).ToList();
 
-                //foreach (OrderProduct p in Order.OrderProduct) // Вытаскиваем все товары из заказа
-                //{
-                //    counter++;
-                //    p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.ProductPrice).FirstOrDefault();
-                //    if(p.Price==null)
-                //        p.Price = p.Product.ProductPrice.FirstOrDefault();
-
-                //    Position += counter.ToString() + ") " + p.AdminText() + NewLine();
-                //    total += p.Price.Value * p.Count;
-                //}
+                total += Order.TotalPrice();
 
                 /////////Формируем основную часть сообщения - Доставка
-                if(Order != null && Order.OrderAddress!=null)
+                if (Order.OrderAddress != null)
                     base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
                             + Order.PositionToString() + NewLine()
                             + Bold("Стоимость доставки:") + Order.OrderAddress.ShipPriceValue.ToString() + NewLine()
                             + Bold("Общая стоимость: ") + total.ToString() + NewLine()
                             + Bold("Комментарий: ") + Order.Text + NewLine()
                             + Bold("Способ получения заказа: ") + " Доставка" + NewLine()
-                            + Bold("Адрес доставки: ") + Address.House.Street.City.Name + ", " + Address.House.Street.Name + ", д. " + Address.House.Number+", "+Address.House.Apartment + NewLine()
-                            + Bold("Время: ") + Order.DateAdd.ToString() +NewLine()
-                            + Bold("Способ оплаты: ") + PaymentMethodName + NewLine() 
-                            +Bold("Статус заказа:")+ Order.CurrentStatusNavigation.Status.Name+NewLine()
-                            +Bold("Оформлено через: ")+"@" + Order.BotInfo.Name +NewLine()
+                            + Bold("Адрес доставки: ") + Address.House.Street.City.Name + ", " + Address.House.Street.Name + ", д. " + Address.House.Number + ", " + Address.House.Apartment + NewLine()
+                            + Bold("Время: ") + Order.DateAdd.ToString() + NewLine()
+                            + Bold("Способ оплаты: ") + PaymentMethodName + NewLine()
+                            + Bold("Статус заказа:") + Order.CurrentStatusNavigation.Status.Name + NewLine()
+                            + Bold("Оформлено через: ") + "@" + Order.BotInfo.Name + NewLine()
                             + Bold("Статус платежа: ") + Paid;
 
                 /////////Формируем основную часть сообщения - Самовывоз
-                if (Order != null && Order.PickupPoint != null)
+                if (Order.PickupPoint != null)
                     base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
-                            + Position + NewLine()
+                            + Order.PositionToString() + NewLine()
                             + Bold("Общая стоимость: ") + total.ToString() + NewLine()
                             + Bold("Комментарий: ") + Order.Text + NewLine()
                             + Bold("Способ получения заказа: ") + " Самовывоз" + NewLine()
@@ -188,28 +182,6 @@ namespace MyTelegramBot.Messages.Admin
                             + Bold("Оформлено через: ") + "@" + Order.BotInfo.Name + NewLine()
                             + Bold("Статус платежа: ") + Paid;
 
-                //Детали согласования заказа
-                if (Order != null && Order.Confirm != null && Order.Delete==null)
-                    base.TextMessage += NewLine() + NewLine() + Bold("Заказ согласован:") + NewLine() + Italic("Комментарий: " + Order.Confirm.Text
-                        + " |Время: " + Order.Confirm.Timestamp.ToString() 
-                        + " |Пользователь: " + Bot.GeneralFunction.FollowerFullName(Order.Confirm.FollowerId));
-
-                ///Детали удаления заказа
-                if (Order != null && Order.Delete != null)
-                    base.TextMessage += NewLine() + NewLine() + Bold("Заказ удален:") + NewLine() + Italic("Комментарий: " + Order.Delete.Text
-                        + " |Время: " + Order.Delete.Timestamp.ToString()
-                        + " |Пользователь: " + Bot.GeneralFunction.FollowerFullName(Order.Delete.FollowerId));
-
-                ///Детали выполнения заказа
-                if (Order != null && Order.Done != null)
-                    base.TextMessage += NewLine() + NewLine() + Bold("Заказ выполнен:") + Italic(Order.Done.Timestamp.ToString())
-                        + " |Пользователь: " + Bot.GeneralFunction.FollowerFullName(Order.Done.FollowerId);
-
-                //Детали Отзыва к заказу
-                if (Order != null && Order.FeedBack != null && Order.FeedBack.Text != null && Order.FeedBack.Text != "")
-                    base.TextMessage += NewLine() + 
-                        NewLine() + Bold("Отзыв к заказу:") + 
-                        NewLine() + Italic(Order.FeedBack.Text +" | Оценка: " +Order.FeedBack.RaitingValue.ToString()+ " из 5 | Время: " + Order.FeedBack.DateAdd.ToString());
 
                 InWorkFollowerId = WhoInWork(Order);
 
@@ -221,6 +193,13 @@ namespace MyTelegramBot.Messages.Admin
 
                 return this;
             }
+
+            else
+            {
+                db.Dispose();
+                return null;
+            }
+            
         }
 
         private int WhoInWork(Orders order)
@@ -242,21 +221,23 @@ namespace MyTelegramBot.Messages.Admin
 
         private void CreateBtns()
         {
-            EditOrderPositionBtn = new InlineKeyboardCallbackButton("Изменить содержание заказа"+ " \ud83d\udd8a", BuildCallData(OrderProccesingBot.CmdEditOrderPosition, OrderProccesingBot.ModuleName, Order.Id));
+            //EditOrderPositionBtn = BuildInlineBtn("Изменить содержание заказа"+ " \ud83d\udd8a", BuildCallData(OrderProccesingBot.CmdEditOrderPosition, OrderProccesingBot.ModuleName, Order.Id));
 
-            ViewTelephoneNumberBtn = new InlineKeyboardCallbackButton("Контактные данные"+ " \ud83d\udcde", BuildCallData(OrderProccesingBot.CmdGetTelephone, OrderProccesingBot.ModuleName, Order.Id));
+            ViewTelephoneNumberBtn = BuildInlineBtn("Контактные данные"+ " \ud83d\udcde", BuildCallData(OrderProccesingBot.CmdGetTelephone, OrderProccesingBot.ModuleName, Order.Id));
 
-            ViewAddressOnMapBtn = new InlineKeyboardCallbackButton("Показать на карте"+ " \ud83c\udfd8", BuildCallData(OrderProccesingBot.CmdViewAddressOnMap, OrderProccesingBot.ModuleName, Order.Id));
+            ViewAddressOnMapBtn = BuildInlineBtn("Показать на карте"+ " \ud83c\udfd8", BuildCallData(OrderProccesingBot.CmdViewAddressOnMap, OrderProccesingBot.ModuleName, Order.Id));
 
-            ViewInvoiceBtn = new InlineKeyboardCallbackButton("Посмотреть счет" + " \ud83d\udcb5", BuildCallData("ViewInvoice", OrderProccesingBot.ModuleName, Order.Id));
+            ViewInvoiceBtn = BuildInlineBtn("Посмотреть счет" + " \ud83d\udcb5", BuildCallData(OrderProccesingBot.ViewInvoiceCmd, OrderProccesingBot.ModuleName, Order.Id));
 
-            TakeOrderBtn = new InlineKeyboardCallbackButton("Взять в работу", BuildCallData("TakeOrder", OrderProccesingBot.ModuleName, Order.Id));
+            TakeOrderBtn = BuildInlineBtn("Взять в работу", BuildCallData("TakeOrder", OrderProccesingBot.ModuleName, Order.Id));
 
-            FreeOrderBtn = new InlineKeyboardCallbackButton("Освободить", BuildCallData("FreeOrder", OrderProccesingBot.ModuleName, Order.Id));
+            FreeOrderBtn = BuildInlineBtn("Освободить", BuildCallData("FreeOrder", OrderProccesingBot.ModuleName, Order.Id));
 
-            EditStatusBtn = new InlineKeyboardCallbackButton("Изменить статус", BuildCallData(OrderProccesingBot.CmdStatusEditor, OrderProccesingBot.ModuleName, Order.Id));
+            EditStatusBtn = BuildInlineBtn("Изменить статус", BuildCallData(OrderProccesingBot.CmdStatusEditor, OrderProccesingBot.ModuleName, Order.Id));
 
-            StatusHistoryBtn = new InlineKeyboardCallbackButton("История изменений", BuildCallData(OrderProccesingBot.CmdStatusHistory, OrderProccesingBot.ModuleName, Order.Id));
+            StatusHistoryBtn = BuildInlineBtn("История изменений", BuildCallData(OrderProccesingBot.CmdStatusHistory, OrderProccesingBot.ModuleName, Order.Id));
+
+            ViewFeedBackBtn = BuildInlineBtn("Отзыв", BuildCallData(OrderProccesingBot.FeedBackOrderCmd, OrderProccesingBot.ModuleName, Order.Id),base.StartEmodji);
 
         }
 
@@ -270,21 +251,22 @@ namespace MyTelegramBot.Messages.Admin
                     {
                         TakeOrderBtn
                     },
+                    new[]
+                    {
+                        ViewFeedBackBtn
+                    }
 
                 });
 
             ///Заявка взята в обработку пользователем. Рисуем основные кнопки
-            if (Order.Delete==null&& Order.Confirm==null && FollowerId==InWorkFollowerId && InWorkFollowerId!=0)
+            if (FollowerId==InWorkFollowerId && InWorkFollowerId!=0)
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
                             ViewInvoiceBtn, FreeOrderBtn
                         },
-                new[]
-                        {
-                            EditOrderPositionBtn
-                        },
+
                 new[]
                         {
                            EditStatusBtn, StatusHistoryBtn
@@ -294,6 +276,10 @@ namespace MyTelegramBot.Messages.Admin
                             ViewTelephoneNumberBtn,
                             ViewAddressOnMapBtn
                         },
+                new[]
+                        {
+                            ViewFeedBackBtn
+                        }
 
                  });
 

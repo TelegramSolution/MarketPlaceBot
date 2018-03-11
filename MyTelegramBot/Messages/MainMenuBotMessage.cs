@@ -14,13 +14,14 @@ using Newtonsoft.Json;
 using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Главное меню бота
     /// </summary>
-    public class MainMenuBotMessage:Bot.BotMessage
+    public class MainMenuBotMessage:BotMessage
     {
         private InlineKeyboardCallbackButton MenuBtn { get; set; }
 
@@ -28,22 +29,29 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton ViewBasketBtn { get; set; }
 
-        private InlineKeyboardCallbackButton MyOrdersBtn { get; set; }
+        private InlineKeyboardButton MyOrdersBtn { get; set; }
 
         private InlineKeyboardCallbackButton HelpBtn { get; set; }
 
-        private InlineKeyboardCallbackButton OpenSourceBtn { get; set; }
+        private InlineKeyboardButton OpenSourceBtn { get; set; }
 
         private InlineKeyboardCallbackButton MethodOfObtainingInfoBtn { get; set; }
 
+        private InlineKeyboardButton PhotoCatalogBtn { get; set; }
+
+        private InlineKeyboardButton SearchProductBtn { get; set; }
+
         public override BotMessage BuildMsg()
         {
-            MenuBtn = new InlineKeyboardCallbackButton("Каталог товаров"+ " \ud83d\udcc3", BuildCallData("Menu",Bot.CategoryBot.ModuleName));
+            MenuBtn = new InlineKeyboardCallbackButton("Каталог (текстовая версия)"+ " \ud83d\udcc3", BuildCallData("Menu",Bot.CategoryBot.ModuleName));
             ContactBtn = new InlineKeyboardCallbackButton("О нас" + " \u260e\ufe0f", BuildCallData("Contact", Bot.MainMenuBot.ModuleName));
             ViewBasketBtn = new InlineKeyboardCallbackButton("Корзина" + " \ud83d\uded2", BuildCallData(Bot.BasketBot.ViewBasketCmd,Bot.BasketBot.ModuleName));
-            MyOrdersBtn = new InlineKeyboardCallbackButton("Мои заказы"+ " \ud83d\udce6", BuildCallData(Bot.OrderBot.MyOrdersListCmd,Bot.OrderBot.ModuleName));
+            MyOrdersBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Мои заказы", InlineFind.MyOrders + "|");
             HelpBtn = new InlineKeyboardCallbackButton("Техническая поддержка", BuildCallData("Help", Bot.HelpDeskBot.ModuleName));
-            OpenSourceBtn = new InlineKeyboardCallbackButton("Исходный код", BuildCallData("OpenSource", Bot.MainMenuBot.ModuleName));
+            OpenSourceBtn =  InlineKeyboardButton.WithUrl("Исходный код", "https://github.com/TelegramSolution/MarketPlaceBot");
+            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог"+base.PictureEmodji, InlineFind.PhotoCatalog + "|");
+            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск"+base.SearchEmodji, InlineFind.SearchProduct + "|");
+
             SetInlineKeyBoard();
             base.TextMessage = "Выберите действие";
             return this;
@@ -51,11 +59,16 @@ namespace MyTelegramBot.Messages
 
         private void SetInlineKeyBoard()
         {
+
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
                         {
-                            MenuBtn
+                            PhotoCatalogBtn
+                        },
+                new[]
+                        {
+                            SearchProductBtn
                         },
                 new[]
                         {
@@ -69,8 +82,13 @@ namespace MyTelegramBot.Messages
 
                 new[]
                         {
-                        OpenSourceBtn
-                        }
+                                MenuBtn,
+                        },
+                    new [] 
+                        {
+                                OpenSourceBtn
+                        },
+
                  });
 
 

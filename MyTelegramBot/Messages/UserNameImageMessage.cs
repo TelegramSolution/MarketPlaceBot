@@ -15,10 +15,11 @@ using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
-    public class UserNameImageMessage:Bot.BotMessage
+    public class UserNameImageMessage:BotMessage
     {
         private InlineKeyboardCallbackButton NextBtn { get; set; }
 
@@ -33,8 +34,8 @@ namespace MyTelegramBot.Messages
             NextBtn = new InlineKeyboardCallbackButton("Далее", BuildCallData("VerifyUserName",Bot.OrderBot.ModuleName));
 
             // файл еще не разу не отправлялся. Считываем его из папки 
-            if (Configuration.UserNameFaqFileId==null || Configuration.UserNameFaqFileId!=null && Configuration.UserNameFaqFileId=="")
-            base.MediaFile = new Bot.MediaFile
+            if (Configuration!=null && Configuration.UserNameFaqFileId==null || Configuration==null)
+            base.MediaFile = new MediaFile
             {
                 Caption = "Для того что бы мы могли связаться с вами, в настройках Телеграм укажите свой ник-нейм. Потом нажмите далее." + NewLine() +
                 "См. картинку.",
@@ -43,7 +44,7 @@ namespace MyTelegramBot.Messages
             };
 
             else // Отрпавляем только Id файла на сервер телеграм
-                base.MediaFile = new Bot.MediaFile
+                base.MediaFile = new MediaFile
                 {
                     Caption = "Для того что бы мы могли связаться с вами, в настройках Телеграм укажите свой ник-нейм. Потом нажмите далее." + NewLine() +
                     "См. картинку.",

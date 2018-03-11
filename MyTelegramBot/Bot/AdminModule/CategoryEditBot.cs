@@ -7,6 +7,7 @@ using Telegram.Bot.Types;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
@@ -31,7 +32,7 @@ namespace MyTelegramBot.Bot
 
         private string CategoryName { get; set; }
 
-        AdminCategoryFuncMessage AdminCategoryFuncMsg { get; set; }
+        CategoryFuncMessage AdminCategoryFuncMsg { get; set; }
 
         CategoryListMessage CategoryListMsg { get; set; }
 
@@ -41,7 +42,7 @@ namespace MyTelegramBot.Bot
             
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
@@ -51,7 +52,7 @@ namespace MyTelegramBot.Bot
                     if (Argumetns.Count > 0)
                     {
                         CategoryId = Argumetns[0];
-                        AdminCategoryFuncMsg = new AdminCategoryFuncMessage(CategoryId);
+                        AdminCategoryFuncMsg = new CategoryFuncMessage(CategoryId);
                     }
 
                     if (CategoryId > 0)
@@ -89,11 +90,11 @@ namespace MyTelegramBot.Bot
                         //Пользотваель нажал на кнопку добавить новыую категорию. 
                         //Приход Relpy сообщение с просьбой указать имя новой категории
                     case "/newcategory":
-                        return await ForceReplyBuilder(AdminBot.EnterNameNewCategoryCmd);
+                        return await SendForceReplyMessage(AdminBot.EnterNameNewCategoryCmd);
 
                     //Пользотватель нажал на кнопку "Изменить название категории. Приходи Reply сообщение с просьобой указать новое имя для этой категориии
                     case CategoryEditNameCmd:
-                        return await ForceReplyBuilder(NewNameForceReplyCmd + CategoryName);
+                        return await SendForceReplyMessage(NewNameForceReplyCmd + CategoryName);
 
 
                     //Пользователь нажал на кнопку "Отобразить/Скрыть".Выполняется обновление данных в бд, а потом присылается сообщение с доступными функциями
@@ -123,12 +124,12 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> SendCategoryEditorMsg(int CategoryId)
         {
-            AdminCategoryFuncMsg = new AdminCategoryFuncMessage(CategoryId);
+            AdminCategoryFuncMsg = new CategoryFuncMessage(CategoryId);
             if (await EditMessage(AdminCategoryFuncMsg.BuildMessage()) != null)
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         private async Task<IActionResult> SendCategoryPage(int PageNumber=1)
@@ -140,7 +141,7 @@ namespace MyTelegramBot.Bot
                 return OkResult;
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
 
         private async Task<IActionResult> AddNewCategory()
@@ -164,13 +165,13 @@ namespace MyTelegramBot.Bot
                     db.Category.Add(category);
                     db.SaveChanges();
 
-                    AdminCategoryFuncMsg = new AdminCategoryFuncMessage(category.Id);
+                    AdminCategoryFuncMsg = new CategoryFuncMessage(category.Id);
 
                     if (await SendMessage(AdminCategoryFuncMsg.BuildMessage()) != null)
                         return OkResult;
 
                     else
-                        return NotFoundResult;
+                        return OkResult;
 
                 }
             }
@@ -202,7 +203,7 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
         }
 
@@ -230,17 +231,17 @@ namespace MyTelegramBot.Bot
                 }
 
                 else
-                    return NotFoundResult;
+                    return OkResult;
             }
         }
 
         private async Task<IActionResult> ErrorMessage(string ForceReplyText, string ErrorMessage = "Ошибка")
         {
             if (await SendMessage(new BotMessage { TextMessage = ErrorMessage }) != null)
-                return await ForceReplyBuilder(ForceReplyText);
+                return await SendForceReplyMessage(ForceReplyText);
 
             else
-                return NotFoundResult;
+                return OkResult;
         }
     }
 }

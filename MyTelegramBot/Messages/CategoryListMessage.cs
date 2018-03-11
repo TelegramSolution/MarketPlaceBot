@@ -14,13 +14,14 @@ using Newtonsoft.Json;
 using System.Web;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using MyTelegramBot.Bot.AdminModule;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// Сообщение с категориями товаров в виде кнопок
     /// </summary>
-    public class CategoryListMessage:Bot.BotMessage
+    public class CategoryListMessage:BotMessage
     {
         private string Cmd { get; set; }
 
@@ -46,7 +47,6 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton PreviusPageBtn { get; set; }
 
-        private const int PageSize = 4;
 
         /// <summary>
         /// Сформированные страницы с категориями
@@ -56,8 +56,6 @@ namespace MyTelegramBot.Messages
         private int PageCount { get; set; }
 
         private MarketBotDbContext db;
-
-        private int PageNumber { get; set; }
 
         public const string NextPageCmd = "NxtCatPage";
 
@@ -72,45 +70,47 @@ namespace MyTelegramBot.Messages
             this.Cmd = "ProductInCategory";
             this.BackCmd = "MainMenu";
             this.ModuleName = Bot.CategoryBot.ModuleName;
-            base.BackBtn = BuildInlineBtn("Назад", BuildCallData(this.BackCmd, Bot.MainMenuBot.ModuleName));
-            this.PageNumber = PageNumber;
+            base.BackBtn = BuildInlineBtn("Назад", BuildCallData(this.BackCmd, Bot.MainMenuBot.ModuleName),base.Previuos2Emodji,false);
+            this.SelectPageNumber = PageNumber;
+            base.PageSize = 4;
         }
 
         public CategoryListMessage(string ModuleName,string CommandName, int PageNumber = 1)
         {
-            this.PageNumber = PageNumber;
+            base.PageSize = 4;
+            this.SelectPageNumber = PageNumber;
             this.VisableAllProductBtn = false;
             this.Cmd = CommandName;
             this.ModuleName = ModuleName;
             this.BackBtn = BuildInlineBtn("Панель администратора", BuildCallData(Bot.AdminModule.AdminBot.BackToAdminPanelCmd, Bot.AdminModule.AdminBot.ModuleName),base.CogwheelEmodji);
         }
 
-        public Bot.BotMessage BuildCategoryPage()
+        public BotMessage BuildCategoryPage()
         {
             Pages = BuildPages();
 
             
 
-            if (Pages.Count>0 && Pages.Count>=PageNumber)
+            if (Pages.Count>0 && Pages.Count>=SelectPageNumber)
             {
                 int count = 0;
-                var page = Pages[PageNumber];
-                ViewAllBtn = new InlineKeyboardCallbackButton("Показать весь ассортимент",
-                                                    BuildCallData("ViewAllProduct", Bot.CategoryBot.ModuleName));
+                var page = Pages[SelectPageNumber];
+                ViewAllBtn = BuildInlineBtn("Показать весь ассортимент",
+                                                    BuildCallData("ViewAllProduct", Bot.CategoryBot.ModuleName),base.OpenedBookEmodji);
 
-                if (Pages.Keys.Last() != PageNumber && Pages[PageNumber + 1] != null) // Находим следующую страницу 
-                    NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.CategoryBot.ModuleName, PageNumber + 1),base.Next2Emodji);
+                if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
+                    NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.CategoryBot.ModuleName, SelectPageNumber + 1),base.Next2Emodji);
 
-                if (Pages.Keys.Last() == PageNumber && PageNumber != 1 && Pages[1] != null)
+                if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
                     // Если текущая страница является последней, то делаем кнопку с сылкой на первую,
                     //но при это проверяем не является ли текущая страница первой
                     NextPageBtn = BuildInlineBtn("Следующая. стр", BuildCallData(NextPageCmd, Bot.CategoryBot.ModuleName, 1), base.Next2Emodji);
 
                 //находим предыдующую стр.
-                if (PageNumber > 1 && Pages[PageNumber - 1] != null)
-                    PreviusPageBtn =BuildInlineBtn("Предыдущая. стр", BuildCallData(PreviuousPageCmd, Bot.CategoryBot.ModuleName, PageNumber - 1),base.Previuos2Emodji,false);
+                if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null)
+                    PreviusPageBtn =BuildInlineBtn("Предыдущая. стр", BuildCallData(PreviuousPageCmd, Bot.CategoryBot.ModuleName, SelectPageNumber - 1),base.Previuos2Emodji,false);
 
-                if (PageNumber == 1 && Pages.Keys.Last() != 1)
+                if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
                     PreviusPageBtn = BuildInlineBtn("Предыдущая. стр", BuildCallData(PreviuousPageCmd, Bot.CategoryBot.ModuleName, Pages.Keys.Last()),base.Previuos2Emodji,false);
 
 
@@ -157,8 +157,8 @@ namespace MyTelegramBot.Messages
 
                 foreach (Category cat in page)
                 {
-                    InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton(cat.Name,
-                        base.BuildCallData(Cmd, ModuleName, cat.Id));
+                    InlineKeyboardCallbackButton button = BuildInlineBtn(cat.Name,
+                        base.BuildCallData(Cmd, ModuleName, cat.Id),BlueRhombus,false);
                     CategoryListBtn[count] = new InlineKeyboardCallbackButton[1];
                     CategoryListBtn[count][0] = button;
 
@@ -168,7 +168,7 @@ namespace MyTelegramBot.Messages
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(CategoryListBtn);
 
                 base.TextMessage = "Выберите категорию:" + NewLine() + "Всего категорий: " + Categorys.Count.ToString()
-                    + NewLine() + "стр. " + PageNumber.ToString() + " из " + PageCount.ToString();
+                    + NewLine() + "стр. " + SelectPageNumber.ToString() + " из " + PageCount.ToString();
 
                 return this;
             }
@@ -177,27 +177,27 @@ namespace MyTelegramBot.Messages
                 return null;
         }
 
-        public Bot.BotMessage BuildCategoryAdminPage()
+        public BotMessage BuildCategoryAdminPage()
         {
             Pages = BuildPages(false);
 
-            var page = Pages[PageNumber];
+            var page = Pages[SelectPageNumber];
 
             int count = 0;
 
-            if (Pages.Keys.Last() != PageNumber && Pages[PageNumber + 1] != null) // Находим следующую страницу 
-                NextPageBtn = BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, ModuleName, PageNumber + 1),base.Next2Emodji);
+            if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
+                NextPageBtn = BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, ModuleName, SelectPageNumber + 1),base.Next2Emodji);
 
-            if (Pages.Keys.Last() == PageNumber && PageNumber != 1 && Pages[1] != null)
+            if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
                 // Если текущая страница является последней, то делаем кнопку с сылкой на первую,
                 //но при это проверяем не является ли текущая страница первой
                 NextPageBtn = BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, ModuleName, 1), base.Next2Emodji);
 
             //находим предыдующую стр.
-            if (PageNumber > 1 && Pages[PageNumber - 1] != null)
-                PreviusPageBtn = BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, ModuleName, PageNumber - 1),base.Previuos2Emodji,false);
+            if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null)
+                PreviusPageBtn = BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, ModuleName, SelectPageNumber - 1),base.Previuos2Emodji,false);
 
-            if (PageNumber == 1 && Pages.Keys.Last() != 1)
+            if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
                 PreviusPageBtn = BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, ModuleName, Pages.Keys.Last()), base.Previuos2Emodji, false);
 
 
@@ -210,6 +210,11 @@ namespace MyTelegramBot.Messages
                 CategoryListBtn[page.Count][0] = PreviusPageBtn;
 
                 CategoryListBtn[page.Count][1] = NextPageBtn;
+            }
+
+            else
+            {
+                CategoryListBtn = new InlineKeyboardCallbackButton[page.Count+1][];
             }
 
             CategoryListBtn[CategoryListBtn.Length - 1] = new InlineKeyboardCallbackButton[1];
@@ -230,7 +235,7 @@ namespace MyTelegramBot.Messages
             base.MessageReplyMarkup = new InlineKeyboardMarkup(CategoryListBtn);
 
             base.TextMessage = "Выберите категорию:" + NewLine() + "Всего категорий: " + Categorys.Count.ToString()
-                + NewLine() + "стр. " + PageNumber.ToString() + " из " + PageCount.ToString();
+                + NewLine() + "стр. " + SelectPageNumber.ToString() + " из " + PageCount.ToString();
 
             return this;
         }

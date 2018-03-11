@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Bot
 {
-    public class OrderPositionBot:Bot.BotCore
+    public class OrderPositionBot:BotCore
     {
         public const string ModuleName = "OrderPos";
 
@@ -29,7 +30,7 @@ namespace MyTelegramBot.Bot
          
         }
 
-        protected override void Constructor()
+        protected override void Initializer()
         {
             try
             {
@@ -73,7 +74,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> AddToPosition()
@@ -84,7 +85,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
 
         private async Task<IActionResult> RemoveFromPosition()
@@ -95,7 +96,7 @@ namespace MyTelegramBot.Bot
                 return base.OkResult;
 
             else
-                return base.NotFoundResult;
+                return base.OkResult;
         }
     }
 }

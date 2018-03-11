@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
+using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
     /// <summary>
     /// сообщение с телефоном пользователя
     /// </summary>
-    public class ContactMessage:Bot.BotMessage
+    public class ContactMessage:BotMessage
     {
         private InlineKeyboardUrlButton VkBtn { get; set; }
 
@@ -66,7 +67,6 @@ namespace MyTelegramBot.Messages
 
         private void SetInlineKeyBoard()
         {
-            if(Company.Chanel!="" && Company.Chat!="" && Company.Instagram!="" && Company.Vk!="")
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -88,38 +88,7 @@ namespace MyTelegramBot.Messages
 
                  });
 
-            if (Company.Chanel == "" && Company.Chat != "" && Company.Instagram != "" && Company.Vk != "")
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-                    new[]{
-                new[]
-                        {
-                            VkBtn
-                        },
-                new[]
-                        {
-                            InstagramBtn
-                        },
 
-                new[]
-                        {
-                            ChatBtn
-                        },
-
-                     });
-
-            if (Company.Chanel != "" && Company.Chat == "" && Company.Instagram != "" && Company.Vk != "")
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-                    new[]{
-                new[]
-                        {
-                            VkBtn
-                        },
-                new[]
-                        {
-                            InstagramBtn
-                        },
-
-                     });
         }
     }
 }
