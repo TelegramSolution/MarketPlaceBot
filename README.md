@@ -26,4 +26,7 @@ https://t.me/SushiExampleBot
 Обсуждения:
 https://t.me/joinchat/IJImaxHdEPugfhqdq_OGcg
 
+Скачать:
+https://github.com/TelegramSolution/MarketPlaceBot/releases
+
 
