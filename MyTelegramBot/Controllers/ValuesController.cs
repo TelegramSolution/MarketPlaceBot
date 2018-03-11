@@ -158,13 +158,18 @@ namespace MyTelegramBot.Controllers
             if (Result == null || Result != null)
                 Result = Ok();
 
-            if (update.Message != null)
-                 UpdateFollowerInfo(update.Message.Chat);
+            if (update.Message != null && update.Message.Chat!=null)
+            {
+                BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.Message.Chat.Id), 
+                    update.Message.Chat.FirstName, update.Message.Chat.LastName, update.Message.Chat.Username);
+            }
 
-            if (update.CallbackQuery != null && update.CallbackQuery.Message != null)
-                 UpdateFollowerInfo(update.CallbackQuery.Message.Chat);
+            if (update.CallbackQuery != null && update.CallbackQuery.Message != null && update.CallbackQuery.Message.Chat!=null)
+                BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.CallbackQuery.Message.Chat.Id), 
+                    update.CallbackQuery.Message.Chat.FirstName, update.CallbackQuery.Message.Chat.LastName, update.CallbackQuery.Message.Chat.Username);
 
-             AddUpdateMsgToDb(update);
+
+            AddUpdateMsgToDb(update);
 
              return Result;
             }
@@ -232,41 +237,41 @@ namespace MyTelegramBot.Controllers
             /// Проверяем информацию о пользователе. Если есть изменения, то вносим их в БД
             /// </summary>
             /// <returns></returns>
-            async Task<int> UpdateFollowerInfo(Chat ChatInfo)
-            {
-                try
-                {
-                    using (MarketBotDbContext db = new MarketBotDbContext())
-                    {
-                        var follower = db.Follower.Where(f => f.ChatId == ChatInfo.Id).FirstOrDefault();
+            //async Task<int> UpdateFollowerInfo(Chat ChatInfo)
+            //{
+            //    try
+            //    {
+            //        using (MarketBotDbContext db = new MarketBotDbContext())
+            //        {
+            //            var follower = db.Follower.Where(f => f.ChatId == ChatInfo.Id).FirstOrDefault();
 
-                        if (follower != null && follower.FirstName != ChatInfo.FirstName)
-                        {
-                            follower.FirstName = ChatInfo.FirstName;
-                            return await db.SaveChangesAsync();
-                        }
+            //            if (follower != null && follower.FirstName != ChatInfo.FirstName)
+            //            {
+            //                follower.FirstName = ChatInfo.FirstName;
+            //                return await db.SaveChangesAsync();
+            //            }
 
-                        if (follower != null && follower.LastName != ChatInfo.LastName)
-                        {
-                            follower.LastName = ChatInfo.LastName;
-                            return await db.SaveChangesAsync();
-                        }
+            //            if (follower != null && follower.LastName != ChatInfo.LastName)
+            //            {
+            //                follower.LastName = ChatInfo.LastName;
+            //                return await db.SaveChangesAsync();
+            //            }
 
-                        if (follower != null && follower.UserName != ChatInfo.Username)
-                        {
-                            follower.UserName = ChatInfo.Username;
-                            return await db.SaveChangesAsync();
-                        }
+            //            if (follower != null && follower.UserName != ChatInfo.Username)
+            //            {
+            //                follower.UserName = ChatInfo.Username;
+            //                return await db.SaveChangesAsync();
+            //            }
 
-                        else
-                            return -1;
-                    }
-                }
+            //            else
+            //                return -1;
+            //        }
+            //    }
 
-                catch
-                {
-                    return -1;
-                }
-            }
+            //    catch
+            //    {
+            //        return -1;
+            //    }
+            //}
         }
     }

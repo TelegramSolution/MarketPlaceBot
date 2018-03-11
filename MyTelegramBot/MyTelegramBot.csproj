@@ -62,9 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="db.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Files\Пример.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

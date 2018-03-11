@@ -122,7 +122,7 @@ namespace MyTelegramBot.Bot
 
             if (blocked)
             {
-                await AnswerCallback("Вы заблокированы администратором системы!", true);
+                await SendMessage(new BotMessage { TextMessage = "Вы заблокированы администратором системы!" });
                 return base.OkResult;
             }
 

@@ -8,6 +8,59 @@ namespace MyTelegramBot.BusinessLayer
 {
     public class FollowerFunction
     {
+        public static async Task<Follower> InsertFollower(int ChatId, string FirstName, string LastName="", string UserName = "")
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var follower =await db.Follower.Where(f => f.ChatId == ChatId).FirstOrDefaultAsync();
+
+            try
+            {
+                if (follower == null)
+                {
+                    Follower Follower = new Follower
+                    {
+                        ChatId = ChatId,
+                        FirstName = FirstName,
+                        LastName = LastName,
+                        UserName = UserName,
+                        Blocked = false,
+                        DateAdd = DateTime.Now
+                    };
+
+                    db.Follower.Add(Follower);
+                    db.SaveChanges();
+                    return Follower;
+                }
+
+                //пользвоатель мог изменить свои данны. Проверяем и обновляем
+                if(follower!=null &&follower.UserName!=UserName ||
+                    follower != null && follower.FirstName != FirstName ||
+                    follower != null && follower.LastName != LastName)
+                {
+                    follower.UserName = UserName;
+                    follower.LastName = LastName;
+                    follower.FirstName = FirstName;
+                    db.Update<Follower>(follower);
+                    await db.SaveChangesAsync();
+                    return follower;
+                }
+
+                else
+                    return follower;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
         public static bool ExistTelephone(int FollowerId)
         {
             MarketBotDbContext db = new MarketBotDbContext();

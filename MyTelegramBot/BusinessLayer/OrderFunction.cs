@@ -283,7 +283,10 @@ namespace MyTelegramBot.BusinessLayer
 
             var OrderTmp = db.OrderTemp.Where(o => o.FollowerId == FollowerId && o.BotInfoId == botInfo.Id).Include(o => o.PickupPoint).LastOrDefault();
 
-            int LastOrderNumber =Convert.ToInt32(db.Orders.LastOrDefault().Number);
+            int LastOrderNumber = 0;
+
+            if(db.Orders.LastOrDefault()!=null)
+                LastOrderNumber=Convert.ToInt32(db.Orders.LastOrDefault().Number);
 
             double ShipPrice = 0.0;
 
@@ -300,7 +303,7 @@ namespace MyTelegramBot.BusinessLayer
             {
                 try
                 {
-                    var Order = InsertOrder(OrderTmp, LastOrderNumber);
+                    var Order = InsertOrder(OrderTmp, LastOrderNumber+1);
 
                     var CurrentStatus= InsertOrderStatus(Order.Id, FollowerId);
 
@@ -397,14 +400,14 @@ namespace MyTelegramBot.BusinessLayer
 
 
 
-        private Orders InsertOrder(OrderTemp orderTemp,int LastOrderNumber)
+        private Orders InsertOrder(OrderTemp orderTemp,int OrderNumber)
         {
             Orders Order = new Orders
             {
                 DateAdd = DateTime.Now,
                 FollowerId = Convert.ToInt32(orderTemp.FollowerId),
                 Text = orderTemp.Text,
-                Number = LastOrderNumber + 1,
+                Number = OrderNumber,
                 Paid = false,
                 BotInfoId = orderTemp.BotInfoId,
                 PickupPoint=orderTemp.PickupPoint,

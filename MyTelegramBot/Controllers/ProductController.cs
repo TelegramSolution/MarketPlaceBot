@@ -32,7 +32,7 @@ namespace MyTelegramBot.Controllers
         public IActionResult Index()
         {
             db = new MarketBotDbContext();
-            var products = db.Product.Include(p=>p.CurrentPrice).Include(p => p.Category).ToList();
+            var products = db.Product.Where(p=>p.CurrentPrice!=null).Include(p=>p.CurrentPrice).Include(p => p.Category).ToList();
 
             foreach (var prod in products)
                 if(prod.CurrentPrice!=null)

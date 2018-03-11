@@ -100,7 +100,7 @@ namespace MyTelegramBot.Controllers
 
                 else // инф. в базе еще нет. Добавляем
                 {               
-                    InsertNewBotToDb(token, name, "https://" + domainname,true);
+                    InsertNewBotToDb(token, name, "https://" + domainname, true);
                     db.Dispose();
                     return Json(token.Split(':').ElementAt(1).Substring(0, 15));
                     
