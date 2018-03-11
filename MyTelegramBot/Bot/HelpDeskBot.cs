@@ -124,13 +124,19 @@ namespace MyTelegramBot.Bot
 
         private async Task<IActionResult> SaveHelpDesk(int HelpDeskId)
         {
-            var Help = HelpDeskFunction.SaveHelpDesk(HelpDeskId);
+            if (!FollowerFunction.IsBlocked(FollowerId))
+            {
+                var Help = HelpDeskFunction.SaveHelpDesk(HelpDeskId);
 
-            BotMessage = new HelpDeskEditorMessage(Help);
-            await EditMessage(BotMessage.BuildMsg());
+                BotMessage = new HelpDeskEditorMessage(Help);
+                await EditMessage(BotMessage.BuildMsg());
 
-            AdminHelpDeskMessage adminHelpDesk = new AdminHelpDeskMessage(Help);
-            await base.SendMessageAllBotEmployeess(adminHelpDesk.BuildMsg());
+                AdminHelpDeskMessage adminHelpDesk = new AdminHelpDeskMessage(Help);
+                await base.SendMessageAllBotEmployeess(adminHelpDesk.BuildMsg());
+            }
+
+            else
+                await SendMessage(new BotMessage { TextMessage = "Пользователь заблокирован!" });
 
             return OkResult;
             

@@ -128,7 +128,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId).Include(h => h.HelpDeskAttachment).
+                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId).Include(h=>h.Follower).Include(h => h.HelpDeskAttachment).
                          Include(h => h.HelpDeskAnswer)
                         .Include(h => h.HelpDeskInWork)
                         .FirstOrDefault();
@@ -392,7 +392,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId && h.Send == false).FirstOrDefault();
+                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId && h.Send == false).Include(h => h.HelpDeskAttachment).FirstOrDefault();
 
                 var LastHelp = db.HelpDesk.Where(h => h.Send == true).OrderByDescending(h => h.Number).Include(h => h.HelpDeskAttachment).FirstOrDefault();
 

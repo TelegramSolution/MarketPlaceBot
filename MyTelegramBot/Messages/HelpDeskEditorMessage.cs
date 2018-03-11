@@ -36,14 +36,14 @@ namespace MyTelegramBot.Messages
 
             using (MarketBotDbContext db = new MarketBotDbContext())
             {
-                if (this.HelpDesk == null)
+                if (this.HelpDesk == null && HelpDeskId>0)
                     this.HelpDesk = db.HelpDesk.Where(h => h.Id == HelpDeskId).Include(h => h.HelpDeskAttachment).FirstOrDefault();
 
-                if (this.HelpDesk.HelpDeskAttachment == null || this.HelpDesk.HelpDeskAttachment.Count==0)
+                if (HelpDesk != null && this.HelpDesk.HelpDeskAttachment == null && HelpDeskId>0)
                     this.HelpDesk = db.HelpDesk.Where(h => h.Id == this.HelpDesk.Id).Include(h => h.HelpDeskAttachment).FirstOrDefault();
             }
 
-            if (HelpDesk!=null && !HelpDesk.Send==true)
+            if (HelpDesk!=null && !HelpDesk.Send) //заявка еще не отправлена
             {
                 AddAttachBtn = new InlineKeyboardCallbackButton("Добавить файл", BuildCallData("AddAttachHelpDesk",Bot.HelpDeskBot.ModuleName));
                 SendBtn = new InlineKeyboardCallbackButton("Отправить заявку", BuildCallData("SendHelpDesk", Bot.HelpDeskBot.ModuleName,HelpDesk.Id));
@@ -66,19 +66,29 @@ namespace MyTelegramBot.Messages
                         },
 
                     });
+
+                return this;
             }
 
-            if (HelpDesk!=null && HelpDesk.Send==true)
+            if (HelpDesk != null && HelpDesk.Send) // заявка отправлена или уже выполнена
             {
                 if (HelpDesk.HelpDeskAttachment != null)
-                    base.TextMessage =Bold("Номер заявки: ")+HelpDesk.Number.ToString()+NewLine()
-                            +Bold("Дата: ") +HelpDesk.Timestamp.ToString()+ NewLine() +
-                            Bold("Описание проблемы: ")+ HelpDesk.Text + NewLine() + Bold("Прикрепленных файлов: ") + HelpDesk.HelpDeskAttachment.Count.ToString();
+                    base.TextMessage = Bold("Номер заявки: ") + HelpDesk.Number.ToString() + NewLine()
+                            + Bold("Дата: ") + HelpDesk.Timestamp.ToString() + NewLine() +
+                            Bold("Описание проблемы: ") + HelpDesk.Text + NewLine() + Bold("Прикрепленных файлов: ") + HelpDesk.HelpDeskAttachment.Count.ToString();
 
-                else
-                    base.TextMessage = HelpDesk.Text + NewLine() + Bold("Прикрепленных файлов: ") + "0";
+                if (HelpDesk.Closed)
+                {
+                    base.TextMessage += NewLine() + Italic("Комментарии тех. поддержки") + NewLine();
+                    foreach (var answer in HelpDesk.HelpDeskAnswer)
+                        base.TextMessage += answer.Timestamp.ToString() + " | " + answer.Text + NewLine()+ NewLine();
+                }
+
+                return this;
             }
-            return this;
+
+            else
+                return null;
         }
 
     }

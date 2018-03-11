@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using MyTelegramBot.Services;
 namespace MyTelegramBot.Controllers
 {
+    /// <summary>
+    /// настройка платежей. ПЕРЕДЕЛАТЬ!!!
+    /// </summary>
     [Produces("application/json")]
     public class PayConfigController : Controller
     {
@@ -166,10 +169,39 @@ namespace MyTelegramBot.Controllers
 
             }
 
-            ViewBag.Title = "Doge";
-            ViewBag.Text = "В папке с установленными Doge Core создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 20гб)." +
+            ViewBag.Title = "Dash";
+            ViewBag.Text = "В папке с установленными Dash Core создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 10гб)." +
                 "Содержимое бат файла:";
             ViewBag.Bat = "dash-qt.exe -server -rest -rpcuser=root -rpcpassword=toor -rpcport=9999";
+
+            return View("CryptoCurrency", PaymentTypeConfig);
+        }
+
+        public IActionResult Zcash()
+        {
+            db = new MarketBotDbContext();
+
+
+            PaymentTypeConfig = db.PaymentTypeConfig.Where(p => p.PaymentId == Bot.Core.ConstantVariable.PaymentTypeVariable.Zcash).OrderByDescending(p => p.Id).FirstOrDefault();
+
+            if (PaymentTypeConfig == null)
+            {
+                PaymentTypeConfig = new PaymentTypeConfig
+                {
+                    Host = "127.0.0.1",
+                    Login = "",
+                    Pass = "",
+                    Port = "9332",
+                    Enable = true,
+                    PaymentId = Bot.Core.ConstantVariable.PaymentTypeVariable.Zcash
+                };
+
+            }
+
+            ViewBag.Title = "Dash";
+            ViewBag.Text = "В папке с установленными zcash4win\\app создайте бат файл.Сохраните и запустите этот бат файл и дождитесь синхронизации базы данных (Размер базы данных более 10гб)." +
+                "Содержимое бат файла:";
+            ViewBag.Bat = "zcashd.exe -server -rest -rpcuser=root -rpcpassword=123 -rpcport=9332 -rpcallowip=127.0.0.1";
 
             return View("CryptoCurrency", PaymentTypeConfig);
         }

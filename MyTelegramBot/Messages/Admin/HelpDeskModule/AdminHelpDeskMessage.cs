@@ -92,12 +92,10 @@ namespace MyTelegramBot.Messages.Admin
                 InWorkNow =HelpDesk.HelpDeskInWork.LastOrDefault();
 
                 base.TextMessage += NewLine() + NewLine() + HelpAnswerText;
-            }
 
-            CreateBtn();
-            base.MessageReplyMarkup= SetInlineKeyBoard();
-
-            
+                CreateBtn();
+                base.MessageReplyMarkup = SetInlineKeyBoard();
+            }           
 
             return this;
         }

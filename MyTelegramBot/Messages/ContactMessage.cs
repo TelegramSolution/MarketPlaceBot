@@ -67,7 +67,6 @@ namespace MyTelegramBot.Messages
 
         private void SetInlineKeyBoard()
         {
-            if(Company.Chanel!="" && Company.Chat!="" && Company.Instagram!="" && Company.Vk!="")
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -89,38 +88,7 @@ namespace MyTelegramBot.Messages
 
                  });
 
-            if (Company.Chanel == "" && Company.Chat != "" && Company.Instagram != "" && Company.Vk != "")
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-                    new[]{
-                new[]
-                        {
-                            VkBtn
-                        },
-                new[]
-                        {
-                            InstagramBtn
-                        },
 
-                new[]
-                        {
-                            ChatBtn
-                        },
-
-                     });
-
-            if (Company.Chanel != "" && Company.Chat == "" && Company.Instagram != "" && Company.Vk != "")
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-                    new[]{
-                new[]
-                        {
-                            VkBtn
-                        },
-                new[]
-                        {
-                            InstagramBtn
-                        },
-
-                     });
         }
     }
 }

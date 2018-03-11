@@ -18,7 +18,7 @@ namespace MyTelegramBot.Messages.Admin
     /// </summary>
     public class AdminOrderMessage:BotMessage
     {
-        private InlineKeyboardCallbackButton EditOrderPositionBtn { get; set; }
+        //private InlineKeyboardCallbackButton EditOrderPositionBtn { get; set; }
 
         private InlineKeyboardCallbackButton ViewTelephoneNumberBtn { get; set; }
 
@@ -221,7 +221,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private void CreateBtns()
         {
-            EditOrderPositionBtn = BuildInlineBtn("Изменить содержание заказа"+ " \ud83d\udd8a", BuildCallData(OrderProccesingBot.CmdEditOrderPosition, OrderProccesingBot.ModuleName, Order.Id));
+            //EditOrderPositionBtn = BuildInlineBtn("Изменить содержание заказа"+ " \ud83d\udd8a", BuildCallData(OrderProccesingBot.CmdEditOrderPosition, OrderProccesingBot.ModuleName, Order.Id));
 
             ViewTelephoneNumberBtn = BuildInlineBtn("Контактные данные"+ " \ud83d\udcde", BuildCallData(OrderProccesingBot.CmdGetTelephone, OrderProccesingBot.ModuleName, Order.Id));
 
@@ -266,10 +266,7 @@ namespace MyTelegramBot.Messages.Admin
                         {
                             ViewInvoiceBtn, FreeOrderBtn
                         },
-                new[]
-                        {
-                            EditOrderPositionBtn
-                        },
+
                 new[]
                         {
                            EditStatusBtn, StatusHistoryBtn
