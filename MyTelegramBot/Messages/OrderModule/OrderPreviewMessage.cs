@@ -177,12 +177,18 @@ namespace MyTelegramBot.Messages
 
                         Product product = db.Product.Where(p => p.Id == id).Include(p=>p.CurrentPrice).FirstOrDefault();
                         int count = basket.Where(p => p.ProductId == id).Count();
+
                         product.CurrentPrice.Currency = db.Currency.Find(product.CurrentPrice.CurrencyId);
+
                         message += counter.ToString() + ") " + product.Name + " "  + 
-                        product.CurrentPrice.ToString() + " x " + count.ToString() + " = " + 
-                        (count * product.CurrentPrice.Value).ToString() + product.CurrentPrice.Currency.ShortName + BotMessage.NewLine();
+                                    product.CurrentPrice.ToString() + " x " + count.ToString() + " = " + 
+                                    (count * product.CurrentPrice.Value).ToString() + product.CurrentPrice.Currency.ShortName + " | /product"+product.Id.ToString() 
+                                    + BotMessage.NewLine();
+
                         total += product.CurrentPrice.Value * count;
+
                         counter++;
+
                         currency = product.CurrentPrice.Currency.ShortName;
 
                     }

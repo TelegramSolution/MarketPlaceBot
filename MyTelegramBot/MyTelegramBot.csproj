@@ -62,6 +62,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Files\ProhibitedNames.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Files\Пример.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -10,6 +10,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 
 namespace MyTelegramBot.Messages.Admin
@@ -20,8 +21,6 @@ namespace MyTelegramBot.Messages.Admin
 
         private Dictionary<int, List<PickupPoint>> Pages { get; set; }
 
-        private MarketBotDbContext db { get; set; }
-
 
         public PickUpPointListMessage (int PageNumber = 1)
         {
@@ -31,9 +30,8 @@ namespace MyTelegramBot.Messages.Admin
 
         public override BotMessage BuildMsg()
         {
-            db = new MarketBotDbContext();
 
-            PickupList = db.PickupPoint.ToList();
+            PickupList = PickUpPointFunction.PickUpPointList();
 
             Pages = base.BuildDataPage<PickupPoint>(PickupList, base.SelectPageNumber);
             
@@ -75,7 +73,7 @@ namespace MyTelegramBot.Messages.Admin
                 base.MessageReplyMarkup = base.BackToAdminPanelKeyboard();
 
             }
-            db.Dispose();
+
 
             return this;
 

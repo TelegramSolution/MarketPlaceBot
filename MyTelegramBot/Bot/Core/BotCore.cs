@@ -583,7 +583,7 @@ namespace MyTelegramBot.Bot.Core
                     && message.MediaFile.FileTo.FileId == null)
                     mess = await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
 
-                if (message.MediaFile == null && message.TextMessage != null)
+                if (message.MediaFile == null && message.TextMessage != null )
                     mess = await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
 
                 //Если мы отрпавляем файл для этого бота первый раз, то Записываем FileId в базу для этог бота, что бы в следующий раз не отслылать целый файл
@@ -1087,7 +1087,7 @@ namespace MyTelegramBot.Bot.Core
             try
             {
 
-                if (BotInfo.Configuration.OwnerPrivateNotify)
+                if (BotInfo.Configuration.OwnerPrivateNotify && BotInfo.OwnerChatId!=ChatId) // не отправляем уведомление самому себе
                     await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), message);
 
                 if (operators != null)
@@ -1096,7 +1096,7 @@ namespace MyTelegramBot.Bot.Core
                     {
                         System.Threading.Thread.Sleep(300);
 
-                        if (admin.NotyfiActive)
+                        if (admin.NotyfiActive && admin.Follower.ChatId!=ChatId) // не отправляем уведомление самому себе
                                 await SendMessage(admin.Follower.ChatId, message, true);
  
                     }

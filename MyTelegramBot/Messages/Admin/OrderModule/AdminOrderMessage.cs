@@ -155,7 +155,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 /////////Формируем основную часть сообщения - Доставка
                 if (Order.OrderAddress != null)
-                    base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
+                    base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() +" /order" + Order.Number.ToString() + NewLine()
                             + Order.PositionToString() + NewLine()
                             + Bold("Стоимость доставки:") + Order.OrderAddress.ShipPriceValue.ToString() + NewLine()
                             + Bold("Общая стоимость: ") + total.ToString() + NewLine()
@@ -170,7 +170,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 /////////Формируем основную часть сообщения - Самовывоз
                 if (Order.PickupPoint != null)
-                    base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + NewLine()
+                    base.TextMessage = Bold("Номер заказа: ") + Order.Number.ToString() + " /order" + Order.Number.ToString() + NewLine()
                             + Order.PositionToString() + NewLine()
                             + Bold("Общая стоимость: ") + total.ToString() + NewLine()
                             + Bold("Комментарий: ") + Order.Text + NewLine()
@@ -202,6 +202,11 @@ namespace MyTelegramBot.Messages.Admin
             
         }
 
+        /// <summary>
+        /// кто обрабатывает заявку. id пользователя в бд
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         private int WhoInWork(Orders order)
         {
             if (order != null && order.OrdersInWork.Count > 0)

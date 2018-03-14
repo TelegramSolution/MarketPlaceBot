@@ -21,12 +21,6 @@ namespace MyTelegramBot.Bot
     {
         public const string ModuleName = "ProdEdit";
 
-        ///// <summary>
-        ///// Сообщение с админскими функциями для товара
-        ///// </summary>
-        //private ProductFuncMessage AdminProductFuncMsg { get; set; }
-
-        //private UnitListMessage UnitListMsg { get; set; }
 
         private ProductFunction ProductFunction { get; set; }
 

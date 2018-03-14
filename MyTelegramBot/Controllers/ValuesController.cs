@@ -23,6 +23,7 @@ namespace MyTelegramBot.Controllers
    
     public class ValuesController : Controller
     {
+        
        
         private OkResult OkResult { get; set; }
 
@@ -55,6 +56,7 @@ namespace MyTelegramBot.Controllers
             if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.InlineQuery == null)
             {
                 ModuleName = JsonConvert.DeserializeObject<BotCommand>(update.CallbackQuery.Data).M;
+                
             }
 
             if(update.InlineQuery == null)

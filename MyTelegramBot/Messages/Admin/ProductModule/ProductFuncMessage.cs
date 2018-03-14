@@ -100,7 +100,7 @@ namespace MyTelegramBot.Messages.Admin
 
                 MoreSettingsBtn = BuildInlineBtn("Дополнительно", BuildCallData(ProductEditBot.MoreProdFuncCmd, ProductEditBot.ModuleName, Product.Id), base.Next2Emodji);
 
-                base.TextMessage = Product.AdminMessage();
+                base.TextMessage ="Добавить новый товар /addprod"+ NewLine()+ Product.AdminMessage();
 
                 if (Product.Enable == true)
                     ProductEditEnableBtn = BuildInlineBtn("Активно", BuildCallData(ProductEditBot.ProductEditEnableCmd, ProductEditBot.ModuleName, Product.Id,1),base.CheckEmodji);

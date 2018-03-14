@@ -267,6 +267,41 @@ namespace MyTelegramBot.BusinessLayer
 
         }
 
+        /// <summary>
+        /// Функция проверяет является ли данное имя запрещенным.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public bool NameIsProhibited(string Name)
+        {
+            StreamReader stream = null;
+                
+
+            try
+            {
+                stream = new StreamReader("Files\\ProhibitedNames.txt");
+                string Read= stream.ReadToEnd();
+
+                List<string> Item = Read.Split(',').ToList(); 
+                //найдено запрещенное имя
+                if (Item.Where(i => i == Name).FirstOrDefault() != null)
+                    return true;
+
+                else
+                    return false;
+            }
+
+            catch
+            {
+                return false;
+            }
+
+            finally
+            {
+                stream.Dispose();
+            }
+        }
+
         public Product UpdatePrice(int ProductId, double Value, int CurrencyId)
         {
             try
