@@ -18,6 +18,7 @@ namespace MyTelegramBot.Messages.Admin
     /// </summary>
     public class MoreSettingsMessage:BotMessage
     {
+        private BotInfo BotInfo { get; set; }
         private InlineKeyboardCallbackButton TimeWorkBtn { get; set; }
 
         private InlineKeyboardCallbackButton MethodsOfObtainingBtn { get; set; }
@@ -40,6 +41,12 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton CurrencyEditorBtn { get; set; }
 
+        private InlineKeyboardCallbackButton TelephoneVerifyEnableBtn { get; set; }
+
+        public MoreSettingsMessage(BotInfo botInfo)
+        {
+            BotInfo = botInfo;
+        }
 
         public override BotMessage BuildMsg()
         {
@@ -64,6 +71,12 @@ namespace MyTelegramBot.Messages.Admin
             DeliveryPriceBtn= BuildInlineBtn("Стоимость доставки", BuildCallData(MoreSettingsBot.DeliveryPriceCmd, MoreSettingsBot.ModuleName), base.CashEmodji);
 
             CurrencyEditorBtn= BuildInlineBtn("Основная валюта", BuildCallData(MoreSettingsBot.CurrencyEditorCmd, MoreSettingsBot.ModuleName), base.CashEmodji);
+
+            if(BotInfo.Configuration!=null && BotInfo.Configuration.VerifyTelephone)
+                TelephoneVerifyEnableBtn = BuildInlineBtn("Требовать тел. при оформлении заказа", BuildCallData(MoreSettingsBot.TelephoneVerifyEnableCmd, MoreSettingsBot.ModuleName),base.CheckEmodji);
+
+            else
+                TelephoneVerifyEnableBtn = BuildInlineBtn("Требовать тел. при оформлении заказа", BuildCallData(MoreSettingsBot.TelephoneVerifyEnableCmd, MoreSettingsBot.ModuleName), base.UnCheckEmodji);
 
             BackBtn = BackToAdminPanelBtn();
 
@@ -103,6 +116,10 @@ namespace MyTelegramBot.Messages.Admin
                 new[]
                         {
                                 CurrencyEditorBtn
+                        },
+                new[]
+                        {
+                                TelephoneVerifyEnableBtn
                         },
                 new[]
                         {

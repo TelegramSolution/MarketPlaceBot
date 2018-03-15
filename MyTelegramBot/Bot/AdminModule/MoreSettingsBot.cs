@@ -112,6 +112,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string CurrencyEditorUpdCmd = "CurrencyUpd";
 
+        public const string TelephoneVerifyEnableCmd = "TelephoneVerifyEnable";
 
         public MoreSettingsBot(Update _update) : base(_update)
         {
@@ -531,7 +532,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> SendMoreSettings(int MessageId = 0)
         {
-            BotMessage =new MoreSettingsMessage();
+            BotMessage =new MoreSettingsMessage(base.BotInfo);
             await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return OkResult;

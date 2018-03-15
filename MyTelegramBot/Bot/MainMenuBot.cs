@@ -41,9 +41,6 @@ namespace MyTelegramBot.Bot
             if (base.CommandName == "Contact")
                 return await SendContactList();
 
-            if (base.CommandName == "OpenSource")
-                return await OpenSourceSend();
-
 
             else return null;
         }
@@ -91,15 +88,6 @@ namespace MyTelegramBot.Bot
             }
         }
 
-
-        private async Task<IActionResult> OpenSourceSend()
-        {
-            OpenSourceMessage openSource = new OpenSourceMessage();
-
-            await EditMessage(openSource.BuildMsg());
-
-            return OkResult;
-        }
 
     }
 }

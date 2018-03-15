@@ -94,7 +94,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string DisablePickUpPointCmd = "/pickupdisable";
 
-        public const string ViewStockProdCmd = "ViewStockProd";
+        public const string ViewStockHistoryProdCmd = "ViewStockProd";
+
+        public const string ViewStockCmd = "ViewStock";
 
         public const string StockHistoryProudctCmd="/stockhistory";
 
@@ -146,7 +148,7 @@ namespace MyTelegramBot.Bot.AdminModule
                             return await SendAllProductsView();
 
                         case "ViewStock":
-                            return await SendCurrentStock(0,MessageId);
+                            return await SendCurrentStock(MessageId);
 
                         case "/on":
                             return await OnOffPrivateMessage(true);
@@ -158,7 +160,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         case ViewOrdersListCmd:
                             return await SendOrderList();
 
-                    case ViewStockProdCmd:
+                    case ViewStockHistoryProdCmd:
                         return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
 
                     case BlockFollowerCmd:
@@ -211,10 +213,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     case "/newcity":
                         return await SendForceReplyMessage("Введите название города");
 
-                    case "GetCategoryStock":
-                        return await SendCurrentStock(Argumetns[0],MessageId);
-
-                   
 
                     default:
                         break;
@@ -643,18 +641,25 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Отправить сообещние с текущими остатками по товарам
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendCurrentStock(int CategoryId=0, int MessageId=0)
+        private async Task<IActionResult> SendCurrentStock(int MessageId=0)
         {
-            try
+
+
+            if (Argumetns.Count == 1)
             {
-                BotMessage = new CurrentStockMessage(CategoryId);
+                int SelectPageNumber = Argumetns[0];
+                BotMessage = new CurrentStockMessage(SelectPageNumber);
                 await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
-            catch
+            else
             {
+                BotMessage = new CurrentStockMessage();
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
+
+
         }
 
         /// <summary>

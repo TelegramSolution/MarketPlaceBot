@@ -16,13 +16,7 @@ namespace MyTelegramBot.Messages.Admin
     {
         private List<Product> ProductList { get; set; }
 
-        private Category Category { get; set; }
-
-        private InlineKeyboardCallbackButton NextCategoryBtn { get; set; }
-
-        private InlineKeyboardCallbackButton PreviousCategoryBtn { get; set; }
-
-        private int CategoryId { get; set; }
+        private Dictionary<int, List<Product>> Pages { get; set; }
 
         MarketBotDbContext db;
 
@@ -30,128 +24,63 @@ namespace MyTelegramBot.Messages.Admin
         /// 
         /// </summary>
         /// <param name="CategoryId">товары какой категории отобразить в этом сообщениее. Если ни чего не предалть, то будет отображать товары самой первой категории</param>
-        public CurrentStockMessage(int CategoryId = 0)
+        public CurrentStockMessage(int SelectPage=1)
         {
-            BackBtn = new InlineKeyboardCallbackButton("Назад", BuildCallData(Bot.AdminModule.AdminBot.BackToAdminPanelCmd , Bot.AdminModule.AdminBot.ModuleName));
-            this.CategoryId = CategoryId;
+            base.PageSize = 5;
+            base.SelectPageNumber = SelectPage;
         }
 
         public override BotMessage BuildMsg()
         {
             db = new MarketBotDbContext();
 
-            if (CategoryId > 0)
-                Category = db.Category.Find(CategoryId);
+            ProductList = db.Product.Include(p => p.ProductPrice)
+                .Include(p => p.Category).Include(p => p.Stock).ToList();
 
-            if (CategoryId == 0)
+                Pages = BuildDataPage<Product>(ProductList);
+      
+                base.MessageReplyMarkup = base.PageNavigatorKeyboard<Product>(Pages, Bot.AdminModule.AdminBot.ViewStockCmd, Bot.AdminModule.AdminBot.ModuleName, BackToAdminPanelBtn());
+
+            if (Pages != null && Pages.Count > 0 && Pages.Count >= SelectPageNumber 
+                && Pages[SelectPageNumber] != null)
             {
-                Category = db.Category.Where(c => c.Enable).FirstOrDefault();
-                CategoryId = Category.Id;
+                string message = "";
+                base.TextMessage = message;
+                int counter = 1; //счетчик
+                var page = Pages[SelectPageNumber];
+                int number = 1; // порядковый номер записи
+
+                base.TextMessage = "Остатки " + NewLine() +
+                "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+
+
+                foreach (Product product in page)
+                {
+                    number = PageSize * (SelectPageNumber - 1) + counter;
+
+                    message += NewLine() + number.ToString() + ") " + product.Name + NewLine();
+
+                    if (product.Stock.Count > 0)
+                        message +="Остаток:" + product.Stock.LastOrDefault().Balance.ToString();
+
+                    if (product.Stock != null && product.Stock.Count == 0 ||
+                    product.Stock != null && product.Stock.Count > 0 && product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance == 0)
+                        message +="нет в наличии";
+
+                    message += NewLine() + "Изменить: /adminproduct" + product.Id.ToString() + NewLine() +
+                        "История: /stockhistory" + product.Id.ToString() + NewLine();
+
+                    counter++;
+                    
+                }
+                base.TextMessage += message;
             }
-            if (Category.Product.Count == 0)
-                Category.Product = db.Product.Where(p => p.CategoryId == Category.Id && p.Enable == true)
-                    .Include(p => p.ProductPrice).Include(p => p.Category).Include(p => p.Stock).ToList();
-
-
-            //определям следующую категорию
-            var NextCategory = GetNextCategoryId(CategoryId);
-            if (NextCategory.Id != CategoryId)
-                NextCategoryBtn = new InlineKeyboardCallbackButton(NextCategory.Name, BuildCallData("GetCategoryStock", Bot.AdminModule.AdminBot.ModuleName, NextCategory.Id));
-
-            //определяем предыдующую категорию
-            var PreviousCategory = GetPreviousCategoryId(CategoryId);
-            if (PreviousCategory.Id != CategoryId)
-                PreviousCategoryBtn = new InlineKeyboardCallbackButton(PreviousCategory.Name, BuildCallData("GetCategoryStock", Bot.AdminModule.AdminBot.ModuleName, PreviousCategory.Id));
-
-
-
-            string message = Bold(Category.Name);
-            int counter = 1;
-            foreach (Product product in Category.Product)
-            {
-
-                if(product.Stock.Count>0)
-                message += NewLine() + counter.ToString() + ") " + product.Name + NewLine() +
-                  "Остаток:"+  product.Stock.LastOrDefault().Balance.ToString();
-
-                if (product.Stock != null && product.Stock.Count == 0 ||
-                product.Stock != null && product.Stock.Count > 0 && product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance == 0)
-                    message += NewLine() + "нет в наличии";
-
-                message += NewLine() + "Изменить: /adminproduct" + product.Id.ToString() + NewLine() +
-                    "История: /stockhistory" + product.Id.ToString() + NewLine(); 
-
-                counter++;
-
-            }
-
-
-           
-            base.TextMessage = message;
-
-            SetKeyboard();
 
             return this;
 
 
         }
 
-        private void SetKeyboard()
-        {
-
-            if (NextCategoryBtn == null && PreviousCategoryBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn != null && PreviousCategoryBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        NextCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn == null && PreviousCategoryBtn != null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        PreviousCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn != null && PreviousCategoryBtn != null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        PreviousCategoryBtn, NextCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-        }
 
         private Category GetNextCategoryId(int CategoryId)
         {
