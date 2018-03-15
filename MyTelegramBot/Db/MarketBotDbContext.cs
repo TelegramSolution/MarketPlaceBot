@@ -50,7 +50,6 @@ namespace MyTelegramBot
         public virtual DbSet<Product> Product { get; set; }
         public virtual DbSet<ProductPhoto> ProductPhoto { get; set; }
         public virtual DbSet<ProductPrice> ProductPrice { get; set; }
-        public virtual DbSet<Raiting> Raiting { get; set; }
         public virtual DbSet<Region> Region { get; set; }
         public virtual DbSet<ReportsRequestLog> ReportsRequestLog { get; set; }
         public virtual DbSet<Status> Status { get; set; }
@@ -367,11 +366,6 @@ namespace MyTelegramBot
                     .WithMany(p => p.FeedBack)
                     .HasForeignKey(d => d.ProductId)
                     .HasConstraintName("FK_FeedBack_Product");
-
-                entity.HasOne(d => d.Raiting)
-                    .WithMany(p => p.FeedBack)
-                    .HasForeignKey(d => d.RaitingId)
-                    .HasConstraintName("FK_Feedback_Raiting");
             });
 
             modelBuilder.Entity<FeedBackAttachmentFs>(entity =>
@@ -861,10 +855,6 @@ namespace MyTelegramBot
                     .HasConstraintName("FK_Price_Product");
             });
 
-            modelBuilder.Entity<Raiting>(entity =>
-            {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-            });
 
             modelBuilder.Entity<Region>(entity =>
             {

@@ -21,7 +21,6 @@ namespace MyTelegramBot
 
         public Orders Order { get; set; }
         public Product Product { get; set; }
-        public Raiting Raiting { get; set; }
         public ICollection<FeedBackAttachmentFs> FeedBackAttachmentFs { get; set; }
     }
 }
