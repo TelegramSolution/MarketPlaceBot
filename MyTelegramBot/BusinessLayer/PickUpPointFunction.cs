@@ -76,6 +76,9 @@ namespace MyTelegramBot.BusinessLayer
                         Enable = true,
                         Name = Name
                     };
+
+                    db.PickupPoint.Add(pickupPoint);
+                    db.SaveChanges();
                     return pickupPoint; ;
                 }
 

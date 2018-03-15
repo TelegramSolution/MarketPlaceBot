@@ -15,7 +15,7 @@ using MyTelegramBot.Bot.Core;
 namespace MyTelegramBot.Messages
 {
     /// <summary>
-    /// сообщение с отзывом для товара
+    /// Просмотр отзывов по товару
     /// </summary>
     public class ViewProductFeedBackMessage:BotMessage
     {

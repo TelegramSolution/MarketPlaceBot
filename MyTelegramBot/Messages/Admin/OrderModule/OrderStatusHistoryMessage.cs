@@ -13,6 +13,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Истоория изменения статусов по закаку
+    /// </summary>
     public class OrderStatusHistoryMessage:BotMessage
     {
 

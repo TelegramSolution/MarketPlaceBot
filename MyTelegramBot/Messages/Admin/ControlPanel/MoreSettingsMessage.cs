@@ -13,6 +13,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Доп. настройки
+    /// </summary>
     public class MoreSettingsMessage:BotMessage
     {
         private InlineKeyboardCallbackButton TimeWorkBtn { get; set; }

@@ -10,6 +10,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// собещние с выбором пункта самовывоза
+    /// </summary>
     public class PickupPointListMessage:BotMessage
     {
         List<PickupPoint> PickupPoitList { get; set; }

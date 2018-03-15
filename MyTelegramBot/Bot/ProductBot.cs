@@ -20,11 +20,8 @@ namespace MyTelegramBot.Bot
 
         private int ProductId { get; set; }
 
-        private ProductRemoveFromBasket ProductRemoveFromBasketMsg { get; set; }
-
         private ProductViewMessage ProductViewMsg { get; set; }
 
-        private AddProductToBasketMessage AddProductToBasketMsg { get; set; }
 
         /// <summary>
         /// Сообщение со всеми фотографиями товара
@@ -63,8 +60,6 @@ namespace MyTelegramBot.Bot
                 {
                     ProductId = Argumetns[0];
                     ProductViewMsg = new ProductViewMessage(this.ProductId, BotInfo.Id);
-                    AddProductToBasketMsg = new AddProductToBasketMessage(base.FollowerId, this.ProductId, BotInfo.Id);
-                    ProductRemoveFromBasketMsg = new ProductRemoveFromBasket(this.FollowerId, this.ProductId, BotInfo.Id);
                 }
 
             }

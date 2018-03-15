@@ -12,6 +12,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Сообщение с историей изменения остатков определенного товара
+    /// </summary>
     public class ProductStockHistoryMessage:BotMessage
     {
 

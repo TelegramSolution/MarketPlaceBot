@@ -350,7 +350,7 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             string name = ReplyToMessageText;
 
-            PickUpPointFunction.InsertPickUpPoint(name);
+            var pickuppoint= PickUpPointFunction.InsertPickUpPoint(name);
 
             await SendPickupPointList();
 

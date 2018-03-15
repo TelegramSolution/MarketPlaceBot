@@ -14,6 +14,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Настройка стоимости доставки
+    /// </summary>
     public class DeliveryPriceMessage:BotMessage
     {
         private InlineKeyboardCallbackButton PriceEditBtn { get; set; }

@@ -14,6 +14,9 @@ using MyTelegramBot.Bot.AdminModule;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Детали платежа
+    /// </summary>
     public class PaymentViewMessage:BotMessage
     {
 

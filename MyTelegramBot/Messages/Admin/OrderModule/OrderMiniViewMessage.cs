@@ -11,6 +11,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// мини сообщение с деталями заказа
+    /// </summary>
     public class OrderMiniViewMessage:BotMessage
     {
         private int OrderId { get; set; }

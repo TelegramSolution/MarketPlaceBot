@@ -12,6 +12,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// Счет на оплату
+    /// </summary>
     public class InvoiceViewMessage:BotMessage
     {
         private Invoice Invoice { get; set; }

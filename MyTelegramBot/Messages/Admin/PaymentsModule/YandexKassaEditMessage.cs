@@ -13,6 +13,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin.PaymentsModule
 {
+    /// <summary>
+    /// Настройка яндекс кассы
+    /// </summary>
     public class YandexKassaEditMessage:BotMessage
     {
         private InlineKeyboardCallbackButton RemoveBtn { get; set; }

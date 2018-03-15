@@ -9,7 +9,7 @@ using MyTelegramBot.Bot.Core;
 namespace MyTelegramBot.Messages
 {
     /// <summary>
-    /// сообщение с телефоном пользователя
+    /// Контактные данные магазина
     /// </summary>
     public class ContactMessage:BotMessage
     {

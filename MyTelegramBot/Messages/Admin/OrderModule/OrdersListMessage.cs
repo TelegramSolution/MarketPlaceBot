@@ -10,10 +10,13 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using MyTelegramBot.Bot.AdminModule;
 using MyTelegramBot.Bot.Core;
-using Telegram.Bot.Types.InlineKeyboardButtons;
+
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// сообещние со всеми заказами в системе
+    /// </summary>
     public class OrdersListMessage:BotMessage
     {
 

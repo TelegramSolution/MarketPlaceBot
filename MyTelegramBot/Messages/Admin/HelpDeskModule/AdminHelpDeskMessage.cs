@@ -12,6 +12,9 @@ using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Сообещние с заявкой
+    /// </summary>
     public class AdminHelpDeskMessage : BotMessage
     {
         private InlineKeyboardCallbackButton ViewAttachBtn { get; set; }

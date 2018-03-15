@@ -10,6 +10,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Все товары в категории
+    /// </summary>
     public class AdminAllProductsViewMessage:BotMessage
     {
         private List<Product> products { get; set; }

@@ -3,7 +3,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
 using Microsoft.AspNetCore;
-
+using Microsoft.AspNetCore.Mvc;
 namespace UnitTestMarketPlaceBot
 {
     [TestClass]
@@ -23,9 +23,9 @@ namespace UnitTestMarketPlaceBot
             MyTelegramBot.Bot.MainMenuBot mainMenuBot = new MyTelegramBot.Bot.MainMenuBot(update);
               mainMenuBot.Response();
 
-            //MyTelegramBot.Messages.MainMenuBotMessage m = new MyTelegramBot.Messages.MainMenuBotMessage();
-            //var result= m.BuildMsg();
-            //Assert.IsNotNull(result);
+            MyTelegramBot.Messages.MainMenuBotMessage m = new MyTelegramBot.Messages.MainMenuBotMessage();
+            var result = m.BuildMsg();
+            Assert.IsNotNull(result);
         }
     }
 }

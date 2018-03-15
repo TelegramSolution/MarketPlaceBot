@@ -14,7 +14,7 @@ using MyTelegramBot.Bot.Core;
 namespace MyTelegramBot.Messages.Admin
 {
     /// <summary>
-    /// сообщение со списком пользователей
+    /// сообщение со списком всех пользователей системы
     /// </summary>
     public class FollowerListMessage : BotMessage
     {

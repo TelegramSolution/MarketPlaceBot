@@ -11,6 +11,9 @@ using MyTelegramBot.Bot.AdminModule;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Счет на оплату
+    /// </summary>
     public class AdminViewInvoice:BotMessage
     {
         private Invoice Invoice { get; set; }

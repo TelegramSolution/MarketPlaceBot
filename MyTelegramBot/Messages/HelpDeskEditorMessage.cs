@@ -10,6 +10,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// Собщение с редактирование заявки HeplDesk
+    /// </summary>
     public class HelpDeskEditorMessage:BotMessage
     {
         private InlineKeyboardCallbackButton AddAttachBtn { get; set; }

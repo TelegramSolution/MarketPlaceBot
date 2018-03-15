@@ -9,6 +9,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// сообещние с текущими остатками по товарам
+    /// </summary>
     public class CurrentStockMessage:BotMessage
     {
         private List<Product> ProductList { get; set; }

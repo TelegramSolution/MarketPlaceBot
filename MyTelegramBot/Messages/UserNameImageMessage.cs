@@ -19,6 +19,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// сообещние с просьбой указать свой username в настройках telegram
+    /// </summary>
     public class UserNameImageMessage:BotMessage
     {
         private InlineKeyboardCallbackButton NextBtn { get; set; }

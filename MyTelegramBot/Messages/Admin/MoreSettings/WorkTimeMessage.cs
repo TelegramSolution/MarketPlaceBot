@@ -13,6 +13,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Режим работы магазина
+    /// </summary>
     public class WorkTimeMessage:BotMessage
     {
         private InlineKeyboardCallbackButton StartTimeBtn { get; set; }

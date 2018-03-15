@@ -12,6 +12,9 @@ using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// Сообещение с добавлением отзыва к товару
+    /// </summary>
     public class FeedBackToProductEditorMessage:BotMessage
     {
         private InlineKeyboardCallbackButton AddCommentBtn { get; set; }

@@ -15,6 +15,9 @@ using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Управление пунктами самовывоза
+    /// </summary>
     public class PickUpPointListMessage : BotMessage
     {
         private List<PickupPoint> PickupList { get; set; }
@@ -36,7 +39,7 @@ namespace MyTelegramBot.Messages.Admin
             Pages = base.BuildDataPage<PickupPoint>(PickupList, base.SelectPageNumber);
             
 
-            if (Pages!=null && Pages.Count>0 && Pages[SelectPageNumber]!=null)
+            if (Pages!=null && Pages.Count>0 && Pages.Count>= SelectPageNumber && Pages[SelectPageNumber]!=null)
             {
                 var page = Pages[SelectPageNumber];
 

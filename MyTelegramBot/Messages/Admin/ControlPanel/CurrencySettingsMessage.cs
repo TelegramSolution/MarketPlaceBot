@@ -13,6 +13,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Выбор основной валюты в системе
+    /// </summary>
     public class CurrencySettingsMessage:BotMessage
     {
 
