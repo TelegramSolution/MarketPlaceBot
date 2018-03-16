@@ -433,10 +433,7 @@ namespace MyTelegramBot.Bot.Core
 
         }
 
-        public virtual Task<IActionResult> Response()
-        {
-            return null;
-        }
+        public abstract Task<IActionResult> Response();
 
         /// <summary>
         /// Отправить сообщение 

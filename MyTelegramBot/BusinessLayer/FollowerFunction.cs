@@ -296,6 +296,26 @@ namespace MyTelegramBot.BusinessLayer
         }
 
 
+        public static List<Follower> GetFollowerList()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Follower.ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
         /// <summary>
         /// Все адреса пользователя
         /// </summary>

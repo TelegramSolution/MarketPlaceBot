@@ -45,12 +45,21 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton MoreSettingsBtn { get; set; }
 
+        /// <summary>
+        /// 2-я стр. с кнопками
+        /// </summary>
+        private InlineKeyboardCallbackButton ControlPanelPage2Btn { get; set; }
+
+        private InlineKeyboardCallbackButton NotificationBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ReportsBtn { get; set; }
+
         private MyTelegramBot.Admin Admin { get; set; }
 
         private int FollowerId { get; set; }
 
         private int AdminId { get; set; }
-        public ControlPanelMessage(int FollowerId)
+        public ControlPanelMessage(int FollowerId=0)
         {
             this.FollowerId = FollowerId;
         }
@@ -58,10 +67,9 @@ namespace MyTelegramBot.Messages.Admin
         public override BotMessage BuildMsg()
         {
 
-
                 EditProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Редактор"+base.PenEmodji, InlineFind.EditProduct + "|");
 
-                 HelpDesktBtn= InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Тех. поддержка" + base.PenEmodji, InlineFind.HelpdDesk + "|");
+                HelpDesktBtn= InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Тех. поддержка" + base.PenEmodji, InlineFind.HelpdDesk + "|");
 
                 EditCategoryBtn = new InlineKeyboardCallbackButton("Изм. категорию"+ " \ud83d\udd8a", BuildCallData(CategoryEditBot.CategoryEditorCmd, CategoryEditBot.ModuleName));
 
@@ -73,15 +81,11 @@ namespace MyTelegramBot.Messages.Admin
 
                 ViewPaymentsBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Платежи" + base.CreditCardEmodji, InlineFind.Payment + "|");
 
-                ViewCitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
-
-                ViewOperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(AdminBot.ViewOperatosCmd, AdminBot.ModuleName), base.ManAndComputerEmodji);
-
-                ViewPickupPointBtn = BuildInlineBtn("Пункты самовывоза", BuildCallData(AdminBot.ViewPickupPointCmd, AdminBot.ModuleName),base.Build2Emodji);
-
                 MoreSettingsBtn = BuildInlineBtn("Доп. настройки", BuildCallData(MoreSettingsBot.MoreSettingsCmd, MoreSettingsBot.ModuleName), base.CogwheelEmodji);
 
-            base.TextMessage = Bold("Панель администратора") + NewLine() +
+                ControlPanelPage2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(AdminBot.AdminPage2Cmd, AdminBot.ModuleName));
+
+                base.TextMessage = Bold("Панель администратора") + NewLine() +
                                "1) Добавить новый товар /addprod" + NewLine() +
                                "2) Создать новую категорию /newcategory" + NewLine() +
                                "3) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on";
@@ -106,22 +110,57 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            ViewFollowerBtn,ViewOperatorsBtn,
+                            ViewFollowerBtn,StockViewBtn
                         },
                 new[]
                         {
-                            HelpDesktBtn,ViewCitiesBtn
+                            HelpDesktBtn,ViewOrdersBtn
                         },
                 new[]
                         {
-                            ViewPaymentsBtn,ViewOrdersBtn
+                            ViewPaymentsBtn
                         },
                 new[]
                         {
-                            StockViewBtn,ViewPickupPointBtn
+                            ControlPanelPage2Btn
                         },
 
                      });
+        }
+
+        public InlineKeyboardMarkup Page2Btn()
+        {
+
+            ViewCitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
+
+            ViewOperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(AdminBot.ViewOperatosCmd, AdminBot.ModuleName), base.ManAndComputerEmodji);
+
+            ViewPickupPointBtn = BuildInlineBtn("Пункты самовывоза", BuildCallData(AdminBot.ViewPickupPointCmd, AdminBot.ModuleName), base.Build2Emodji);
+
+            BackBtn = BuildInlineBtn(base.Previuos2Emodji, BuildCallData(AdminBot.BackToAdminPanelCmd, AdminBot.ModuleName));
+
+            ReportsBtn = BuildInlineBtn("Отчеты", BuildCallData("Reports", AdminBot.ModuleName), base.NoteBookEmodji);
+
+            NotificationBtn = BuildInlineBtn("Рассылки", BuildCallData(NotificationBot.NotificationViewCmd, NotificationBot.ModuleName),base.SenderEmodji);
+
+            return new InlineKeyboardMarkup(
+            new[]{
+                new[]
+                        {
+                            ViewCitiesBtn,ViewPickupPointBtn
+                        },
+                new[]
+                        {
+                            ViewOperatorsBtn,ReportsBtn
+                        },
+                new[]
+                        {
+                            BackBtn,NotificationBtn
+                        },
+                
+
+            });
+
         }
     }
 

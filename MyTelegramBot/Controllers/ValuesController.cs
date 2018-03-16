@@ -73,6 +73,12 @@ namespace MyTelegramBot.Controllers
                     Result = await BotCore.Response();
                 }
 
+                if(Result==null && ModuleName!=null && ModuleName==NotificationBot.ModuleName || Result==null && ModuleName == null)
+                {
+                    BotCore = new NotificationBot(update);
+                    Result = await BotCore.Response();
+                }
+
                 if (Result == null && ModuleName != null && ModuleName == OrderProccesingBot.ModuleName || Result == null && ModuleName == null)
                 {
                     BotCore = new OrderProccesingBot(update);

@@ -26,8 +26,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string CategoryCreateCmd = "CategoryCreate";
 
-        public const string NotyfiCreateCmd = "NotyfiCreate";
-
         public const string AdminProductInCategoryCmd = "AdminProductInCategory";
 
         public const string EnterNameNewProductCmd = "Введите данные для нового товара";
@@ -103,6 +101,8 @@ namespace MyTelegramBot.Bot.AdminModule
         public const string BlockUserCmd = "/userblock";
 
         public const string UnblockUserCmd = "/userunblock";
+
+        public const string AdminPage2Cmd = "AdminPage2";
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -213,6 +213,8 @@ namespace MyTelegramBot.Bot.AdminModule
                     case "/newcity":
                         return await SendForceReplyMessage("Введите название города");
 
+                    case AdminPage2Cmd:
+                        return await SendPage2Btn();
 
                     default:
                         break;
@@ -256,6 +258,15 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
+        private async Task<IActionResult> SendPage2Btn()
+        {
+            ControlPanelMessage ControlPanelMessage = new ControlPanelMessage();
+
+            await EditInlineReplyKeyboard(ControlPanelMessage.Page2Btn());
+
+            return OkResult;
+
+        }
 
         /// <summary>
         /// заблокировать пользователя

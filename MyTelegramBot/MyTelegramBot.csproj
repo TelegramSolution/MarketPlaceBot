@@ -44,6 +44,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.Design" Version="1.1.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0" />
+    <PackageReference Include="NPOI" Version="2.3.0" />
     <PackageReference Include="QiwiApiSharp" Version="1.0.0.12" />
     <PackageReference Include="Telegram.Bot" Version="13.4.0" />
   </ItemGroup>

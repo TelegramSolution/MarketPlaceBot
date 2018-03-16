@@ -538,7 +538,6 @@ namespace MyTelegramBot
 
             modelBuilder.Entity<Notification>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.DateAdd).HasColumnType("datetime");
 
