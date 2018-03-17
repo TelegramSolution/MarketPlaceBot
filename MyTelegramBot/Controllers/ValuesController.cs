@@ -117,6 +117,13 @@ namespace MyTelegramBot.Controllers
                     Result = await BotCore.Response();
                 }
 
+                if (Result == null && ModuleName != null && ModuleName == OperatorBot.ModuleName || Result == null && ModuleName == null
+                || Result == null && update.PreCheckoutQuery != null)
+                {
+                    BotCore = new OperatorBot(update);
+                    Result = await BotCore.Response();
+                }
+
                 if (update.Message != null && Result == null)
                 {
                     BotCore = new FollowerBot(update);

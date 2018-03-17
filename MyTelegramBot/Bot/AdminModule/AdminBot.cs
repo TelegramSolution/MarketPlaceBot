@@ -80,7 +80,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string ViewCitiesCmd = "ViewCities";
 
-        public const string ViewOperatosCmd = "ViewOperatos";
+
 
         public const string ViewPickupPointCmd = "ViewPickupPoint";
 
@@ -197,13 +197,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     case PayMethodsListCmd:
                         return await SendPaymentMethods();
 
-
-                    case ViewOperatosCmd:
-                        return await SendOperatorList(MessageId);
-
-                    case "GenerateKey":
-                        return await GenerateKey();
-
                     case AddGroup:
                        return await AddBotToChat();
 
@@ -227,9 +220,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     return await RemoveAvailableCity();
 
 
-                if (base.CommandName.Contains(RemoveOperatorCmd))
-                    return await RemoveOperator();
-
                 if (base.OriginalMessage.Contains(AddPickupPointForceReply))
                     return await InsertPicupPoint();
 
@@ -246,9 +236,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
             else
             {
-                if (base.CommandName.Contains("/key"))
-                    return await CheckOperatorKey(CommandName.Substring(5));
-
 
                 if (base.CommandName.Contains(OwnerReg))
                     return await OwnerRegister();
@@ -447,28 +434,6 @@ namespace MyTelegramBot.Bot.AdminModule
         }
 
         /// <summary>
-        /// удалить оператора
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> RemoveOperator()
-        {
-            try
-            {
-                int id = Convert.ToInt32(base.CommandName.Substring(RemoveOperatorCmd.Length));
-
-                AdminFunction.RemoveOperator(id);
-                 
-                return await SendOperatorList();
-                
-            }
-
-            catch
-            {
-                return await SendOperatorList();
-            }
-        }
-
-        /// <summary>
         /// Отправить сообщение со списком доступных городов
         /// </summary>
         /// <returns></returns>
@@ -584,50 +549,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
-        /// <summary>
-        /// Генерируем новый ключ для оператора. 
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> GenerateKey()
-        {
-            string hash= GeneralFunction.GenerateHash();
-
-            if (hash != null && AdminFunction.InsertAdminKey(hash) != null)
-            {
- 
-                await SendMessage(
-                        new BotMessage
-                                {
-                                    TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:" 
-                                                    + BotMessage.NewLine()+ BotMessage.Italic("/key " + hash)
-                                }
-                        );
-                
-                
-            }
-
-           return OkResult;
-           
-        }
-
-        /// <summary>
-        /// Отправить сообщение со списком всех операторов
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendOperatorList(int MessageId=0)
-        {
-            try
-            {
-                BotMessage = new OperatosListMessage();
-                await SendMessage(BotMessage.BuildMsg(), MessageId);
-                return OkResult;
-            }
-
-            catch
-            {
-                return OkResult;
-            }
-        }
 
         /// <summary>
         /// Отправить сообщение со списком способов оплаты
@@ -707,53 +628,6 @@ namespace MyTelegramBot.Bot.AdminModule
             return base.OkResult;
             
         }
-
-        /// <summary>
-        /// Пользователй хочет получить права оператора. Проверка ключа
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> CheckOperatorKey(string key)
-        {
-            var Key = AdminFunction.FindAdminKey(key);
-
-            if (Key != null && Key.Admin.Count == 0)
-                return await AddNewOpearator(Key);
-
-            return base.OkResult;
-        }
-
-        /// <summary>
-        /// Добавить нового оператора
-        /// </summary>
-        /// <param name="KeyId"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> AddNewOpearator(AdminKey adminKey)
-        {
-            
-                var admin = AdminFunction.FindAdmin(FollowerId);
-
-                if (admin != null)
-                    return await SendAdminControlPanelMsg();
-
-                else {
-
-                    admin= AdminFunction.InsertAdmin(FollowerId, adminKey);
-
-                if (admin != null)
-                {
-                    string meessage = "Зарегистрирован новый оператор системы: " + GeneralFunction.FollowerFullName(admin.FollowerId)
-                    + BotMessage.NewLine() + "Ключ: " + adminKey.KeyValue;
-                    await SendMessage(BotOwner, new BotMessage { TextMessage = meessage });
-                    return await SendAdminControlPanelMsg();
-                }
-
-                }
-
-            return OkResult;
-
-        }
-
 
 
         /// <summary>

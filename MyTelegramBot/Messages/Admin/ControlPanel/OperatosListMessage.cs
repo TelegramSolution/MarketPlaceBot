@@ -44,7 +44,7 @@ namespace MyTelegramBot.Messages.Admin
             }
 
             base.TextMessage += OperatorsList+ NewLine() + Italic("Оператор системы имеет следующие права доступа: Обрабатывать заказы, Обрабатывать заявки технической поддержки.");
-            NewOperatorBtn = new InlineKeyboardCallbackButton("Создать оператора",BuildCallData("GenerateKey", Bot.AdminModule.AdminBot.ModuleName));
+            NewOperatorBtn = new InlineKeyboardCallbackButton("Создать оператора",BuildCallData(Bot.AdminModule.OperatorBot.GenerateKeyCmd, Bot.AdminModule.OperatorBot.ModuleName));
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]

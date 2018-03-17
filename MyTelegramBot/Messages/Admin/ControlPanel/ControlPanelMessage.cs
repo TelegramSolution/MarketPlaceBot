@@ -133,7 +133,7 @@ namespace MyTelegramBot.Messages.Admin
 
             ViewCitiesBtn = BuildInlineBtn("Города", BuildCallData(AdminBot.ViewCitiesCmd, AdminBot.ModuleName), base.Build2Emodji);
 
-            ViewOperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(AdminBot.ViewOperatosCmd, AdminBot.ModuleName), base.ManAndComputerEmodji);
+            ViewOperatorsBtn = BuildInlineBtn("Операторы", BuildCallData(OperatorBot.ViewOperatosCmd, OperatorBot.ModuleName), base.ManAndComputerEmodji);
 
             ViewPickupPointBtn = BuildInlineBtn("Пункты самовывоза", BuildCallData(AdminBot.ViewPickupPointCmd, AdminBot.ModuleName), base.Build2Emodji);
 
