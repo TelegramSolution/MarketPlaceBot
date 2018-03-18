@@ -19,5 +19,17 @@ namespace MyTelegramBot
         public House House { get; set; }
         public ICollection<OrderAddress> OrderAddress { get; set; }
         public ICollection<OrderTemp> OrderTemp { get; set; }
+
+        public override string ToString()
+        {
+            if (House != null && House.Street != null && House.Street.City != null)
+            {
+                return House.Street.City.Name + ", " + House.Street.Name + ", " + House.Number + ", " + House.Apartment;
+
+            }
+
+            else
+                return String.Empty;
+        }
     }
 }

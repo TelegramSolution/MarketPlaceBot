@@ -167,6 +167,64 @@ namespace MyTelegramBot.BusinessLayer
         }
 
 
+        public static List<Orders> GetAllOrders()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                List<Orders> list = db.Orders.OrderByDescending(o => o.Id).Include(o => o.Follower).Include(o => o.CurrentStatusNavigation.Status).
+                                    Include(o => o.FeedBack).Include(o => o.Invoice.PaymentType).Include(o => o.OrderAddress).Include(o => o.PickupPoint).
+                                    Include(o => o.OrderProduct).ToList();
+
+                foreach (var order in list)
+                {
+                    order.OrderProduct = db.OrderProduct.Where(o => o.OrderId == order.Id).Include(o => o.Product).Include(o => o.Price).ToList();
+
+                    if (order.OrderAddress != null)
+                        order.OrderAddress.Adress = db.Address.Where(a => a.Id == order.OrderAddress.AdressId).Include(o => o.House.Street.City).FirstOrDefault();
+                }
+
+                return list;
+
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static List<OrderStatus> GetAllHistoryStatus()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var list= db.OrderStatus.Where(o=>o.Enable).Include(o=>o.Status)
+                    .Include(o => o.Follower).OrderByDescending(o=>o.Id).ToList();
+
+                foreach (var status in list)
+                    status.Orders.Add(db.Orders.Find(status.OrderId));
+
+                return list;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
 
         /// <summary>
         /// Подтвердить добавленный статус. 

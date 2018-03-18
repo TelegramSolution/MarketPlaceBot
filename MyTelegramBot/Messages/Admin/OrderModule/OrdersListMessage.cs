@@ -57,7 +57,8 @@ namespace MyTelegramBot.Messages.Admin
                     new InlineKeyboardButton[] { SearchOrdersBtn });
 
                 base.TextMessage = "Список заказов (Всего заказов в системе " + OrderList.Count.ToString() + ")" + NewLine() +
-                    "Страница " + base.SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+                    "Страница " + base.SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine() +
+                    "экспорт в xls " + ReportsBot.OrderExportCommand + NewLine() + NewLine();
 
                 int number = 1; // порядковый номер записи
 

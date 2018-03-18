@@ -52,7 +52,7 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton NotificationBtn { get; set; }
 
-        private InlineKeyboardCallbackButton ReportsBtn { get; set; }
+        private InlineKeyboardCallbackButton ExportBtn { get; set; }
 
         private MyTelegramBot.Admin Admin { get; set; }
 
@@ -85,7 +85,9 @@ namespace MyTelegramBot.Messages.Admin
 
                 ControlPanelPage2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(AdminBot.AdminPage2Cmd, AdminBot.ModuleName));
 
-                base.TextMessage = Bold("Панель администратора") + NewLine() +
+                ExportBtn = BuildInlineBtn("Экспорт данных в .xlsx", BuildCallData(AdminBot.ExportViewerCmd, AdminBot.ModuleName), base.NoteBookEmodji);
+
+            base.TextMessage = Bold("Панель администратора") + NewLine() +
                                "1) Добавить новый товар /addprod" + NewLine() +
                                "2) Создать новую категорию /newcategory" + NewLine() +
                                "3) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on";
@@ -102,7 +104,7 @@ namespace MyTelegramBot.Messages.Admin
                     new[]{
                 new[]
                         {
-                            MoreSettingsBtn
+                            ExportBtn
                         },
                 new[]
                         {
@@ -122,7 +124,7 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            ControlPanelPage2Btn
+                            MoreSettingsBtn,ControlPanelPage2Btn
                         },
 
                      });
@@ -139,7 +141,6 @@ namespace MyTelegramBot.Messages.Admin
 
             BackBtn = BuildInlineBtn(base.Previuos2Emodji, BuildCallData(AdminBot.BackToAdminPanelCmd, AdminBot.ModuleName));
 
-            ReportsBtn = BuildInlineBtn("Отчеты", BuildCallData("Reports", AdminBot.ModuleName), base.NoteBookEmodji);
 
             NotificationBtn = BuildInlineBtn("Рассылки", BuildCallData(NotificationBot.NotificationViewCmd, NotificationBot.ModuleName),base.SenderEmodji);
 
@@ -151,7 +152,7 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            ViewOperatorsBtn,ReportsBtn
+                            ViewOperatorsBtn
                         },
                 new[]
                         {

@@ -50,7 +50,7 @@ namespace MyTelegramBot.Messages.Admin
                 var page = Pages[SelectPageNumber];
                 int number = 1; // порядковый номер записи
 
-                base.TextMessage = "Остатки " + NewLine() +
+                base.TextMessage = "Остатки | экспорт в xls " + Bot.AdminModule.ReportsBot.OrderExportCommand + NewLine() +
                 "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
 
 

@@ -104,6 +104,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string AdminPage2Cmd = "AdminPage2";
 
+        public const string ExportViewerCmd = "ExportViewer";
+
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
         {
@@ -169,6 +171,10 @@ namespace MyTelegramBot.Bot.AdminModule
                     case UnBlockFollowerCmd:
                         return await UnBlockUser();
 
+
+                    case AdminPage2Cmd:
+                        return await SendPage2Btn();
+
                     default:
                             break;
                     }
@@ -206,8 +212,9 @@ namespace MyTelegramBot.Bot.AdminModule
                     case "/newcity":
                         return await SendForceReplyMessage("Введите название города");
 
-                    case AdminPage2Cmd:
-                        return await SendPage2Btn();
+                    case ExportViewerCmd:
+                        return await SendExportViewer(); 
+                            
 
                     default:
                         break;
@@ -243,6 +250,15 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+        private async Task<IActionResult> SendExportViewer()
+        {
+            BotMessage =new ExportViewerMessage();
+
+            await EditMessage(BotMessage.BuildMsg());
+
+            return OkResult;
         }
 
         private async Task<IActionResult> SendPage2Btn()

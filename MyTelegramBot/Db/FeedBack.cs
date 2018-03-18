@@ -14,7 +14,6 @@ namespace MyTelegramBot
         public string Text { get; set; }
         public DateTime? DateAdd { get; set; }
         public int? OrderId { get; set; }
-        public int? RaitingId { get; set; }
         public int? RaitingValue { get; set; }
         public int? ProductId { get; set; }
         public bool Enable { get; set; }

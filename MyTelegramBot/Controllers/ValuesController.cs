@@ -61,6 +61,12 @@ namespace MyTelegramBot.Controllers
 
             if(update.InlineQuery == null)
             {
+                if (Result == null && ModuleName != null && ModuleName == ReportsBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    BotCore = new ReportsBot(update);
+                    Result = await BotCore.Response();
+                }
+
                 if (Result == null && ModuleName != null && ModuleName == MoreSettingsBot.ModuleName || Result == null && ModuleName == null)
                 {
                     BotCore = new MoreSettingsBot(update);

@@ -670,6 +670,12 @@ namespace MyTelegramBot
                     .WithMany(p => p.OrderStatus)
                     .HasForeignKey(d => d.StatusId)
                     .HasConstraintName("FK_OrderStatus_Status");
+
+                entity.HasOne(d => d.Follower)
+                    .WithMany(p => p.OrderStatus)
+                    .HasForeignKey(d => d.FollowerId)
+                    .HasConstraintName("FK_OrderStatus_Follower");
+
             });
 
             modelBuilder.Entity<OrderTemp>(entity =>

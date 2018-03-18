@@ -55,7 +55,8 @@ namespace MyTelegramBot.Messages.Admin
                     new InlineKeyboardButton[] { SearchFollowerBtn });
 
                 base.TextMessage = "Список пользователей (всего " + FollowerList.Count.ToString() + ")" + NewLine() +
-                    "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+                    "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine() +
+                    "экспорт в .xlsx " +ReportsBot.FollowerExportCommand +NewLine() + NewLine();
 
                 int number = 1; // порядковый номер записи
 

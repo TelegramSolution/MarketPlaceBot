@@ -2,31 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace MyTelegramBot.BusinessLayer
 {
-    public class StockFunction
+    public class RequestLogFunction
     {
-        public static int CurrentBalance(int ProductId)
+        public static ReportsRequestLog GetLasRecordFromFollower(int FollowerId)
         {
             MarketBotDbContext db = new MarketBotDbContext();
 
             try
             {
-                var CurrentStock = db.Stock.Where(s => s.ProductId == ProductId).LastOrDefault();
+                var log = db.ReportsRequestLog.Where(r => r.FollowerId == FollowerId).LastOrDefault();
 
-                if (CurrentStock != null)
-                    return Convert.ToInt32(CurrentStock.Balance);
-
-                else
-                    return 0;
+                return log;
             }
 
             catch
             {
-                return -1;
+                return null;
             }
 
             finally
@@ -35,13 +29,21 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
-        public static List<Stock> GetAllStockHistory()
+        public static ReportsRequestLog Insert(int FollowerId, DateTime dateTime)
         {
             MarketBotDbContext db = new MarketBotDbContext();
 
             try
             {
-                return db.Stock.Include(s => s.Product).OrderByDescending(s=>s.Id).ToList();
+                ReportsRequestLog log = new ReportsRequestLog
+                {
+                    DateAdd = dateTime,
+                    FollowerId = FollowerId
+                };
+
+                db.ReportsRequestLog.Add(log);
+                db.SaveChanges();
+                return log;
             }
 
             catch

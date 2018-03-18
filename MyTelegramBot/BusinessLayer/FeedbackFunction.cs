@@ -175,5 +175,26 @@ namespace MyTelegramBot.BusinessLayer
 
             }
         }
+
+        public static List<FeedBack> GetAllFeedBack()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.FeedBack.Where(f => f.Enable).Include(f => f.Order).Include(f => f.Product.Category).ToList();
+            }
+
+            catch
+            {
+                return null;
+
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
     }
 }
