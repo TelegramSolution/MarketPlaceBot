@@ -128,6 +128,16 @@ namespace MyTelegramBot.Bot.AdminModule
         public const string ViewPaymentCmd = "ViewPayment";
 
         /// <summary>
+        /// команда для отображения доп. кнопок обработки заказа
+        /// </summary>
+        public const string Page2Cmd = "Page2";
+
+        /// <summary>
+        /// команда для отображения основных кнопок обработки заказа
+        /// </summary>
+        public const string MainPageCmd = "MainPage";
+
+        /// <summary>
         /// Конструктор
         /// </summary>
         /// <param name="_update"></param>
@@ -230,6 +240,12 @@ namespace MyTelegramBot.Bot.AdminModule
                     case FeedBackOrderCmd:
                         return await SendFeedBackOrder(Argumetns[0]);
 
+                    case Page2Cmd:
+                        return await SendPage2Keyboard();
+
+                    case MainPageCmd:
+                        return await SendMainKeyboard();
+
                     default:
                         break;
 
@@ -257,6 +273,24 @@ namespace MyTelegramBot.Bot.AdminModule
                 return null;
 
 
+        }
+
+        private async Task<IActionResult> SendMainKeyboard()
+        {
+            AdminOrderMessage adminOrder = new AdminOrderMessage(OrderId);
+
+            await EditInlineReplyKeyboard(adminOrder.MainKeyboard());
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendPage2Keyboard()
+        {
+            AdminOrderMessage adminOrder = new AdminOrderMessage(OrderId);
+
+            await EditInlineReplyKeyboard(adminOrder.Page2Keyboard());
+
+            return OkResult;
         }
 
         /// <summary>

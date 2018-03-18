@@ -26,6 +26,8 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton StockHistoryExportBtn { get; set; }
 
+        private InlineKeyboardCallbackButton HelpDeskExportBtn { get; set; }
+
         public override BotMessage BuildMsg()
         {
             base.TextMessage = "Экспорт данных в формате .xlsx";

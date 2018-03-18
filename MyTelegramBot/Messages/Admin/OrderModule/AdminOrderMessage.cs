@@ -47,6 +47,21 @@ namespace MyTelegramBot.Messages.Admin
         private InlineKeyboardCallbackButton FreeOrderBtn { get; set; }
 
         private InlineKeyboardCallbackButton ViewFeedBackBtn { get; set; }
+
+        /// <summary>
+        /// после нажатия на эту кнопку появляются доп. кнопки обработки заказа
+        /// </summary>
+        private InlineKeyboardCallbackButton Page2Btn { get; set; }
+
+        /// <summary>
+        /// вернуться к списку заказов
+        /// </summary>
+        private InlineKeyboardCallbackButton BackToOrdersListBtn { get; set; }
+
+        /// <summary>
+        /// после нажатия на эту кнопку появляется основные кнопки обработки заказа
+        /// </summary>
+        private InlineKeyboardCallbackButton BackToMainPageBtn { get; set; }
       
         private List<Payment> Payments { get; set; }
 
@@ -79,8 +94,12 @@ namespace MyTelegramBot.Messages.Admin
 
         public AdminOrderMessage (Orders order, int FollowerId=0)
         {
-            this.Order = order;
-            this.FollowerId = FollowerId;
+            if (order != null)
+            {
+                this.Order = order;
+                this.OrderId = this.Order.Id;
+                this.FollowerId = FollowerId;
+            }
         }
 
         public override BotMessage BuildMsg()
@@ -226,11 +245,8 @@ namespace MyTelegramBot.Messages.Admin
 
         private void CreateBtns()
         {
-            //EditOrderPositionBtn = BuildInlineBtn("Изменить содержание заказа"+ " \ud83d\udd8a", BuildCallData(OrderProccesingBot.CmdEditOrderPosition, OrderProccesingBot.ModuleName, Order.Id));
 
             ViewTelephoneNumberBtn = BuildInlineBtn("Контактные данные"+ " \ud83d\udcde", BuildCallData(OrderProccesingBot.CmdGetTelephone, OrderProccesingBot.ModuleName, Order.Id));
-
-            ViewAddressOnMapBtn = BuildInlineBtn("Показать на карте"+ " \ud83c\udfd8", BuildCallData(OrderProccesingBot.CmdViewAddressOnMap, OrderProccesingBot.ModuleName, Order.Id));
 
             ViewInvoiceBtn = BuildInlineBtn("Посмотреть счет" + " \ud83d\udcb5", BuildCallData(OrderProccesingBot.ViewInvoiceCmd, OrderProccesingBot.ModuleName, Order.Id));
 
@@ -240,10 +256,9 @@ namespace MyTelegramBot.Messages.Admin
 
             EditStatusBtn = BuildInlineBtn("Изменить статус", BuildCallData(OrderProccesingBot.CmdStatusEditor, OrderProccesingBot.ModuleName, Order.Id));
 
-            StatusHistoryBtn = BuildInlineBtn("История изменений", BuildCallData(OrderProccesingBot.CmdStatusHistory, OrderProccesingBot.ModuleName, Order.Id));
+            BackToOrdersListBtn= BuildInlineBtn("Назад к заказам", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.Previuos2Emodji,false);
 
-            ViewFeedBackBtn = BuildInlineBtn("Отзыв", BuildCallData(OrderProccesingBot.FeedBackOrderCmd, OrderProccesingBot.ModuleName, Order.Id),base.StartEmodji);
-
+            Page2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(OrderProccesingBot.Page2Cmd, OrderProccesingBot.ModuleName));
         }
 
         private void SetInlineKeyBoard()
@@ -269,21 +284,21 @@ namespace MyTelegramBot.Messages.Admin
                 new[]{
                 new[]
                         {
-                            ViewInvoiceBtn, FreeOrderBtn
+                            EditStatusBtn, FreeOrderBtn
                         },
 
                 new[]
                         {
-                           EditStatusBtn, StatusHistoryBtn
+                           ViewInvoiceBtn,ViewTelephoneNumberBtn
                         },
                 new[]
                         {
-                            ViewTelephoneNumberBtn,
-                            ViewAddressOnMapBtn
+                            BackToAdminPanelBtn()
+                            
                         },
                 new[]
                         {
-                            ViewFeedBackBtn
+                            BackToOrdersListBtn,Page2Btn
                         }
 
                  });
@@ -293,5 +308,75 @@ namespace MyTelegramBot.Messages.Admin
 
         }
 
+
+        public InlineKeyboardMarkup Page2Keyboard()
+        {
+            ViewAddressOnMapBtn = BuildInlineBtn("Показать на карте" + " \ud83c\udfd8", BuildCallData(OrderProccesingBot.CmdViewAddressOnMap, OrderProccesingBot.ModuleName, OrderId));
+
+            StatusHistoryBtn = BuildInlineBtn("История изменений", BuildCallData(OrderProccesingBot.CmdStatusHistory, OrderProccesingBot.ModuleName, OrderId));
+
+            ViewFeedBackBtn = BuildInlineBtn("Отзыв", BuildCallData(OrderProccesingBot.FeedBackOrderCmd, OrderProccesingBot.ModuleName, OrderId), base.StartEmodji);
+
+            BackToMainPageBtn= BuildInlineBtn(base.Previuos2Emodji, BuildCallData(OrderProccesingBot.MainPageCmd, OrderProccesingBot.ModuleName, OrderId));
+
+            return new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                            ViewAddressOnMapBtn
+                        },
+
+                new[]
+                        {
+                           StatusHistoryBtn,ViewFeedBackBtn
+                        },
+                new[]
+                        {
+                            BackToMainPageBtn,BackToAdminPanelBtn()
+
+                        },
+
+                 });
+        }
+
+        public InlineKeyboardMarkup MainKeyboard()
+        {
+            ViewTelephoneNumberBtn = BuildInlineBtn("Контактные данные" + " \ud83d\udcde", BuildCallData(OrderProccesingBot.CmdGetTelephone, OrderProccesingBot.ModuleName, OrderId));
+
+            ViewInvoiceBtn = BuildInlineBtn("Посмотреть счет" + " \ud83d\udcb5", BuildCallData(OrderProccesingBot.ViewInvoiceCmd, OrderProccesingBot.ModuleName, OrderId));
+
+            TakeOrderBtn = BuildInlineBtn("Взять в работу", BuildCallData("TakeOrder", OrderProccesingBot.ModuleName, OrderId));
+
+            FreeOrderBtn = BuildInlineBtn("Освободить", BuildCallData("FreeOrder", OrderProccesingBot.ModuleName, OrderId));
+
+            EditStatusBtn = BuildInlineBtn("Изменить статус", BuildCallData(OrderProccesingBot.CmdStatusEditor, OrderProccesingBot.ModuleName, OrderId));
+
+            BackToOrdersListBtn = BuildInlineBtn("Назад к заказам", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.Previuos2Emodji, false);
+
+            Page2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(OrderProccesingBot.Page2Cmd, OrderProccesingBot.ModuleName));
+
+            return new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                            EditStatusBtn, FreeOrderBtn
+                        },
+
+                new[]
+                        {
+                           ViewInvoiceBtn,ViewTelephoneNumberBtn
+                        },
+                new[]
+                        {
+                            BackToAdminPanelBtn()
+
+                        },
+                new[]
+                        {
+                            BackToOrdersListBtn,Page2Btn
+                        }
+
+                 });
+        }
     }
 }
