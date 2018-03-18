@@ -257,7 +257,8 @@ namespace MyTelegramBot.Bot.AdminModule
                     await SendMessage(BotMessage.BuildMsg());
 
                     //Уведомляем всех сотрудников
-                    string message = "Добавне комментарий к заявке №" + HelpDesk.Number.ToString()+" /ticket"+ HelpDesk.Number.ToString() + ":" + BotMessage.Italic(HelpDesk.HelpDeskAnswer.LastOrDefault().Text);
+                    string message = "Добавне комментарий к заявке №" + HelpDesk.Number.ToString()+" /ticket"+ HelpDesk.Number.ToString() 
+                        + BotMessage.NewLine() + BotMessage.Italic(HelpDesk.HelpDeskAnswer.LastOrDefault().Text);
                     await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
                     
                 }

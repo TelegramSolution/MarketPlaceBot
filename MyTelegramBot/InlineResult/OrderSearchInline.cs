@@ -72,7 +72,7 @@ namespace MyTelegramBot.InlineResult
 
                 textcontent[i] = new InputTextMessageContent();
                 textcontent[i].DisableWebPagePreview = true;
-                textcontent[i].MessageText = "Заказ №" + Orders[i].Number.ToString();
+                textcontent[i].MessageText = "/order" + Orders[i].Number.ToString();
 
                 article[i] = new InlineQueryResultArticle();
                 article[i].HideUrl = true;
@@ -83,15 +83,7 @@ namespace MyTelegramBot.InlineResult
 
                 article[i].ThumbUrl = "https://cdn2.iconfinder.com/data/icons/shop-payment-vol-6/128/shop-19-256.png";
                 article[i].InputMessageContent = textcontent[i];
-                article[i].ReplyMarkup = new InlineKeyboardMarkup(
-                    new[]{
-                            new[]
-                            {
-                                OpenOrderBtn=BuildInlineBtn("Открыть",
-                                            BuildCallData(Bot.AdminModule.OrderProccesingBot.CmdOpenOrder,Bot.AdminModule.OrderProccesingBot.ModuleName,Orders[i].Id))
 
-                            }
-                    });
 
                 result[i] = new InlineQueryResult();
                 result[i] = article[i];
