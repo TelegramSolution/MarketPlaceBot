@@ -31,7 +31,7 @@ namespace MyTelegramBot.InlineResult
 
         public override InlineQueryResult[] GetResult()
         {
-            var Orders = FollowerFunction.FollowerOrder(FollowerId);
+            var Orders = FollowerFunction.FollowerOrder(FollowerId).Take(MaxResult).ToList();
 
             InputTextMessageContent[] textcontent = new InputTextMessageContent[Orders.Count];
             InlineQueryResultArticle[] article = new InlineQueryResultArticle[Orders.Count];

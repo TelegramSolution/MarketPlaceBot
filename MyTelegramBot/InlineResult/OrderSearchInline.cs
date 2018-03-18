@@ -40,7 +40,7 @@ namespace MyTelegramBot.InlineResult
                 base.param = new SqlParameter("@param", "%" + Query.Trim() + "%");
                 
                 var orders = db.Orders.FromSql(base.SqlQuery, param)
-                    .Include(o=>o.CurrentStatusNavigation).Include(o => o.Follower).OrderByDescending(o=>o.Id).ToList();
+                    .Include(o=>o.CurrentStatusNavigation).Include(o => o.Follower).OrderByDescending(o=>o.Id).Take(MaxResult).ToList();
                 return orders;
             }
 

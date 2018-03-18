@@ -21,7 +21,7 @@ namespace MyTelegramBot.InlineResult
 
         public OperatorSearchInline(string Query):base(Query)
         {
-            base.SqlQuery = "select Follower.* from Follower inner Join Admin ON Follower.Id=Admin.FollowerId WHERE Telephone Like @param OR FIrstName Like @param  OR LastName Like @param  OR UserName Like @param";
+            base.SqlQuery = "select  Follower.* from Follower inner Join Admin ON Follower.Id=Admin.FollowerId WHERE Telephone Like @param OR FIrstName Like @param  OR LastName Like @param  OR UserName Like @param";
 
         }
 
@@ -33,7 +33,7 @@ namespace MyTelegramBot.InlineResult
                 db = new MarketBotDbContext();
                 base.param = new SqlParameter("@param", "%" + Query.Trim() + "%");
 
-                var follower = db.Follower.FromSql(base.SqlQuery, param).Include(f=>f.Admin).ToList();
+                var follower = db.Follower.FromSql(base.SqlQuery, param).Include(f=>f.Admin).Take(MaxResult).ToList();
 
                 return follower;
             }

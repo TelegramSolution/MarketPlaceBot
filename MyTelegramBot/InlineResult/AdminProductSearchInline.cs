@@ -22,7 +22,7 @@ namespace MyTelegramBot.InlineResult
             this.Query = Query;
 
 
-            SqlQuery = "SELECT TOP 25 Product.* FROM Product Inner Join Category On Category.Id=Product.CategoryId "
+            SqlQuery = "SELECT Product.* FROM Product Inner Join Category On Category.Id=Product.CategoryId "
                 + "WHERE Product.Name LIKE @name OR Category.Name LIKE @name  OR "
                 + "Product.Text LIKE @name";
         }
@@ -48,7 +48,7 @@ namespace MyTelegramBot.InlineResult
         {
             db = new MarketBotDbContext();
 
-            var ProductList = GetProductList();
+            var ProductList = GetProductList().Take(MaxResult).ToList();
 
             InputTextMessageContent[] textcontent = new InputTextMessageContent[ProductList.Count];
             InlineQueryResultArticle[] article = new InlineQueryResultArticle[ProductList.Count];
