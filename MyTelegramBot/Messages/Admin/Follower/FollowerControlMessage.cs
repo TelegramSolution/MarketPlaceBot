@@ -59,17 +59,23 @@ namespace MyTelegramBot.Messages.Admin
             {
                 string status = "";
 
+                string IsOperator = "";
+
                 if (Follower.Blocked)
                 {
                     status = Italic("Заблокирован");
                 }
 
+                if (Follower.Admin != null)
+                {
+                    IsOperator = Bold("Роль: ") + "Оператор системы | удалить  /removeoperator"+Follower.Admin.LastOrDefault().Id.ToString();
+                }
 
                 base.TextMessage = Bold("Имя: ") + Follower.FirstName + NewLine() +
                                  Bold("Фамилия: ") + Follower.LastName + NewLine() +
                                  Bold("Профиль:") + HrefUrl("https://t.me/" + Follower.UserName, Follower.UserName) + NewLine() +
                                  Bold("Дата регистрации:") +Follower.DateAdd.ToString()+NewLine()+
-                                 Bold("Телефон:") + Follower.Telephone + NewLine() + status;
+                                 Bold("Телефон:") + Follower.Telephone + NewLine() +IsOperator+ NewLine()+status;
 
 
                 base.MessageReplyMarkup = SetInline();
@@ -96,7 +102,7 @@ namespace MyTelegramBot.Messages.Admin
                     {
                         InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Адреса", InlineFind.FollowerAddress + "|"+Follower.Id.ToString()),
                         InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Заказы", InlineFind.FolowerOrder + "|"+Follower.Id.ToString())
-            },
+                    },
                     new[]
                     {
                         BackToAdminPanelBtn()
