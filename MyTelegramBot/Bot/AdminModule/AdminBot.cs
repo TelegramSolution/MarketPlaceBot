@@ -80,8 +80,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string ViewCitiesCmd = "ViewCities";
 
-
-
         public const string ViewPickupPointCmd = "ViewPickupPoint";
 
         public const string AddPickupPoint = "/addpickuppoint";
@@ -105,6 +103,8 @@ namespace MyTelegramBot.Bot.AdminModule
         public const string AdminPage2Cmd = "AdminPage2";
 
         public const string ExportViewerCmd = "ExportViewer";
+
+        public const string FollowerDetailsCmd = "/follower";
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -236,6 +236,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(DisablePickUpPointCmd))
                     return await EnablePickUpPoint(DisablePickUpPointCmd);
 
+                if (base.CommandName.Contains(FollowerDetailsCmd))
+                    return await SendFollowerDetails();
 
                 else
                     return null;
@@ -250,6 +252,22 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+        private async Task<IActionResult> SendFollowerDetails()
+        {
+            try
+            {
+                int id = Convert.ToInt32(base.CommandName.Substring(FollowerDetailsCmd.Length));
+                BotMessage = new FollowerControlMessage(id);
+                await SendMessage(BotMessage.BuildMsg());
+                return OkResult;
+            }
+            catch
+            {
+                return OkResult;
+            }
+            
         }
 
         private async Task<IActionResult> SendExportViewer()
@@ -475,31 +493,31 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> AddAvailableCity()
         {
             try
-            {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+            {               
+                MarketBotDbContext db = new MarketBotDbContext();
+
+                if (db.AvailableСities.Where(c => c.CityName == ReplyToMessageText).FirstOrDefault() == null)
                 {
-                    if (db.AvailableСities.Where(c => c.CityName == ReplyToMessageText).FirstOrDefault() == null)
+
+                    AvailableСities availableСities = new AvailableСities
                     {
+                        CityName = ReplyToMessageText,
+                        Timestamp = DateTime.Now
+                    };
 
-                        AvailableСities availableСities = new AvailableСities
-                        {
-                            CityName = ReplyToMessageText,
-                            Timestamp = DateTime.Now
-                        };
+                    db.AvailableСities.Add(availableСities);
+                    db.SaveChanges();
 
-                        db.AvailableСities.Add(availableСities);
-                        db.SaveChanges();
-
-                        await SendAvailableCities();
-                    }
-
-                    else
-                    {
-                        await SendMessage(new BotMessage { TextMessage = "Этот город уже добавлен в список" });
-                    }
-
-                    return OkResult;
+                    await SendAvailableCities();
                 }
+
+                else
+                    await SendMessage(new BotMessage { TextMessage = "Этот город уже добавлен в список" });
+                
+
+                db.Dispose();
+                return OkResult;
+                
             }
 
             catch
@@ -518,18 +536,19 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 int id = Convert.ToInt32(CommandName.Substring(RemoveAvailableCityCmd.Length));
 
-                using(MarketBotDbContext db=new MarketBotDbContext())
+                MarketBotDbContext db = new MarketBotDbContext();
+               
+                var city = db.AvailableСities.Where(c => c.Id == id).FirstOrDefault();
+
+                if (city != null)
                 {
-                    var city = db.AvailableСities.Where(c => c.Id == id).FirstOrDefault();
-
-                    if (city != null)
-                    {
-                        db.AvailableСities.Remove(city);
-                        db.SaveChanges();
-                    }
-
-                    return await SendAvailableCities();
+                    db.AvailableСities.Remove(city);
+                    db.SaveChanges();
                 }
+
+                db.Dispose();
+                return await SendAvailableCities();
+                
             }
 
             catch
@@ -546,15 +565,42 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+                bool IsAdmin = false;
+                long GroupChatId = 0;
+
+                if (Update.Message != null && Update.Message.Chat != null && Update.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup)
+                    GroupChatId = Update.Message.Chat.Id;
+
+                else
+                    await SendMessage(Update.Message.Chat.Id, new BotMessage { TextMessage = "Ошибка. Эта группа не является СуперГруппой" });
+                 
+                
+                if (GroupChatId != 0)
                 {
-                    db.Configuration.FirstOrDefault().PrivateGroupChatId =base.GroupChatId.ToString();
+                    IsAdmin = await base.BotIsAdministratorInGroupChat(Update.Message.Chat.Id);
 
-                    if (db.SaveChanges() > 0)
-                        await SendMessage(base.GroupChatId, new BotMessage { TextMessage="Успех!" });
+                    if (!IsAdmin)
+                    {
+                        await SendMessage(Update.Message.Chat.Id, new BotMessage { TextMessage = "Ошибка! Бот должен обладать правами администратора в этом чате" });
+                        return OkResult;
+                    }
 
-                    return OkResult;
+                    else
+                    {
+                        MarketBotDbContext db = new MarketBotDbContext();
+
+                        db.Configuration.FirstOrDefault().PrivateGroupChatId = base.GroupChatId.ToString();
+
+                        if (db.SaveChanges() > 0)
+                            await SendMessage(base.GroupChatId, new BotMessage { TextMessage = "Успех!" });
+
+                        db.Dispose();
+
+                        return OkResult;
+                    }
                 }
+
+                return OkResult;
             }
 
             catch
@@ -669,32 +715,32 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+                MarketBotDbContext db = new MarketBotDbContext();            
+
+                var admin= db.Admin.Where(a => a.FollowerId == FollowerId).FirstOrDefault();
+
+                if (IsOperator() && admin != null)
                 {
+                    admin.NotyfiActive = value;
 
-
-                    var admin= db.Admin.Where(a => a.FollowerId == FollowerId).FirstOrDefault();
-
-                    if (IsOperator() && admin != null)
-                    {
-                        admin.NotyfiActive = value;
-
-                        if(db.SaveChanges()>0)
-                            await SendMessage(new BotMessage { TextMessage = "Сохранено" });
-                    }
-
-                    if(IsOwner())
-                    {
-                        var conf = db.Configuration.Where(c => c.BotInfoId == BotInfo.Id).FirstOrDefault();
-
-                        conf.OwnerPrivateNotify = value;
-
-                        if (db.SaveChanges() > 0)
-                            await SendMessage(new BotMessage { TextMessage = "Сохранено" });
-                    }
-
-                    return OkResult;
+                    if(db.SaveChanges()>0)
+                        await SendMessage(new BotMessage { TextMessage = "Сохранено" });
                 }
+
+                if(IsOwner())
+                {
+                    var conf = db.Configuration.Where(c => c.BotInfoId == BotInfo.Id).FirstOrDefault();
+
+                    conf.OwnerPrivateNotify = value;
+
+                    if (db.SaveChanges() > 0)
+                        await SendMessage(new BotMessage { TextMessage = "Сохранено" });
+                }
+
+                db.Dispose();
+
+                return OkResult;
+                
             }
 
             catch (Exception e)

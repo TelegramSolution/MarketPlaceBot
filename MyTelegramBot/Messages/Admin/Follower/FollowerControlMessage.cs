@@ -110,6 +110,7 @@ namespace MyTelegramBot.Messages.Admin
                     new[]
                     {
                         BuildInlineBtn("Заблокировать:", BuildCallData(AdminBot.BlockFollowerCmd, AdminBot.ModuleName, Follower.Id))
+                        ,BuildInlineBtn("Дать права оператора",BuildCallData(OperatorBot.AddOperatorRulesCmd,OperatorBot.ModuleName,Follower.Id))
                     },
                     new[]
                     {
@@ -121,6 +122,7 @@ namespace MyTelegramBot.Messages.Admin
                         BackToAdminPanelBtn()
                     }
                 });
+
 
         }
 

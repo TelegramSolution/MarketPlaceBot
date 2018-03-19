@@ -18,12 +18,11 @@ namespace MyTelegramBot.Bot.AdminModule
     {
         private const string RemoveOperatorCmd = "/removeoperator";
 
-        public const string GenerateKeyCmd = "GenerateKey";
-
         public const string ViewOperatosCmd = "ViewOperatos";
 
         public const string ModuleName = "Operators";
 
+        public const string AddOperatorRulesCmd = "AddOperatorRules";
 
         public OperatorBot(Update update):base(update)
         {
@@ -47,18 +46,15 @@ namespace MyTelegramBot.Bot.AdminModule
                     case ViewOperatosCmd:
                         return await SendOperatorList(MessageId);
 
-                    case "GenerateKey":
-                        return await GenerateKey();
+
+                    case AddOperatorRulesCmd:
+                        return await AddOperatorRule();
 
                     default:
                         return null;
                 }
 
             }
-
-            else
-                 if (base.CommandName.Contains("/key"))
-                return await CheckOperatorKey(CommandName.Substring(5));
 
             else
                 return null;
@@ -74,7 +70,14 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 int id = Convert.ToInt32(base.CommandName.Substring(RemoveOperatorCmd.Length));
 
+                var admin = AdminFunction.GetAdmin(id);
+
                 AdminFunction.RemoveOperator(id);
+                //если есть общий чат, кикаем от туда этого оператора
+                if (admin!=null && BotInfo.Configuration.PrivateGroupChatId!=null) 
+                {
+                   await base.KickMember(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId), admin.Follower.ChatId);
+                }
 
                 return await SendOperatorList();
 
@@ -105,52 +108,7 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
-        /// <summary>
-        /// Пользователй хочет получить права оператора. Проверка ключа
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> CheckOperatorKey(string key)
-        {
-            var Key = AdminFunction.FindAdminKey(key);
 
-            if (Key != null && Key.Admin.Count == 0)
-                return await AddNewOpearator(Key);
-
-            return base.OkResult;
-        }
-
-        /// <summary>
-        /// Добавить нового оператора
-        /// </summary>
-        /// <param name="KeyId"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> AddNewOpearator(AdminKey adminKey)
-        {
-
-            var admin = AdminFunction.FindAdmin(FollowerId);
-
-            if (admin != null)
-                return await SendAdminControlPanelMsg();
-
-            else
-            {
-
-                admin = AdminFunction.InsertAdmin(FollowerId, adminKey);
-
-                if (admin != null)
-                {
-                    string meessage = "Зарегистрирован новый оператор системы: " + GeneralFunction.FollowerFullName(admin.FollowerId)
-                    + BotMessage.NewLine() + "Ключ: " + adminKey.KeyValue;
-                    await SendMessage(BotOwner, new BotMessage { TextMessage = meessage });
-                    return await SendAdminControlPanelMsg();
-                }
-
-            }
-
-            return OkResult;
-
-        }
 
         /// <summary>
         /// Сообщение с панелью администратора
@@ -167,30 +125,54 @@ namespace MyTelegramBot.Bot.AdminModule
         }
 
 
-        /// <summary>
-        /// Генерируем новый ключ для оператора. 
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> GenerateKey()
+        private async Task<IActionResult> AddOperatorRule()
         {
-            string hash = GeneralFunction.GenerateHash();
+            int followerid = Argumetns[0];
+            var admin= AdminFunction.FindAdmin(followerid);
 
-            if (hash != null && AdminFunction.InsertAdminKey(hash) != null)
+            var followerinfo = FollowerFunction.GetFollower(followerid);
+
+            if(followerinfo.ChatId == BotInfo.OwnerChatId)
             {
-
-                await SendMessage(
-                        new BotMessage
-                        {
-                            TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:"
-                                                    + BotMessage.NewLine() + BotMessage.Italic("/key " + hash)
-                        }
-                        );
-
-
+                await AnswerCallback("Владелец бота не может обладать правами оператора", true);
+                return OkResult;
             }
 
-            return OkResult;
+            //даем пользователю права оператора. И если есть общий чат то даем пользователю приглашение
+            if (admin == null && followerinfo!=null && followerinfo.ChatId!=BotInfo.ChatId)
+            {
+               var key= AdminFunction.InsertAdminKey(GeneralFunction.GenerateHash());
 
+                admin = AdminFunction.InsertAdmin(followerid, key);
+
+                if (admin != null && admin.Follower!=null)
+                {
+                    await AnswerCallback("Сохранено!", true);
+
+                    await base.SendMessage(admin.Follower.ChatId, 
+                        new BotMessage { TextMessage = "Вы получили права оператора. Нажмите сюда /admin" });
+
+                    if (BotInfo.Configuration != null && BotInfo.Configuration.PrivateGroupChatId!=null && BotInfo.Configuration.PrivateGroupChatId != "")
+                        await base.SendMessage(admin.Follower.ChatId,
+                            new BotMessage {
+                                TextMessage = "Что бы подключиться в общий чат, перейдите по ссылке " 
+                                +await CreateInviteToGroupChat(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId),admin.Follower.ChatId)
+                             });
+                }
+
+
+                return OkResult;
+            }
+
+
+            if (admin != null)
+            {
+                await AnswerCallback("Этот пользователь уже обладает правами оператора", true);
+                return OkResult;
+            }
+
+            else
+                return OkResult;
         }
     }
 }

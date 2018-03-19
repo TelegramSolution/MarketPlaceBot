@@ -721,7 +721,7 @@ namespace MyTelegramBot.Bot.Core
             {
 
                 await AnswerCallback();
-                return await TelegramClient.SendContactAsync(ChatId, contact.PhoneNumber, contact.FirstName);
+                return await TelegramClient.SendContactAsync(ChatId, contact.PhoneNumber, contact.FirstName, contact.LastName);
 
             }
 
@@ -1204,6 +1204,86 @@ namespace MyTelegramBot.Bot.Core
             catch
             {
                 return null;
+            }
+        }
+
+        protected void SendAction (ChatAction chatAction=ChatAction.UploadDocument)
+        {
+            try
+            {
+                TelegramClient.SendChatActionAsync(ChatId, chatAction);
+            }
+
+            catch
+            {
+              
+            }
+        }
+
+        protected async Task<bool> BotIsAdministratorInGroupChat(long ChatGroupId)
+        {
+            try
+            {
+                var result= await TelegramClient.GetChatAdministratorsAsync(ChatGroupId);
+
+
+                if (result.Where(r => r.User.IsBot && r.User.Id == BotInfo.ChatId).FirstOrDefault() != null)
+                    return true;
+
+                else
+                    return false;
+
+
+            }
+
+            catch
+            {
+                return false;
+            }
+        }
+
+        protected async Task<string> CreateInviteToGroupChat(long ChatGroupId,int UserChatId)
+        {
+            try
+            {
+                //если до этого пользователь был кикнут ботом, то нужно разбанить его
+                //иначе ссылка не будет работать
+                await UnbanChatMember(ChatGroupId, UserChatId);
+
+                return await TelegramClient.ExportChatInviteLinkAsync(ChatGroupId);
+            }
+
+            catch
+            {
+                return null;
+            }
+        }
+
+        protected async Task<bool> KickMember(long ChatGroupId, int ChatId)
+        {
+            try
+            {
+               return await TelegramClient.KickChatMemberAsync(ChatGroupId, ChatId);
+            }
+
+            catch
+            {
+                return false;
+            }
+
+
+        }
+
+        private async Task<bool> UnbanChatMember (long ChatGroupId, int ChatId)
+        {
+            try
+            {
+                return await TelegramClient.UnbanChatMemberAsync(ChatGroupId, ChatId);
+            }
+
+            catch
+            {
+                return false;
             }
         }
     }

@@ -69,7 +69,7 @@ namespace MyTelegramBot.Messages.Admin
                     string firstline = String.Empty; // имя фамилия + никнейм
                     string secondline = String.Empty; // телефон
                     string reginfoline = String.Empty; // дата регистрации
-                    string blockedinfoline = String.Empty;
+                    string command = Bold("Подробнее: ") + " /follower" + follower.Id.ToString() + NewLine();
 
                     if (follower.UserName != null && follower.UserName != "")
                         firstline = number.ToString() + ") " + base.ManEmodji2 + " " + follower.FirstName + " "
@@ -84,7 +84,7 @@ namespace MyTelegramBot.Messages.Admin
                     reginfoline = Bold("Дата регистрации:") + follower.DateAdd.ToString() + NewLine();
 
 
-                    base.TextMessage += firstline + secondline + reginfoline + blockedinfoline +NewLine();
+                    base.TextMessage += firstline + secondline + reginfoline + command + NewLine();
 
                     counter++;
                 }

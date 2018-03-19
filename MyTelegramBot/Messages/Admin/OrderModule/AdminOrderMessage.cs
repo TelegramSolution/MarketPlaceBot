@@ -270,10 +270,6 @@ namespace MyTelegramBot.Messages.Admin
                     new[]
                     {
                         TakeOrderBtn
-                    },
-                    new[]
-                    {
-                        ViewFeedBackBtn
                     }
 
                 });

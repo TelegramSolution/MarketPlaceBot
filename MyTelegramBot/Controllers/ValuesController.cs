@@ -181,8 +181,16 @@ namespace MyTelegramBot.Controllers
 
             if (update.Message != null && update.Message.Chat!=null)
             {
-                BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.Message.Chat.Id), 
-                    update.Message.Chat.FirstName, update.Message.Chat.LastName, update.Message.Chat.Username);
+                try
+                {
+                    BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.Message.Chat.Id),
+                        update.Message.Chat.FirstName, update.Message.Chat.LastName, update.Message.Chat.Username);
+                }
+
+                catch
+                {
+
+                }
             }
 
             if (update.CallbackQuery != null && update.CallbackQuery.Message != null && update.CallbackQuery.Message.Chat!=null)

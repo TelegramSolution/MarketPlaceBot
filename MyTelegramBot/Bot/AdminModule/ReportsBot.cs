@@ -138,9 +138,11 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 ExcelExport = excelExport;
 
+                base.SendAction();
+
                 RequestLogFunction.Insert(FollowerId, DateTime.Now);
 
-                await SendDocument(new FileToSend { Content = ExcelExport.BuildReport(), Filename = FileName }, Caption);
+                await base.SendDocument(new FileToSend { Content = ExcelExport.BuildReport(), Filename = FileName }, Caption);
 
                 return OkResult;
             }

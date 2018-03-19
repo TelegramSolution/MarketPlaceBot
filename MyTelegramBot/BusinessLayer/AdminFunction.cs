@@ -144,6 +144,8 @@ namespace MyTelegramBot.BusinessLayer
 
                 db.SaveChanges();
 
+                NewAdmin.Follower = db.Follower.Find(FollowerId);
+
                 return NewAdmin;
 
             }
@@ -166,6 +168,26 @@ namespace MyTelegramBot.BusinessLayer
             try
             {
                return db.Admin.Where(a => a.FollowerId == FollowerId && a.Enable).Include(a => a.AdminKey).Include(a => a.Follower).FirstOrDefault();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static Admin GetAdmin(int AdminId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Admin.Where(a => a.Id == AdminId).Include(a => a.Follower).FirstOrDefault();
             }
 
             catch

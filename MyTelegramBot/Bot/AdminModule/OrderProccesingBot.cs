@@ -623,12 +623,13 @@ namespace MyTelegramBot.Bot.AdminModule
 
             var order = OrderFunction.GetOrder(OrderId);
 
-            if (order != null && order.Follower!=null && order.Follower.Telephone != null && order.Follower.Telephone != "")
+            if (order != null && order.Follower!=null && order.Follower.Telephone!=null && order.Follower.Telephone!="")
             {
                 Contact contact = new Contact
                 {
                     FirstName = order.Follower.FirstName,
-                    PhoneNumber = order.Follower.Telephone
+                    PhoneNumber = order.Follower.Telephone,
+                     UserId=order.Follower.ChatId
 
                 };
 
