@@ -12,6 +12,8 @@ namespace MyTelegramBot.Bot
 
         public const string ModuleName = "Main";
 
+        public const string ToMainMenuCmd = "MainMenu";
+
         MainMenuBotMessage MainMenuMsg { get; set; }
 
         ContactMessage ContactMsg { get; set; }
@@ -35,7 +37,7 @@ namespace MyTelegramBot.Bot
             if (CommandName == "/start")
                 return await SendMainMenu();
 
-            if (CommandName == "MainMenu")
+            if (CommandName == ToMainMenuCmd)
                 return await SendMainMenu(MessageId);
 
             if (base.CommandName == "Contact")
