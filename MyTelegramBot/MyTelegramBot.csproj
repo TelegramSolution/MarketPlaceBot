@@ -66,12 +66,6 @@
     <None Update="Files\ProhibitedNames.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Files\Пример.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Files\Шаблон.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="UserNameFaq.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
