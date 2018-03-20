@@ -96,10 +96,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string StockHistoryProudctCmd="/stockhistory";
 
-        public const string BlockUserCmd = "/userblock";
-
-        public const string UnblockUserCmd = "/userunblock";
-
         public const string AdminPage2Cmd = "AdminPage2";
 
         public const string ExportViewerCmd = "ExportViewer";

@@ -15,7 +15,9 @@ namespace MyTelegramBot.BusinessLayer
             try
             {
                 if(Number==0)
-                    return db.HelpDesk.Where(h => h.Send).OrderByDescending(h=>h.Id).ToList();
+                    return db.HelpDesk.Where(h => h.Send).Include(h => h.Follower)
+                                    .Include(h => h.HelpDeskAnswer)
+                                    .Include(h => h.HelpDeskInWork).OrderByDescending(h=>h.Id).ToList();
 
                 else
                     return db.HelpDesk.Where(h => h.Number==Number).ToList();
@@ -32,6 +34,33 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public static List<HelpDesk> GetAllHelpDeskList()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var list= db.HelpDesk.Where(h => h.Send).Include(h => h.Follower)
+                                .Include(h => h.HelpDeskAnswer)
+                                .Include(h => h.HelpDeskInWork).OrderByDescending(h => h.Id).ToList();
+
+                foreach(var help in list)
+                    foreach (var answer in help.HelpDeskAnswer)                  
+                        answer.Follower = db.Follower.Find(answer.FollowerId);
+
+                return list;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
         /// <summary>
         /// Кто обрабатывает заявку в данный момент
         /// </summary>

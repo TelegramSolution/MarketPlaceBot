@@ -41,6 +41,12 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string StockHistoryExportCommand = "/export4";
 
+
+        public const string HelpDeskExportCallBack = "HelpDeskExport";
+
+        public const string HelpDeskExportCommand = "/export5";
+
+
         /// <summary>
         /// один экспорт в  минут. Чаще нельзя
         /// </summary>
@@ -88,6 +94,12 @@ namespace MyTelegramBot.Bot.AdminModule
                     case StockHistoryExportCommand:
                         return await SendStockHistoryExport();
 
+                    case HelpDeskExportCallBack:
+                        return await SendHelpDeskExport();
+
+                    case HelpDeskExportCommand:
+                        return await SendHelpDeskExport();
+
                     default:
                         return null;
                 }
@@ -105,6 +117,13 @@ namespace MyTelegramBot.Bot.AdminModule
             return await SendExportFile(new OrderExport(), "Заказы.xlsx", "Список всех отзывов");
 
         }
+
+        private async Task<IActionResult> SendHelpDeskExport()
+        {
+            return await SendExportFile(new HelpDeskExport(), "Заявки.xlsx", "Список всех заявок");
+
+        }
+
 
         private async Task<IActionResult> SendFeedBackExport()
         {

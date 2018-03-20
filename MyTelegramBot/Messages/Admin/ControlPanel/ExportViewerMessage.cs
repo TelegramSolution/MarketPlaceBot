@@ -32,7 +32,7 @@ namespace MyTelegramBot.Messages.Admin
         {
             base.TextMessage = "Экспорт данных в формате .xlsx";
 
-            OrderExportBtn = BuildInlineBtn("Список заказов", BuildCallData(ReportsBot.OrderExportCallBack, ReportsBot.ModuleName));
+            OrderExportBtn = BuildInlineBtn("Заказы", BuildCallData(ReportsBot.OrderExportCallBack, ReportsBot.ModuleName));
 
             FollowerExportBtn = BuildInlineBtn("Список пользователей", BuildCallData(ReportsBot.FollowerExportCallBack, ReportsBot.ModuleName));
 
@@ -40,13 +40,15 @@ namespace MyTelegramBot.Messages.Admin
 
             StockHistoryExportBtn = BuildInlineBtn("Остатки", BuildCallData(ReportsBot.StockHistoryExportCallBack, ReportsBot.ModuleName));
 
+            HelpDeskExportBtn= BuildInlineBtn("Заявки", BuildCallData(ReportsBot.HelpDeskExportCallBack, ReportsBot.ModuleName));
+
             BackBtn = BackToAdminPanelBtn();
 
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
             new[]{
                 new[]
                         {
-                            OrderExportBtn
+                            OrderExportBtn,HelpDeskExportBtn
                         },
                 new[]
                         {
