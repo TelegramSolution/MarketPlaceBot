@@ -7,7 +7,7 @@ namespace MyTelegramBot
     {
         public HelpDeskAnswer()
         {
-            HelpDeskAnswerAttachment = new HashSet<HelpDeskAnswerAttachment>();
+
         }
 
         public int Id { get; set; }
@@ -20,6 +20,6 @@ namespace MyTelegramBot
 
         public Follower Follower { get; set; }
         public HelpDesk HelpDesk { get; set; }
-        public ICollection<HelpDeskAnswerAttachment> HelpDeskAnswerAttachment { get; set; }
+
     }
 }

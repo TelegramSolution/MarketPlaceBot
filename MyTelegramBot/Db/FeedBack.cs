@@ -7,7 +7,7 @@ namespace MyTelegramBot
     {
         public FeedBack()
         {
-            FeedBackAttachmentFs = new HashSet<FeedBackAttachmentFs>();
+
         }
 
         public int Id { get; set; }
@@ -20,6 +20,6 @@ namespace MyTelegramBot
 
         public Orders Order { get; set; }
         public Product Product { get; set; }
-        public ICollection<FeedBackAttachmentFs> FeedBackAttachmentFs { get; set; }
+
     }
 }
