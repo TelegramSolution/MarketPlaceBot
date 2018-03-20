@@ -247,6 +247,27 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public static List<Product> GetAllProductList()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Product.Where(p => p.CurrentPriceId > 0).Include(p => p.CurrentPrice)
+                    .Include(p => p.Category).Include(p => p.Unit).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
         public Product GetProduct(string Name)
         {
             try

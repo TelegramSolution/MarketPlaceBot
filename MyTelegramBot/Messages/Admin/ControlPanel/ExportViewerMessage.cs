@@ -28,19 +28,23 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton HelpDeskExportBtn { get; set; }
 
+        private InlineKeyboardCallbackButton ProductExportBtn { get; set; }
+
         public override BotMessage BuildMsg()
         {
             base.TextMessage = "Экспорт данных в формате .xlsx";
 
             OrderExportBtn = BuildInlineBtn("Заказы", BuildCallData(ReportsBot.OrderExportCallBack, ReportsBot.ModuleName));
 
-            FollowerExportBtn = BuildInlineBtn("Список пользователей", BuildCallData(ReportsBot.FollowerExportCallBack, ReportsBot.ModuleName));
+            FollowerExportBtn = BuildInlineBtn("Пользователи", BuildCallData(ReportsBot.FollowerExportCallBack, ReportsBot.ModuleName));
 
             FeedBackExportBtn = BuildInlineBtn("Отзывы", BuildCallData(ReportsBot.FeedBackExportCallBack, ReportsBot.ModuleName));
 
             StockHistoryExportBtn = BuildInlineBtn("Остатки", BuildCallData(ReportsBot.StockHistoryExportCallBack, ReportsBot.ModuleName));
 
             HelpDeskExportBtn= BuildInlineBtn("Заявки", BuildCallData(ReportsBot.HelpDeskExportCallBack, ReportsBot.ModuleName));
+
+            ProductExportBtn= BuildInlineBtn("Товары", BuildCallData(ReportsBot.ProductExportCallBack, ReportsBot.ModuleName));
 
             BackBtn = BackToAdminPanelBtn();
 
@@ -52,15 +56,11 @@ namespace MyTelegramBot.Messages.Admin
                         },
                 new[]
                         {
-                            FollowerExportBtn
+                            FollowerExportBtn,ProductExportBtn
                         },
                 new[]
                         {
-                            FeedBackExportBtn
-                        },
-                new[]
-                        {
-                            StockHistoryExportBtn
+                            FeedBackExportBtn,StockHistoryExportBtn
                         },
                 new[]
                         {

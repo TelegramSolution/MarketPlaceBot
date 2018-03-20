@@ -986,14 +986,14 @@ namespace MyTelegramBot.Bot.Core
         }
 
 
-        protected async Task<Message> SendDocument(FileToSend FiletoSend, string Caption = "")
+        protected async Task<Message> SendDocument(FileToSend FiletoSend, string Caption = "", IReplyMarkup replyMarkup=null)
         {
             try
             {
                 if (this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback();
 
-                return await TelegramClient.SendDocumentAsync(this.ChatId, FiletoSend, Caption);
+                return await TelegramClient.SendDocumentAsync(this.ChatId, FiletoSend, Caption, replyMarkup: replyMarkup);
             }
 
             catch (Exception exp)
