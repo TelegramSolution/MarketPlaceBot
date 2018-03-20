@@ -22,6 +22,7 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton BasketEditBtn { get; set; }
 
+
         private Follower Follower { get; set; }
 
         private List<Basket> Basket { get; set; }

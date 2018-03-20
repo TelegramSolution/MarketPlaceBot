@@ -64,7 +64,7 @@ namespace MyTelegramBot.InlineResult
                 textcontent[i] = new InputTextMessageContent();
                 textcontent[i].ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html;
                 textcontent[i].DisableWebPagePreview = true;
-                textcontent[i].MessageText = "/product"+prod.Id.ToString();
+                textcontent[i].MessageText = ProductBot.ProductCmd + prod.Id.ToString();
 
                 article[i] = new InlineQueryResultArticle();
                 article[i].HideUrl = true;

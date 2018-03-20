@@ -182,7 +182,7 @@ namespace MyTelegramBot.Messages
 
                         message += counter.ToString() + ") " + product.Name + " "  + 
                                     product.CurrentPrice.ToString() + " x " + count.ToString() + " = " + 
-                                    (count * product.CurrentPrice.Value).ToString() + product.CurrentPrice.Currency.ShortName + " | /product"+product.Id.ToString() 
+                                    (count * product.CurrentPrice.Value).ToString() + product.CurrentPrice.Currency.ShortName + " | "+Bot.ProductBot.ProductCmd+product.Id.ToString() 
                                     + BotMessage.NewLine();
 
                         total += product.CurrentPrice.Value * count;

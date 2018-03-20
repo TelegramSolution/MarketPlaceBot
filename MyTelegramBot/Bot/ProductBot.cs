@@ -39,7 +39,7 @@ namespace MyTelegramBot.Bot
 
         public const string MoreInfoProductCmd = "MoreInfoProduct";
 
-        public const string ProductCmd = "/product";
+        public const string ProductCmd = "/item";
 
         public const string ViewAllPhotoProductCmd = "ViewAllPhotoProduct";
 
