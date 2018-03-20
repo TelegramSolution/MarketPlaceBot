@@ -20,9 +20,9 @@ namespace MyTelegramBot.Export
         {
             Excel = new ExcelPackage();
 
-            Excel.Workbook.Properties.Author = "https://github.com/TelegramSolution/MarketPlaceBot";
-            Excel.Workbook.Properties.Title = "https://github.com/TelegramSolution/MarketPlaceBot";
-            Excel.Workbook.Properties.Company = "https://github.com/TelegramSolution/MarketPlaceBot";
+            //Excel.Workbook.Properties.Author = "https://github.com/TelegramSolution/MarketPlaceBot";
+            //Excel.Workbook.Properties.Title = "https://github.com/TelegramSolution/MarketPlaceBot";
+            //Excel.Workbook.Properties.Company = "https://github.com/TelegramSolution/MarketPlaceBot";
         }
     }
 }
