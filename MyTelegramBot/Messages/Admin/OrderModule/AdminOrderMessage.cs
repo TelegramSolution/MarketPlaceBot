@@ -204,8 +204,6 @@ namespace MyTelegramBot.Messages.Admin
 
                 InWorkFollowerId = WhoInWork(Order);
 
-                CreateBtns();
-
                 SetInlineKeyBoard();
 
                 db.Dispose();
@@ -243,23 +241,6 @@ namespace MyTelegramBot.Messages.Admin
                 return 0;
         }
 
-        private void CreateBtns()
-        {
-
-            ViewTelephoneNumberBtn = BuildInlineBtn("Контактные данные"+ " \ud83d\udcde", BuildCallData(OrderProccesingBot.CmdGetTelephone, OrderProccesingBot.ModuleName, Order.Id));
-
-            ViewInvoiceBtn = BuildInlineBtn("Посмотреть счет" + " \ud83d\udcb5", BuildCallData(OrderProccesingBot.ViewInvoiceCmd, OrderProccesingBot.ModuleName, Order.Id));
-
-            TakeOrderBtn = BuildInlineBtn("Взять в работу", BuildCallData("TakeOrder", OrderProccesingBot.ModuleName, Order.Id));
-
-            FreeOrderBtn = BuildInlineBtn("Освободить", BuildCallData("FreeOrder", OrderProccesingBot.ModuleName, Order.Id));
-
-            EditStatusBtn = BuildInlineBtn("Изменить статус", BuildCallData(OrderProccesingBot.CmdStatusEditor, OrderProccesingBot.ModuleName, Order.Id));
-
-            BackToOrdersListBtn= BuildInlineBtn("Назад к заказам", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.Previuos2Emodji,false);
-
-            Page2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(OrderProccesingBot.Page2Cmd, OrderProccesingBot.ModuleName));
-        }
 
         private void SetInlineKeyBoard()
         {
@@ -269,35 +250,14 @@ namespace MyTelegramBot.Messages.Admin
                 new[]{
                     new[]
                     {
-                        TakeOrderBtn
+                        BuildInlineBtn("Взять в работу", BuildCallData("TakeOrder", OrderProccesingBot.ModuleName, Order.Id))
                     }
 
                 });
 
             ///Заявка взята в обработку пользователем. Рисуем основные кнопки
-            if (FollowerId==InWorkFollowerId && InWorkFollowerId!=0)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-                new[]{
-                new[]
-                        {
-                            EditStatusBtn, FreeOrderBtn
-                        },
-
-                new[]
-                        {
-                           ViewInvoiceBtn,ViewTelephoneNumberBtn
-                        },
-                new[]
-                        {
-                            BackToAdminPanelBtn()
-                            
-                        },
-                new[]
-                        {
-                            BackToOrdersListBtn,Page2Btn
-                        }
-
-                 });
+            if (FollowerId == InWorkFollowerId && InWorkFollowerId != 0)
+                base.MessageReplyMarkup = MainKeyboard();
 
            
 
@@ -349,7 +309,7 @@ namespace MyTelegramBot.Messages.Admin
 
             BackToOrdersListBtn = BuildInlineBtn("Назад к заказам", BuildCallData(AdminBot.ViewOrdersListCmd, AdminBot.ModuleName), base.Previuos2Emodji, false);
 
-            Page2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(OrderProccesingBot.Page2Cmd, OrderProccesingBot.ModuleName));
+            Page2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(OrderProccesingBot.Page2Cmd, OrderProccesingBot.ModuleName,OrderId));
 
             return new InlineKeyboardMarkup(
                 new[]{

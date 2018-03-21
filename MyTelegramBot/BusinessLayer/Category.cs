@@ -54,7 +54,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                if (db.Category.Where(c => c.Name == name).FirstOrDefault() != null)
+                if (db.Category.Where(c => c.Name == name).FirstOrDefault() == null)
                 {
                     Category category = new Category
                     {

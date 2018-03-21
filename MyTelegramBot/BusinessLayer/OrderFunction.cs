@@ -65,17 +65,23 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                OrdersInWork ordersInWork = new OrdersInWork
+                if (OrderId > 0 && FollowerId > 0)
                 {
-                    FollowerId = FollowerId,
-                    InWork = InWork,
-                    OrderId = OrderId,
-                    Timestamp = DateTime.Now
-                };
+                    OrdersInWork ordersInWork = new OrdersInWork
+                    {
+                        FollowerId = FollowerId,
+                        InWork = InWork,
+                        OrderId = OrderId,
+                        Timestamp = DateTime.Now
+                    };
 
-                db.OrdersInWork.Add(ordersInWork);
-                db.SaveChanges();
-                return ordersInWork;
+                    db.OrdersInWork.Add(ordersInWork);
+                    db.SaveChanges();
+                    return ordersInWork;
+                }
+
+                else
+                    return null;
             }
 
             catch

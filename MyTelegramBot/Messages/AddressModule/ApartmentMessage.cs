@@ -102,7 +102,7 @@ namespace MyTelegramBot.Messages
                     Address.House = db.House.Find(Address.HouseId);
                    
                     //Пользователь нажад на кнопку с цифрой
-                    if (Address != null && Address.House != null && SelectNumber>0 && AddressId>0)
+                    if (Address != null && Address.House != null && SelectNumber>=0 && AddressId>0)
                     {
                         spl = Address.House.Apartment.ToString() + this.SelectNumber.ToString();
                         Address.House.Apartment = spl;

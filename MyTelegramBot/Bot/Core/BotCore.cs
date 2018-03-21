@@ -444,20 +444,17 @@ namespace MyTelegramBot.Bot.Core
         /// <returns></returns>
         protected async Task<Message> SendMessage(BotMessage botMessage, int EditMessageId = 0, int ReplyToMessageId = 0)
         {
-            IReplyMarkup replyMarkup;
             try
             {
-                replyMarkup = botMessage.MessageReplyMarkup;
-
 
                 if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && EditMessageId != 0)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, true, false, ReplyToMessageId, replyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, true, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
                     return null;
@@ -519,8 +516,6 @@ namespace MyTelegramBot.Bot.Core
         /// <returns></returns>
         protected async Task<Message> EditMessage(BotMessage botMessage)
         {
-            IReplyMarkup replyMarkup;
-            replyMarkup = botMessage.MessageReplyMarkup;
 
             try
             {
@@ -529,7 +524,7 @@ namespace MyTelegramBot.Bot.Core
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
 
 
@@ -540,7 +535,7 @@ namespace MyTelegramBot.Bot.Core
 
             catch
             {
-                return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, replyMarkup);
+                return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, botMessage.MessageReplyMarkup);
             }
 
         }

@@ -597,17 +597,21 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> FreeOrder()
         {
 
-            var Inwork = OrderFunction.InsertOrderInWork(OrderId, FollowerId, false);
+            if (OrderId > 0)
+            {
 
-            var Order = OrderFunction.GetOrder(OrderId);
-                        
-            BotMessage = new AdminOrderMessage(Order, FollowerId);
-            await base.EditMessage(BotMessage.BuildMsg());
+                var Inwork = OrderFunction.InsertOrderInWork(OrderId, FollowerId, false);
 
-            string notify = "Пользователь " + GeneralFunction.FollowerFullName(FollowerId) + " освободил заказ №" + Order.Number.ToString();
+                var Order = OrderFunction.GetOrder(OrderId);
 
-            BotMessage= new OrderMiniViewMessage(notify, Order.Id);
-            await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+                BotMessage = new AdminOrderMessage(Order, FollowerId);
+                await base.EditMessage(BotMessage.BuildMsg());
+
+                string notify = "Пользователь " + GeneralFunction.FollowerFullName(FollowerId) + " освободил заказ №" + Order.Number.ToString();
+
+                BotMessage = new OrderMiniViewMessage(notify, Order.Id);
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+            }
 
             return OkResult;
             
