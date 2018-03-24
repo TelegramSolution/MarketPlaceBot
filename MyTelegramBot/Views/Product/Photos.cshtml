@@ -33,12 +33,7 @@
     string imageDataURL = string.Format("data:image/png;base64,{0}", imageBase64Data);
     <img src="@imageDataURL" class="img-thumbnail" alt="Responsive image" > <br />
     @Html.HiddenFor(m => fs.Id, new { @id = "Id" + counter })
-        <label>
-            Описание (не более 200 символом)
-        </label><br />
-        
-        @Html.TextBoxFor(m=>fs.Caption, new { @class = "form-control", @id="Caption"+counter })<br />
-        <input type="submit" value="Сохранить" class="btn btn-success" onclick="SaveCaption($('#Id'+@counter).val(),$('#Caption'+@counter).val());" />
+
 
         <input type="button" class="btn btn-danger" value="Удалить фотографию" onclick="Delete($('#Id'+@counter).val())";">
 
@@ -91,11 +86,13 @@
         }).done(function (data)
         {
 
-            // console.info(data);
-            location.reload(false);
+           
 
         }).error(function (data) {
             // если с ответом сервера чтото пошло не так...
-        })
+
+            })
+
+        location.reload(false);
     }
 </script>

@@ -4,58 +4,58 @@
 <img src="@ViewBag.ImageData" class="img-responsive" alt="Responsive image">
 <h3>Выберите фотографию</h3>
 
-
 @{
     Layout = "_Layout";
-    MyTelegramBot.ProductPrice price = new MyTelegramBot.ProductPrice();
-    price = Model.ProductPrice.FirstOrDefault();
 }
 
 
-    @using (Html.BeginForm("Save", "Product", FormMethod.Post, new { enctype = "multipart/form-data" })) {
-
+@using (Html.BeginForm("Save", "Product", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
         @Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.MainPhoto)
+        @Html.HiddenFor(m => m.CurrentPriceId)
 
         <div>
             <p>Загрузите главную фотогрфию для товара:</p>
             <input type="file" name="image" />
         </div>
-        <p>
+
     
             @if (Model.Id > 0)
             {
                 <p>
                     <a href="~/Product/Photos/@Model.Id">Другие фотографии</a>
                 </p>
-               
 
             }
 
+            <p>
             <label>Название товара</label><br />
             @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
 
         </p>
-    
 
-                <p>
-    
-                    <label>Описание</label><br />
-                    @Html.TextBoxFor(m => m.Text, new { @class = "form-control" })
-                </p>
-    
 
-                <p>
+            <p>
     
-                    <label>Стоимость</label><br />
-                @Html.TextBoxFor(m=>m.CurrentPrice.Value, new { @class = "form-control" })
-                    @Html.HiddenFor(m=>m.CurrentPrice.ProductId)
-                   @*<input type="text" name=ProductPrice[0].Value value=@Model.CurrentPrice.Value class="form-control" />*@ 
+                <label>Описание</label><br />
+                @Html.TextBoxFor(m => m.Text, new { @class = "form-control" })
+            </p>
+
+
+            <p>
+    
+                <label>Стоимость</label><br />
+                @Html.TextBoxFor(m => m.CurrentPrice.Value, new { @class = "form-control" })
+                @Html.HiddenFor(m => m.CurrentPrice.ProductId)
+                @Html.HiddenFor(m => m.CurrentPrice.CurrencyId)
+
 
             </p>
 
+
             <p>
                 <label>Валюта</label><br />
-                @*@Html.DropDownListFor(Model => Model.ProductPrice.FirstOrDefault().CurrencyId, ViewBag.Currency as SelectList, new { @class = "form-control" , @name= "ProductPrice[0].CurrencyId" })*@
 
                 @if (@Model.CurrentPrice.CurrencyId == 1)
                 {
@@ -75,35 +75,42 @@
 
             </p>
 
+
             <p>
                 <label>Единица измерения</label><br />
                 @Html.DropDownListFor(Model => Model.UnitId, ViewBag.Unit as SelectList, new { @class = "form-control" })
             </p>
+
 
             <p>
                 <label>Категория</label><br />
                 @Html.DropDownListFor(Model => Model.CategoryId, ViewBag.Category as SelectList, new { @class = "form-control" })
             </p>
 
+
             <p>
                 <label>Ссылка на заметку</label><br />
                 @Html.TextBoxFor(m => m.TelegraphUrl, new { @class = "form-control" })
             </p>
+
 
             <p>
                 <label>Активно</label>
                 @Html.CheckBoxFor(m => m.Enable)
             </p>
 
-            @if (Model.Id == 0)
-            {
-                <p>
-                    <label>Остаток</label>
-                    <input type="text" name=Stock[0].Balance value=0 class="form-control" />
-                </p>
-            }
+
+    if (Model.Id == 0)
+    {
+        <p>
+            <label>Остаток</label> <br />
+            <input type="text" name="balance" value="0" class="form-control" /> <br />
+        </p>
+
+    }
 
             <p>
                 <input type="submit" value="Сохранить" class="btn btn-success" />
             </p>
-            }
+    
+}

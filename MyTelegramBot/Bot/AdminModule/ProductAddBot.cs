@@ -269,7 +269,7 @@ namespace MyTelegramBot.Bot.AdminModule
             if(base.PhotoId!=null && Product != null)
             {
                 int FsId= await InsertToAttachmentFs(base.PhotoId);
-                Product=ProductFunction.UpdatepMainPhoto(Product.Id, FsId);
+                Product=ProductFunction.UpdateMainPhoto(Product.Id, FsId);
                 AttachmentTelegramFunction.AddAttachmentTelegram(FsId, base.BotInfo.Id, base.PhotoId);
                 ProductFunction.Dispose();
                 ProductId = Product.Id;

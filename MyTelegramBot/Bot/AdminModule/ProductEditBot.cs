@@ -519,7 +519,7 @@ namespace MyTelegramBot.Bot
 
             ProductFunction = new ProductFunction();
 
-            var product= ProductFunction.UpdatepMainPhoto(Id, fs_id);
+            var product= ProductFunction.UpdateMainPhoto(Id, fs_id);
 
             AttachmentTelegramFunction.AddAttachmentTelegram(fs_id, BotInfo.Id,base.PhotoId);
 
