@@ -26,25 +26,13 @@ namespace MyTelegramBot.Messages
 
         MarketBotDbContext db;
 
-        public const string NextPageCmd = "NxtProdPage";
-
-        public const string PreviuousPageCmd = "PrvProdPage";
-
 
         /// <summary>
         /// Сформированные страницы с товарами
         /// </summary>
         private Dictionary<int, List<Product>> Pages { get; set; }
 
-        /// <summary>
-        /// След. стр с товарами этой категории
-        /// </summary>
-        private InlineKeyboardCallbackButton NextPageBtn { get; set; }
 
-        /// <summary>
-        /// Предыдущая стр. с товарами этой категории
-        /// </summary>
-        private InlineKeyboardCallbackButton PreviusPageBtn { get; set; }
 
         /// <summary>
         /// Общее кол-во стр. товаро этой категории 
@@ -91,13 +79,15 @@ namespace MyTelegramBot.Messages
                 if(PreviousCategory.Id!=CategoryId)
                     PreviousCategoryBtn = BuildInlineBtn(PreviousCategory.Name, BuildCallData("GetCategory", Bot.CategoryBot.ModuleName, PreviousCategory.Id),base.Previuos2Emodji,false);
 
-            Pages = BuildPages(Category.Id);
+                ProductList = db.Product.Where(p => p.Enable && p.CategoryId == CategoryId)
+                    .Include(p => p.ProductPrice).Include(p => p.Category).Include(p => p.Stock).ToList();
 
-            string message = base.GoldRhobmus + Bold(Category.Name) + base.GoldRhobmus +
-                   NewLine() + "Всего товаров в категории: " + ProductList.Count.ToString() +
-                   NewLine() + "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+                Pages = base.BuildDataPage<Product>(ProductList, this.PageSize);
 
-          
+                string message = base.GoldRhobmus + Bold(Category.Name) + base.GoldRhobmus +
+                       NewLine() + "Всего товаров в категории: " + ProductList.Count.ToString() +
+                       NewLine() + "Страница " + SelectPageNumber.ToString() + " из " + Pages.Count.ToString() + NewLine();
+     
 
             if (Pages.Count > 0 && Pages.Count >= SelectPageNumber && Pages[SelectPageNumber]!=null)
             {
@@ -112,20 +102,22 @@ namespace MyTelegramBot.Messages
                     product.Stock != null && product.Stock.Count > 0 && product.Stock.OrderByDescending(s => s.Id).FirstOrDefault().Balance == 0)
                         message += NewLine() + "нет в наличии";
 
-                    message += NewLine() + "Показать: /product" + product.Id.ToString() + NewLine();
+                    message += NewLine() + "Показать: /item" + product.Id.ToString() + NewLine();
 
                 }
 
-                message += NewLine() + "для поиска используйте Inline-режим. @" + Bot.GeneralFunction.GetBotName() + " запрос";
+                if(PreviousCategoryBtn!=null && NextCategoryBtn!=null)
+                    base.MessageReplyMarkup= base.PageNavigatorKeyboard<Product>(Pages, Bot.ProductBot.CmdProductPage, Bot.ProductBot.ModuleName, BackBtn, 
+                        new InlineKeyboardButton[] { PreviousCategoryBtn, NextCategoryBtn }, CategoryId);
 
-                NextPageBtn = SetNextPage();
+                else
+                    base.MessageReplyMarkup = base.PageNavigatorKeyboard<Product>(Pages, Bot.ProductBot.CmdProductPage, Bot.ProductBot.ModuleName, BackBtn,
+                        null, CategoryId);
 
-                PreviusPageBtn = SetPreviousPage();
 
                 db.Dispose();
             }
 
-            SetKeyboard();
 
             base.TextMessage = message;
 
@@ -134,164 +126,6 @@ namespace MyTelegramBot.Messages
 
         }
 
-        private InlineKeyboardCallbackButton SetNextPage()
-        {
-            if (Pages.Keys.Last() != SelectPageNumber && Pages[SelectPageNumber + 1] != null) // Находим следующую страницу 
-                return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, SelectPageNumber + 1,CategoryId), base.Next2Emodji);
-
-            if (Pages.Keys.Last() == SelectPageNumber && SelectPageNumber != 1 && Pages[1] != null)
-                // Если выбранная пользователем страница является последней, то делаем кнопку с сылкой на первую,
-                //но при это проверяем не является ли выбранная пользователем  страница первой
-                return BuildInlineBtn("Следующая стр.", BuildCallData(NextPageCmd, Bot.ProductBot.ModuleName, 1,CategoryId), base.Next2Emodji);
-
-            else
-                return null;
-                
-        }
-
-        /// <summary>
-        /// создать кнопку назад, для навигации по страницам
-        /// </summary>
-        /// <returns></returns>
-        private InlineKeyboardCallbackButton SetPreviousPage()
-        {
-            //находим предыдующую стр.
-            if (SelectPageNumber > 1 && Pages[SelectPageNumber - 1] != null)
-                return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, SelectPageNumber - 1, CategoryId), base.Previuos2Emodji, false);
-
-            if (SelectPageNumber == 1 && Pages.Keys.Last() != 1)
-                return BuildInlineBtn("Предыдущая стр.", BuildCallData(PreviuousPageCmd, Bot.ProductBot.ModuleName, Pages.Keys.Last(), CategoryId), base.Previuos2Emodji, false);
-
-            else
-                return null;
-
-        }
-
-        private void SetKeyboard()
-        {
-            if (NextCategoryBtn == null && PreviousCategoryBtn == null && NextPageBtn != null && PreviusPageBtn != null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        PreviusPageBtn, NextPageBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn==null && PreviousCategoryBtn==null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn != null && PreviousCategoryBtn == null && NextPageBtn!=null && PreviusPageBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        PreviusPageBtn, NextPageBtn
-                    },
-            new[]
-                    {
-                        NextCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn != null && PreviousCategoryBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        NextCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn == null && PreviousCategoryBtn != null && NextPageBtn!=null && PreviusPageBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        PreviusPageBtn, NextPageBtn
-                    },
-            new[]
-                    {
-                        PreviousCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn == null && PreviousCategoryBtn != null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-            new[]
-                    {
-                        PreviousCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-
-            if (NextCategoryBtn != null && PreviousCategoryBtn != null && NextPageBtn!=null && PreviusPageBtn!=null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-
-            new[]
-                    {
-                        PreviusPageBtn, NextPageBtn
-                    },
-            new[]
-                    {
-                        PreviousCategoryBtn, NextCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-
-            if (NextCategoryBtn != null && PreviousCategoryBtn != null && NextPageBtn == null && PreviusPageBtn == null)
-                base.MessageReplyMarkup = new InlineKeyboardMarkup(
-            new[]{
-
-            new[]
-                    {
-                        PreviousCategoryBtn, NextCategoryBtn
-                    },
-            new[]
-                    {
-                        BackBtn
-                    },
-
-             });
-        }
 
         private Category GetNextCategoryId(int CategoryId)
         {
@@ -323,43 +157,6 @@ namespace MyTelegramBot.Messages
             
         }
 
-        private Dictionary<int, List<Product>> BuildPages(int CategoryId)
-        {
-            if(db==null)
-            db = new MarketBotDbContext();
 
-            ProductList = db.Product.Where(p=> p.Enable && p.CategoryId==CategoryId)
-                .Include(p => p.ProductPrice).Include(p => p.Category).Include(p => p.Stock).ToList();
-
-
-            if (ProductList.Count % PageSize > 0) // Определяем сколько всего будет страниц
-                PageCount = (ProductList.Count / PageSize) + 1;
-
-            else
-                PageCount = ProductList.Count / PageSize;
-
-
-            Pages = new Dictionary<int, List<Product>>();
-
-            //начинаем заполнять
-
-            for (int i = 0; i < PageCount; i++)
-            {
-                List<Product> list = new List<Product>();
-
-                for (int j = 0; j < PageSize; j++)
-                {
-                    if ((i * PageSize + j) < ProductList.Count)
-                        list.Add(ProductList.ElementAt(i * PageSize + j));
-
-                    else
-                        break;
-                }
-                Pages.Add(i + 1, list);
-
-            }
-
-            return Pages;
-        }
     }
 }

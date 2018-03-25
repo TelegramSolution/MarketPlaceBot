@@ -13,25 +13,13 @@
         @Html.TextBoxFor(m => m.Host, new { @class = "form-control" })
     </p>
 
-    @*<p>
-        @Html.Label("Порт") <br />
-        @Html.TextBoxFor(m => m.Port, new { @class = "form-control" })
-    </p>*@
 
-    @*<p>
-        @Html.Label("Логин") <br />
-        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
-    </p>
-    <p>
-        @Html.Label("Пароль") <br />
-        @Html.TextBoxFor(m => m.Password, new { @class = "form-control" })
-    </p>*@
 
     <p>
         @Html.Label("Название базы данных") <br />
         @Html.TextBoxFor(m => m.DbName, new { @class = "form-control" })
     </p>
-    <input type="button" value="Сохранить изменения" class="btn btn-success" onclick="ajaxSave();" />
+    <input type="button" value="Тест" class="btn btn-success" onclick="ajaxSave();" />
 </div>
 
 <script type="text/javascript">

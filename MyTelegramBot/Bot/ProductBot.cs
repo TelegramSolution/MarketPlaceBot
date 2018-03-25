@@ -47,6 +47,9 @@ namespace MyTelegramBot.Bot
 
         public const string CmdAddFeedBackProduct = "AddFbToPrdct";
 
+        public const string CmdProductPage = "ProductPage";
+
+
         public ProductBot(Update _update) : base(_update)
         {
 
@@ -94,22 +97,16 @@ namespace MyTelegramBot.Bot
                 case ViewAllPhotoProductCmd:
                     return await SendAllProductPhoto();
 
-                case ViewAllProductInCategoryMessage.NextPageCmd:
-                    return await SendProductPage(Argumetns[1], Argumetns[0]);
+                case CmdProductPage:
+                    return await SendProductPage(Argumetns[0], Argumetns[1]);
 
                 case CmdViewFeedBack:
                     return await SendFeedBack();
             }
 
-            //ПОльзователь через инлай режим отправил в чат навзание 
-            //товара. Отправляем пользователю сообщение с этим товаром
-            if (Update.Message != null && Update.Message.Text != null && Update.Message.Text.Length > 0 && Connection.getConnection().Product.Where(p => p.Name == CommandName).FirstOrDefault() != null)
-            {
-                ProductViewMsg = new ProductViewMessage(base.CommandName);
-                return await GetProduct();
-            }
 
-            //команда /product
+
+            //команда /item
             if (base.CommandName.Contains(ProductCmd))
                 return await GetProductCommand();
 
