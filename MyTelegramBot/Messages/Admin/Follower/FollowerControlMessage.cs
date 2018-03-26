@@ -66,7 +66,7 @@ namespace MyTelegramBot.Messages.Admin
                     status = Italic("Заблокирован");
                 }
 
-                if (Follower.Admin != null)
+                if (Follower.Admin != null && Follower.Admin.Count>0)
                 {
                     IsOperator = Bold("Роль: ") + "Оператор системы | удалить  /removeoperator"+Follower.Admin.LastOrDefault().Id.ToString();
                 }

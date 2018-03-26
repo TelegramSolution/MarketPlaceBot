@@ -454,7 +454,7 @@ namespace MyTelegramBot.Bot.Core
                     return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, true, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html,false, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
                     return null;
@@ -1089,7 +1089,7 @@ namespace MyTelegramBot.Bot.Core
                         System.Threading.Thread.Sleep(300);
 
                         if (admin.NotyfiActive && admin.Follower.ChatId!=ChatId) // не отправляем уведомление самому себе
-                                await SendMessage(admin.Follower.ChatId, message, true);
+                                await SendMessage(admin.Follower.ChatId, message);
  
                     }
 
@@ -1243,7 +1243,7 @@ namespace MyTelegramBot.Bot.Core
             {
                 //если до этого пользователь был кикнут ботом, то нужно разбанить его
                 //иначе ссылка не будет работать
-                await UnbanChatMember(ChatGroupId, UserChatId);
+                //await UnbanChatMember(ChatGroupId, UserChatId);
 
                 return await TelegramClient.ExportChatInviteLinkAsync(ChatGroupId);
             }
