@@ -92,7 +92,7 @@ namespace MyTelegramBot.Bot
 
                 //Пользователь нажал "Подробнее" 
                 case MoreInfoProductCmd:
-                    return await MoreInfoProduct();
+                    return await SendProductUrl();
 
                 case ViewAllPhotoProductCmd:
                     return await SendAllProductPhoto();
@@ -257,16 +257,14 @@ namespace MyTelegramBot.Bot
 
         }
 
-        private async Task<IActionResult> MoreInfoProduct()
+
+        private async Task<IActionResult> SendProductUrl()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-
-                var product = db.Product.Find(ProductId);
-                await SendUrl("Вернуться к товару /item" + product.Id + BotMessage.NewLine() + BotMessage.NewLine() + product.TelegraphUrl);
-                return OkResult;
-
-            }
+            var product = BusinessLayer.ProductFunction.GetProductById(ProductId);
+            BotMessage = new ProductViewUrl(product);
+            var mess = BotMessage.BuildMsg();
+            await SendUrl(mess.TextMessage, mess.MessageReplyMarkup);
+            return OkResult;          
         }
     }
 }
