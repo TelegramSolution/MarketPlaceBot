@@ -47,7 +47,7 @@ namespace MyTelegramBot.Messages
             ContactBtn = new InlineKeyboardCallbackButton("О нас" + " \u260e\ufe0f", BuildCallData("Contact", Bot.MainMenuBot.ModuleName));
             ViewBasketBtn = new InlineKeyboardCallbackButton("Корзина" + " \ud83d\uded2", BuildCallData(Bot.BasketBot.ViewBasketCmd,Bot.BasketBot.ModuleName));
             MyOrdersBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Мои заказы", InlineFind.MyOrders + "|");
-            HelpBtn = new InlineKeyboardCallbackButton("Техническая поддержка", BuildCallData("Help", Bot.HelpDeskBot.ModuleName));
+            HelpBtn = new InlineKeyboardCallbackButton("Служба поддержки", BuildCallData("Help", Bot.HelpDeskBot.ModuleName));
             OpenSourceBtn =  InlineKeyboardButton.WithUrl("Исходный код", "https://github.com/TelegramSolution/MarketPlaceBot");
             PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог"+base.PictureEmodji, InlineFind.PhotoCatalog + "|");
             SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск"+base.SearchEmodji, InlineFind.SearchProduct + "|");
@@ -84,10 +84,10 @@ namespace MyTelegramBot.Messages
                         {
                                 MenuBtn,
                         },
-                    new [] 
-                        {
-                                OpenSourceBtn
-                        },
+                    //new [] 
+                    //    {
+                    //            OpenSourceBtn
+                    //    },
 
                  });
 

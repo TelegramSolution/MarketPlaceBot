@@ -12,6 +12,8 @@ namespace MyTelegramBot.Bot
 
         public const string ModuleName = "Main";
 
+        public const string ToMainMenuCmd = "MainMenu";
+
         MainMenuBotMessage MainMenuMsg { get; set; }
 
         ContactMessage ContactMsg { get; set; }
@@ -35,14 +37,11 @@ namespace MyTelegramBot.Bot
             if (CommandName == "/start")
                 return await SendMainMenu();
 
-            if (CommandName == "MainMenu")
+            if (CommandName == ToMainMenuCmd)
                 return await SendMainMenu(MessageId);
 
             if (base.CommandName == "Contact")
                 return await SendContactList();
-
-            if (base.CommandName == "OpenSource")
-                return await OpenSourceSend();
 
 
             else return null;
@@ -91,15 +90,6 @@ namespace MyTelegramBot.Bot
             }
         }
 
-
-        private async Task<IActionResult> OpenSourceSend()
-        {
-            OpenSourceMessage openSource = new OpenSourceMessage();
-
-            await EditMessage(openSource.BuildMsg());
-
-            return OkResult;
-        }
 
     }
 }

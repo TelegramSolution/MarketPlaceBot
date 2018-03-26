@@ -10,6 +10,7 @@ using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot.Core;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
@@ -24,8 +25,6 @@ namespace MyTelegramBot.Bot.AdminModule
         public const string CategoryEditorCmd = "CategoryEditor";
 
         public const string CategoryCreateCmd = "CategoryCreate";
-
-        public const string NotyfiCreateCmd = "NotyfiCreate";
 
         public const string AdminProductInCategoryCmd = "AdminProductInCategory";
 
@@ -81,8 +80,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string ViewCitiesCmd = "ViewCities";
 
-        public const string ViewOperatosCmd = "ViewOperatos";
-
         public const string ViewPickupPointCmd = "ViewPickupPoint";
 
         public const string AddPickupPoint = "/addpickuppoint";
@@ -93,13 +90,17 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string DisablePickUpPointCmd = "/pickupdisable";
 
-        public const string ViewStockProdCmd = "ViewStockProd";
+        public const string ViewStockHistoryProdCmd = "ViewStockProd";
+
+        public const string ViewStockCmd = "ViewStock";
 
         public const string StockHistoryProudctCmd="/stockhistory";
 
-        public const string BlockUserCmd = "/userblock";
+        public const string AdminPage2Cmd = "AdminPage2";
 
-        public const string UnblockUserCmd = "/userunblock";
+        public const string ExportViewerCmd = "ExportViewer";
+
+        public const string FollowerDetailsCmd = "/follower";
 
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
@@ -145,7 +146,7 @@ namespace MyTelegramBot.Bot.AdminModule
                             return await SendAllProductsView();
 
                         case "ViewStock":
-                            return await SendCurrentStock(0,MessageId);
+                            return await SendCurrentStock(MessageId);
 
                         case "/on":
                             return await OnOffPrivateMessage(true);
@@ -157,7 +158,7 @@ namespace MyTelegramBot.Bot.AdminModule
                         case ViewOrdersListCmd:
                             return await SendOrderList();
 
-                    case ViewStockProdCmd:
+                    case ViewStockHistoryProdCmd:
                         return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
 
                     case BlockFollowerCmd:
@@ -165,6 +166,10 @@ namespace MyTelegramBot.Bot.AdminModule
 
                     case UnBlockFollowerCmd:
                         return await UnBlockUser();
+
+
+                    case AdminPage2Cmd:
+                        return await SendPage2Btn();
 
                     default:
                             break;
@@ -194,13 +199,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     case PayMethodsListCmd:
                         return await SendPaymentMethods();
 
-
-                    case ViewOperatosCmd:
-                        return await SendOperatorList(MessageId);
-
-                    case "GenerateKey":
-                        return await GenerateKey();
-
                     case AddGroup:
                        return await AddBotToChat();
 
@@ -210,10 +208,9 @@ namespace MyTelegramBot.Bot.AdminModule
                     case "/newcity":
                         return await SendForceReplyMessage("Введите название города");
 
-                    case "GetCategoryStock":
-                        return await SendCurrentStock(Argumetns[0],MessageId);
-
-                   
+                    case ExportViewerCmd:
+                        return await SendExportViewer(); 
+                            
 
                     default:
                         break;
@@ -226,9 +223,6 @@ namespace MyTelegramBot.Bot.AdminModule
                     return await RemoveAvailableCity();
 
 
-                if (base.CommandName.Contains(RemoveOperatorCmd))
-                    return await RemoveOperator();
-
                 if (base.OriginalMessage.Contains(AddPickupPointForceReply))
                     return await InsertPicupPoint();
 
@@ -238,6 +232,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.CommandName.Contains(DisablePickUpPointCmd))
                     return await EnablePickUpPoint(DisablePickUpPointCmd);
 
+                if (base.CommandName.Contains(FollowerDetailsCmd))
+                    return await SendFollowerDetails();
 
                 else
                     return null;
@@ -245,9 +241,6 @@ namespace MyTelegramBot.Bot.AdminModule
 
             else
             {
-                if (base.CommandName.Contains("/key"))
-                    return await CheckOperatorKey(CommandName.Substring(5));
-
 
                 if (base.CommandName.Contains(OwnerReg))
                     return await OwnerRegister();
@@ -257,6 +250,40 @@ namespace MyTelegramBot.Bot.AdminModule
             }
         }
 
+        private async Task<IActionResult> SendFollowerDetails()
+        {
+            try
+            {
+                int id = Convert.ToInt32(base.CommandName.Substring(FollowerDetailsCmd.Length));
+                BotMessage = new FollowerControlMessage(id);
+                await SendMessage(BotMessage.BuildMsg());
+                return OkResult;
+            }
+            catch
+            {
+                return OkResult;
+            }
+            
+        }
+
+        private async Task<IActionResult> SendExportViewer()
+        {
+            BotMessage =new ExportViewerMessage();
+
+            await EditMessage(BotMessage.BuildMsg());
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendPage2Btn()
+        {
+            ControlPanelMessage ControlPanelMessage = new ControlPanelMessage();
+
+            await EditInlineReplyKeyboard(ControlPanelMessage.Page2Btn());
+
+            return OkResult;
+
+        }
 
         /// <summary>
         /// заблокировать пользователя
@@ -347,30 +374,15 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> InsertPicupPoint()
         {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                if (db.PickupPoint.Where(p => p.Name == ReplyToMessageText).FirstOrDefault() == null)
-                {
-                    PickupPoint pickupPoint = new PickupPoint
-                    {
-                        Enable = true,
-                        Name = ReplyToMessageText,
+            string name = ReplyToMessageText;
 
-                    };
+            var pickuppoint= PickUpPointFunction.InsertPickUpPoint(name);
 
-                    db.PickupPoint.Add(pickupPoint);
-                    db.SaveChanges();
-                    await SendPickupPointList();
-                }
+            await SendPickupPointList();
 
-                else
-                {
-                    await SendMessage(new BotMessage { TextMessage = "Уже существует" });
-                    await SendPickupPointList();
-                }
+            return OkResult;
 
-                return OkResult;
-            }
+
         }
 
         private async Task<IActionResult> SendPickupPointList(int MessageId=0)
@@ -439,53 +451,16 @@ namespace MyTelegramBot.Bot.AdminModule
         /// <returns></returns>
         private async Task<IActionResult> OwnerRegister()
         {
+            //ключ регистрации.
             string key = CommandName.Substring(OwnerReg.Length);
 
-            using(MarketBotDbContext db=new MarketBotDbContext())
-            {
-                base.BotInfo = db.BotInfo.Where(b => b.Id == BotInfo.Id).FirstOrDefault();
+            //ключ регистрации это 15 символов из второй части Токена телеграм
+            if (base.BotInfo.OwnerChatId == null && base.BotInfo.Token.Split(':').ElementAt(1).Substring(0, 15)== key)
+                if (AdminFunction.UpdateOwner(BotInfo.Id,Convert.ToInt32(ChatId)) > 0)
+                        await SendMessage(new BotMessage { TextMessage = "Добро пожаловать! Нажмите сюда /admin" });
 
-                if (base.BotInfo.OwnerChatId == null && base.BotInfo.Token.Split(':').ElementAt(1).Substring(0, 15)== key)
-                {
-                    db.BotInfo.Where(b => b.Id == BotInfo.Id).FirstOrDefault().OwnerChatId =Convert.ToInt32(ChatId);
-                    if (db.SaveChanges() > 0)
-                         await SendMessage(new BotMessage { TextMessage = "Добро пожаловать! Нажмите сюда /admin" });
-                    return OkResult;
-                }
-
-                else
-                    return OkResult;
-            }
-        }
-
-        /// <summary>
-        /// удалить оператора
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> RemoveOperator()
-        {
-            try
-            {
-                int id = Convert.ToInt32(base.CommandName.Substring(RemoveOperatorCmd.Length));
-                using(MarketBotDbContext db=new MarketBotDbContext())
-                {
-                  var admin= db.Admin.Where(a => a.Id == id).FirstOrDefault();
-
-                    if (admin != null)
-                    {
-                        db.Admin.Remove(admin);
-                        db.SaveChanges();
-                        
-                    }
-
-                    return await SendOperatorList();
-                }
-            }
-
-            catch
-            {
-                return await SendOperatorList();
-            }
+            return OkResult;
+            
         }
 
         /// <summary>
@@ -514,31 +489,31 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> AddAvailableCity()
         {
             try
-            {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+            {               
+                MarketBotDbContext db = new MarketBotDbContext();
+
+                if (db.AvailableСities.Where(c => c.CityName == ReplyToMessageText).FirstOrDefault() == null)
                 {
-                    if (db.AvailableСities.Where(c => c.CityName == ReplyToMessageText).FirstOrDefault() == null)
+
+                    AvailableСities availableСities = new AvailableСities
                     {
+                        CityName = ReplyToMessageText,
+                        Timestamp = DateTime.Now
+                    };
 
-                        AvailableСities availableСities = new AvailableСities
-                        {
-                            CityName = ReplyToMessageText,
-                            Timestamp = DateTime.Now
-                        };
+                    db.AvailableСities.Add(availableСities);
+                    db.SaveChanges();
 
-                        db.AvailableСities.Add(availableСities);
-                        db.SaveChanges();
-
-                        await SendAvailableCities();
-                    }
-
-                    else
-                    {
-                        await SendMessage(new BotMessage { TextMessage = "Этот город уже добавлен в список" });
-                    }
-
-                    return OkResult;
+                    await SendAvailableCities();
                 }
+
+                else
+                    await SendMessage(new BotMessage { TextMessage = "Этот город уже добавлен в список" });
+                
+
+                db.Dispose();
+                return OkResult;
+                
             }
 
             catch
@@ -557,18 +532,19 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 int id = Convert.ToInt32(CommandName.Substring(RemoveAvailableCityCmd.Length));
 
-                using(MarketBotDbContext db=new MarketBotDbContext())
+                MarketBotDbContext db = new MarketBotDbContext();
+               
+                var city = db.AvailableСities.Where(c => c.Id == id).FirstOrDefault();
+
+                if (city != null)
                 {
-                    var city = db.AvailableСities.Where(c => c.Id == id).FirstOrDefault();
-
-                    if (city != null)
-                    {
-                        db.AvailableСities.Remove(city);
-                        db.SaveChanges();
-                    }
-
-                    return await SendAvailableCities();
+                    db.AvailableСities.Remove(city);
+                    db.SaveChanges();
                 }
+
+                db.Dispose();
+                return await SendAvailableCities();
+                
             }
 
             catch
@@ -585,67 +561,41 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+                bool IsAdmin = false;
+                long GroupChatId = 0;
+
+                if (Update.Message != null && Update.Message.Chat != null && Update.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup)
+                    GroupChatId = Update.Message.Chat.Id;
+
+                else
+                    await SendMessage(Update.Message.Chat.Id, new BotMessage { TextMessage = "Ошибка. Эта группа не является СуперГруппой" });
+                 
+                
+                if (GroupChatId != 0)
                 {
-                    db.Configuration.FirstOrDefault().PrivateGroupChatId =base.GroupChatId.ToString();
+                    IsAdmin = await base.BotIsAdministratorInGroupChat(Update.Message.Chat.Id);
 
-                    if (db.SaveChanges() > 0)
-                        await SendMessage(base.GroupChatId, new BotMessage { TextMessage="Успех!" });
-
-                    return OkResult;
-                }
-            }
-
-            catch
-            {
-                return OkResult;
-            }
-
-
-        }
-
-        /// <summary>
-        /// Генерируем новый ключ для оператора. 
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> GenerateKey()
-        {
-            string hash= GeneralFunction.GenerateHash();
-
-            if (hash != null)
-            {
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                {
-
-                    AdminKey key = new AdminKey { DateAdd = DateTime.Now, Enable = false, KeyValue = hash };
-                    db.AdminKey.Add(key);
-
-                    if (db.SaveChanges() > 0)
+                    if (!IsAdmin)
                     {
-                        await SendMessage(new BotMessage { TextMessage = "Пользователь который должен получить права оператора должен ввести следующую команду:" + BotMessage.NewLine()+ BotMessage.Italic("/key " + key.KeyValue) });
+                        await SendMessage(Update.Message.Chat.Id, new BotMessage { TextMessage = "Ошибка! Бот должен обладать правами администратора в этом чате" });
                         return OkResult;
                     }
 
                     else
+                    {
+                        MarketBotDbContext db = new MarketBotDbContext();
+
+                        db.Configuration.FirstOrDefault().PrivateGroupChatId = base.GroupChatId.ToString();
+
+                        db.SaveChanges();
+                        await SendMessage(base.GroupChatId, new BotMessage { TextMessage = "Успех!" });
+
+                        db.Dispose();
+
                         return OkResult;
-
+                    }
                 }
-            }
 
-            else return OkResult;
-           
-        }
-
-        /// <summary>
-        /// Отправить сообщение со списком всех операторов
-        /// </summary>
-        /// <returns></returns>
-        private async Task<IActionResult> SendOperatorList(int MessageId=0)
-        {
-            try
-            {
-                BotMessage = new OperatosListMessage();
-                await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
 
@@ -653,7 +603,10 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 return OkResult;
             }
+
+
         }
+
 
         /// <summary>
         /// Отправить сообщение со списком способов оплаты
@@ -678,18 +631,25 @@ namespace MyTelegramBot.Bot.AdminModule
         /// Отправить сообещние с текущими остатками по товарам
         /// </summary>
         /// <returns></returns>
-        private async Task<IActionResult> SendCurrentStock(int CategoryId=0, int MessageId=0)
+        private async Task<IActionResult> SendCurrentStock(int MessageId=0)
         {
-            try
+
+
+            if (Argumetns.Count == 1)
             {
-                BotMessage = new CurrentStockMessage(CategoryId);
+                int SelectPageNumber = Argumetns[0];
+                BotMessage = new CurrentStockMessage(SelectPageNumber);
                 await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
-            catch
+            else
             {
+                BotMessage = new CurrentStockMessage();
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
                 return OkResult;
             }
+
+
         }
 
         /// <summary>
@@ -714,137 +674,18 @@ namespace MyTelegramBot.Bot.AdminModule
 
 
         /// <summary>
-        /// Записываем в бд об успешном запросе
-        /// </summary>
-        /// <returns></returns>
-        private int InsertReportsRequest()
-        {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-                ReportsRequestLog log = new ReportsRequestLog
-                {
-                    FollowerId = FollowerId,
-                    DateAdd = DateTime.Now
-                };
-
-                db.ReportsRequestLog.Add(log);
-
-                return db.SaveChanges();
-            }
-        }
-
-        /// <summary>
-        /// Время последнего запроса к БД, для формирования запроса
-        /// </summary>
-        /// <returns></returns>
-        private DateTime LastReportsRequest()
-        {
-            using (MarketBotDbContext db=new MarketBotDbContext())
-            {
-               var log= db.ReportsRequestLog.Where(r => r.FollowerId == FollowerId).OrderByDescending(r => r.Id).FirstOrDefault();
-
-                if (log != null)
-                    return Convert.ToDateTime(log.DateAdd);
-
-                else
-                   return DateTime.Now.AddDays(-1);
-            }
-        }
-
-
-
-
-        /// <summary>
         /// Сообщение с панелью администратора
         /// </summary>
         /// <returns></returns>
         private async Task<IActionResult> SendAdminControlPanelMsg()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                BotMessage = new ControlPanelMessage(base.FollowerId);
-                if (BotMessage != null && await SendMessage(BotMessage.BuildMsg()) != null)
-                    return base.OkResult;
+            BotMessage = new ControlPanelMessage(base.FollowerId);
 
-                else
-                    return base.OkResult;
-            }
-
+            await SendMessage(BotMessage.BuildMsg());  
+   
+            return base.OkResult;
+            
         }
-
-        /// <summary>
-        /// Пользователй хочет получить права оператора. Проверка ключа
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> CheckOperatorKey(string key)
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var Key = db.AdminKey.Where(a=>a.Enable==false && a.KeyValue==key).Include(a=>a.Admin).FirstOrDefault();
-
-                if (Key != null && Key.Admin.Count==0)
-                    return await AddNewOpearator(Key);
-
-                else
-                    return base.OkResult;
-            }
-        }
-
-        /// <summary>
-        /// Добавить нового оператора
-        /// </summary>
-        /// <param name="KeyId"></param>
-        /// <returns></returns>
-        private async Task<IActionResult> AddNewOpearator(AdminKey adminKey)
-        {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                var admin = db.Admin.Where(a => a.FollowerId == FollowerId && a.Enable).Include(a=>a.AdminKey).Include(a=>a.Follower).FirstOrDefault();
-
-                Admin adminnew = new Admin
-                {
-                    AdminKeyId = adminKey.Id,
-                    FollowerId = FollowerId,
-                    DateAdd = DateTime.Now,
-                    NotyfiActive = true,
-                    Enable = true,
-
-                };
-
-
-                if (admin != null)
-                    return await SendAdminControlPanelMsg();
-
-                else
-                {
-                    Admin NewAdmin = new Admin
-                    {
-                        FollowerId = FollowerId,
-                        DateAdd = DateTime.Now,
-                        AdminKeyId = adminKey.Id,
-                        Enable = true,
-                        NotyfiActive=true
-
-                    };
-                   
-                    db.Admin.Add(NewAdmin);
-                    adminKey.Enable = true;
-                    if (db.SaveChanges() > 0)
-                    {
-                        string meessage = "Зарегистрирован новый оператор системы: " + db.Follower.Where(f=>f.Id==FollowerId).FirstOrDefault().FirstName
-                            +BotMessage.NewLine()+"Ключ: "+ adminKey.KeyValue;
-                        await SendMessage(BotOwner, new BotMessage { TextMessage = meessage });
-                        return await SendAdminControlPanelMsg();
-                    }
-                    else
-                        return OkResult;
-                }
-            }
-        }
-
-
-
 
 
         /// <summary>
@@ -870,32 +711,32 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             try
             {
-                using (MarketBotDbContext db=new MarketBotDbContext())
+                MarketBotDbContext db = new MarketBotDbContext();            
+
+                var admin= db.Admin.Where(a => a.FollowerId == FollowerId).FirstOrDefault();
+
+                if (IsOperator() && admin != null)
                 {
+                    admin.NotyfiActive = value;
 
-
-                    var admin= db.Admin.Where(a => a.FollowerId == FollowerId).FirstOrDefault();
-
-                    if (IsOperator() && admin != null)
-                    {
-                        admin.NotyfiActive = value;
-
-                        if(db.SaveChanges()>0)
-                            await SendMessage(new BotMessage { TextMessage = "Сохранено" });
-                    }
-
-                    if(IsOwner())
-                    {
-                        var conf = db.Configuration.Where(c => c.BotInfoId == BotInfo.Id).FirstOrDefault();
-
-                        conf.OwnerPrivateNotify = value;
-
-                        if (db.SaveChanges() > 0)
-                            await SendMessage(new BotMessage { TextMessage = "Сохранено" });
-                    }
-
-                    return OkResult;
+                    if(db.SaveChanges()>0)
+                        await SendMessage(new BotMessage { TextMessage = "Сохранено" });
                 }
+
+                if(IsOwner())
+                {
+                    var conf = db.Configuration.Where(c => c.BotInfoId == BotInfo.Id).FirstOrDefault();
+
+                    conf.OwnerPrivateNotify = value;
+
+                    if (db.SaveChanges() > 0)
+                        await SendMessage(new BotMessage { TextMessage = "Сохранено" });
+                }
+
+                db.Dispose();
+
+                return OkResult;
+                
             }
 
             catch (Exception e)
@@ -907,24 +748,4 @@ namespace MyTelegramBot.Bot.AdminModule
 
     }
 }
-class NewProduct
-{
-    public string Name { get; set; }
 
-    public int CategoryId { get; set; }
-
-    public string Text { get; set; }
-
-    public double Price { get; set; }
-
-    public int AttacmentFsId { get; set; }
-
-    public int Currency { get; set; }
-
-    public int Unit { get; set; }
-
-    public int Volume { get; set; }
-
-    public int Stock { get; set; }
-
-}

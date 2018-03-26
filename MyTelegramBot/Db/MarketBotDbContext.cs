@@ -27,11 +27,9 @@ namespace MyTelegramBot
         public virtual DbSet<Configuration> Configuration { get; set; }
         public virtual DbSet<Currency> Currency { get; set; }
         public virtual DbSet<FeedBack> FeedBack { get; set; }
-        public virtual DbSet<FeedBackAttachmentFs> FeedBackAttachmentFs { get; set; }
         public virtual DbSet<Follower> Follower { get; set; }
         public virtual DbSet<HelpDesk> HelpDesk { get; set; }
         public virtual DbSet<HelpDeskAnswer> HelpDeskAnswer { get; set; }
-        public virtual DbSet<HelpDeskAnswerAttachment> HelpDeskAnswerAttachment { get; set; }
         public virtual DbSet<HelpDeskAttachment> HelpDeskAttachment { get; set; }
         public virtual DbSet<HelpDeskInWork> HelpDeskInWork { get; set; }
         public virtual DbSet<House> House { get; set; }
@@ -50,7 +48,6 @@ namespace MyTelegramBot
         public virtual DbSet<Product> Product { get; set; }
         public virtual DbSet<ProductPhoto> ProductPhoto { get; set; }
         public virtual DbSet<ProductPrice> ProductPrice { get; set; }
-        public virtual DbSet<Raiting> Raiting { get; set; }
         public virtual DbSet<Region> Region { get; set; }
         public virtual DbSet<ReportsRequestLog> ReportsRequestLog { get; set; }
         public virtual DbSet<Status> Status { get; set; }
@@ -367,29 +364,8 @@ namespace MyTelegramBot
                     .WithMany(p => p.FeedBack)
                     .HasForeignKey(d => d.ProductId)
                     .HasConstraintName("FK_FeedBack_Product");
-
-                entity.HasOne(d => d.Raiting)
-                    .WithMany(p => p.FeedBack)
-                    .HasForeignKey(d => d.RaitingId)
-                    .HasConstraintName("FK_Feedback_Raiting");
             });
 
-            modelBuilder.Entity<FeedBackAttachmentFs>(entity =>
-            {
-                entity.HasKey(e => new { e.FeedBackId, e.AttachmentFsId });
-
-                entity.HasOne(d => d.AttachmentFs)
-                    .WithMany(p => p.FeedBackAttachmentFs)
-                    .HasForeignKey(d => d.AttachmentFsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_FeedBackAttachmentFs_AttachmentFs");
-
-                entity.HasOne(d => d.FeedBack)
-                    .WithMany(p => p.FeedBackAttachmentFs)
-                    .HasForeignKey(d => d.FeedBackId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_FeedBackAttachmentFs_FeedBack");
-            });
 
             modelBuilder.Entity<Follower>(entity =>
             {
@@ -459,22 +435,6 @@ namespace MyTelegramBot
                     .HasConstraintName("FK_HelpDeskAnswer_HelpDesk");
             });
 
-            modelBuilder.Entity<HelpDeskAnswerAttachment>(entity =>
-            {
-                entity.HasKey(e => new { e.HelpDeskAnswerId, e.AttachmentFsId });
-
-                entity.HasOne(d => d.AttachmentFs)
-                    .WithMany(p => p.HelpDeskAnswerAttachment)
-                    .HasForeignKey(d => d.AttachmentFsId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_HelpDeskAnswerAttachment_Attachment");
-
-                entity.HasOne(d => d.HelpDeskAnswer)
-                    .WithMany(p => p.HelpDeskAnswerAttachment)
-                    .HasForeignKey(d => d.HelpDeskAnswerId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_HelpDeskAnswerAttachment_HelpDesk");
-            });
 
             modelBuilder.Entity<HelpDeskAttachment>(entity =>
             {
@@ -544,7 +504,6 @@ namespace MyTelegramBot
 
             modelBuilder.Entity<Notification>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.DateAdd).HasColumnType("datetime");
 
@@ -677,6 +636,12 @@ namespace MyTelegramBot
                     .WithMany(p => p.OrderStatus)
                     .HasForeignKey(d => d.StatusId)
                     .HasConstraintName("FK_OrderStatus_Status");
+
+                entity.HasOne(d => d.Follower)
+                    .WithMany(p => p.OrderStatus)
+                    .HasForeignKey(d => d.FollowerId)
+                    .HasConstraintName("FK_OrderStatus_Follower");
+
             });
 
             modelBuilder.Entity<OrderTemp>(entity =>
@@ -861,10 +826,6 @@ namespace MyTelegramBot
                     .HasConstraintName("FK_Price_Product");
             });
 
-            modelBuilder.Entity<Raiting>(entity =>
-            {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-            });
 
             modelBuilder.Entity<Region>(entity =>
             {

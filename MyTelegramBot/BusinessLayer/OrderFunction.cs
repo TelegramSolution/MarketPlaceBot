@@ -65,17 +65,24 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                OrdersInWork ordersInWork = new OrdersInWork
+                if (OrderId > 0 && FollowerId > 0)
                 {
-                    FollowerId = FollowerId,
-                    InWork = InWork,
-                    OrderId = OrderId,
-                    Timestamp = DateTime.Now
-                };
+                    OrdersInWork ordersInWork = new OrdersInWork
+                    {
+                        FollowerId = FollowerId,
+                        InWork = InWork,
+                        OrderId = OrderId,
+                        Timestamp = DateTime.Now
+                    };
 
-                db.OrdersInWork.Add(ordersInWork);
-                db.SaveChanges();
-                return ordersInWork;
+                    db.OrdersInWork.Add(ordersInWork);
+                    db.SaveChanges();
+                    ordersInWork.Follower = db.Follower.Find(FollowerId);
+                    return ordersInWork;
+                }
+
+                else
+                    return null;
             }
 
             catch
@@ -167,6 +174,64 @@ namespace MyTelegramBot.BusinessLayer
         }
 
 
+        public static List<Orders> GetAllOrders()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                List<Orders> list = db.Orders.OrderByDescending(o => o.Id).Include(o => o.Follower).Include(o => o.CurrentStatusNavigation.Status).
+                                    Include(o => o.FeedBack).Include(o => o.Invoice.PaymentType).Include(o => o.OrderAddress).Include(o => o.PickupPoint).
+                                    Include(o => o.OrderProduct).ToList();
+
+                foreach (var order in list)
+                {
+                    order.OrderProduct = db.OrderProduct.Where(o => o.OrderId == order.Id).Include(o => o.Product).Include(o => o.Price).ToList();
+
+                    if (order.OrderAddress != null)
+                        order.OrderAddress.Adress = db.Address.Where(a => a.Id == order.OrderAddress.AdressId).Include(o => o.House.Street.City).FirstOrDefault();
+                }
+
+                return list;
+
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static List<OrderStatus> GetAllHistoryStatus()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var list= db.OrderStatus.Where(o=>o.Enable).Include(o=>o.Status)
+                    .Include(o => o.Follower).OrderByDescending(o=>o.Id).ToList();
+
+                foreach (var status in list)
+                    status.Orders.Add(db.Orders.Find(status.OrderId));
+
+                return list;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
 
         /// <summary>
         /// Подтвердить добавленный статус. 
@@ -179,7 +244,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var status = db.OrderStatus.Find(OrderStatusId);
+                var status = db.OrderStatus.Where(o=>o.Id==OrderStatusId).Include(o=>o.Status).Include(o=>o.Follower).FirstOrDefault();
                 var order = db.Orders.Find(status.OrderId);
                 if (status != null && order != null)
                 {
@@ -191,6 +256,7 @@ namespace MyTelegramBot.BusinessLayer
                     order.CurrentStatus = status.Id;
                     db.Update<Orders>(order);
                     db.SaveChanges();
+
 
                     return status;
                 }

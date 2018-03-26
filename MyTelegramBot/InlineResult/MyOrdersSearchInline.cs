@@ -38,7 +38,7 @@ namespace MyTelegramBot.InlineResult
             if (Follower != null)
             {
 
-                OrderList = db.Orders.Where(o => o.FollowerId == Follower.Id).OrderByDescending(o => o.Id).ToList();
+                OrderList = db.Orders.Where(o => o.FollowerId == Follower.Id).OrderByDescending(o => o.Id).Take(MaxResult).ToList();
 
                 int i = 0;
 

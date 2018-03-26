@@ -172,8 +172,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 await SendHelpDesk(HelpDeskId);
 
                 //уведомляем сотрудников о том что заявку взяли в работу
-                string message = "Заявку №" + HelpDesk.Number.ToString() + " взял в работу пользователь :" + GeneralFunction.FollowerFullName(Inwork.FollowerId);
-                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
+                BotMessage = new HelpDeskActionNotifiMessage(HelpDesk, Inwork);
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
 
                 return OkResult;
             }
@@ -242,6 +242,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         }
 
+
         private async Task<IActionResult> AddHelpDeskAnswer()
         {
             try
@@ -257,9 +258,9 @@ namespace MyTelegramBot.Bot.AdminModule
                     await SendMessage(BotMessage.BuildMsg());
 
                     //Уведомляем всех сотрудников
-                    string message = "Добавне комментарий к заявке №" + HelpDesk.Number.ToString()+" /ticket"+ HelpDesk.Number.ToString() + ":" + BotMessage.Italic(HelpDesk.HelpDeskAnswer.LastOrDefault().Text);
-                    await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
-                    
+                    BotMessage = new HelpDeskActionNotifiMessage(HelpDesk, HelpDesk.HelpDeskAnswer.LastOrDefault());
+                    await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+
                 }
 
                 return OkResult;
@@ -281,10 +282,10 @@ namespace MyTelegramBot.Bot.AdminModule
                 await SendHelpDesk(HelpDeskId);
 
                 //уведомляем всех сотрудников
-                string message = "Заявка №" + HelpDesk.Number.ToString() + " закрыта. /ticket" + HelpDesk.Number.ToString();
-                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = message });
+                BotMessage =new HelpDeskActionNotifiMessage(HelpDesk, HelpDesk.HelpDeskAnswer.LastOrDefault());
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
 
-                //уведомляем пользователя который создал заявку
+                //уведомляем пользователя который создал заявку о том что заявка закрыта
                 BotMessage = new HelpDeskEditorMessage(HelpDesk);
                 await SendMessage(HelpDesk.Follower.ChatId, BotMessage.BuildMsg());
 
@@ -302,10 +303,15 @@ namespace MyTelegramBot.Bot.AdminModule
         {
            var WhoItWorkNow = HelpDeskFunction.WhoItWorkNow(HelpDeskId);
 
+            HelpDesk = HelpDeskFunction.GetHelpDesk(HelpDeskId);
+
            if(WhoItWorkNow.Follower.Id==FollowerId)
             {
                 HelpDeskFunction.FreeHelpDesk(HelpDeskId, FollowerId);
                 await SendHelpDesk(HelpDeskId);
+
+                //уведомляем всех 
+                await SendMessageAllBotEmployeess(new BotMessage { TextMessage = "Заявка №"+HelpDesk.Number.ToString()+ " Свободна. /ticket"+HelpDesk.Number.ToString() });
 
                 return OkResult;
             }

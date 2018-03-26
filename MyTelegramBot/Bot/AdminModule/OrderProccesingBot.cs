@@ -128,6 +128,16 @@ namespace MyTelegramBot.Bot.AdminModule
         public const string ViewPaymentCmd = "ViewPayment";
 
         /// <summary>
+        /// команда для отображения доп. кнопок обработки заказа
+        /// </summary>
+        public const string Page2Cmd = "Page2";
+
+        /// <summary>
+        /// команда для отображения основных кнопок обработки заказа
+        /// </summary>
+        public const string MainPageCmd = "MainPage";
+
+        /// <summary>
         /// Конструктор
         /// </summary>
         /// <param name="_update"></param>
@@ -230,6 +240,12 @@ namespace MyTelegramBot.Bot.AdminModule
                     case FeedBackOrderCmd:
                         return await SendFeedBackOrder(Argumetns[0]);
 
+                    case Page2Cmd:
+                        return await SendPage2Keyboard();
+
+                    case MainPageCmd:
+                        return await SendMainKeyboard();
+
                     default:
                         break;
 
@@ -257,6 +273,24 @@ namespace MyTelegramBot.Bot.AdminModule
                 return null;
 
 
+        }
+
+        private async Task<IActionResult> SendMainKeyboard()
+        {
+            AdminOrderMessage adminOrder = new AdminOrderMessage(OrderId);
+
+            await EditInlineReplyKeyboard(adminOrder.MainKeyboard());
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendPage2Keyboard()
+        {
+            AdminOrderMessage adminOrder = new AdminOrderMessage(OrderId);
+
+            await EditInlineReplyKeyboard(adminOrder.Page2Keyboard());
+
+            return OkResult;
         }
 
         /// <summary>
@@ -421,10 +455,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     var Order = OrderFunction.GetOrder(OrderId);
 
                     //уведомляем всех о новом статусе заказа
-                    string textmsg = "Пользователь:" + GeneralFunction.FollowerFullName(Order.CurrentStatusNavigation.FollowerId)
-                        + "изменил статус заказа №" + Order.Number.ToString()
-                        + Core.BotMessage.NewLine() + Order.CurrentStatusNavigation.Status.Name + ": " + Order.CurrentStatusNavigation.Text;
-                    BotMessage = new OrderMiniViewMessage(textmsg, Order.Id);
+                    BotMessage = new OrderActionNotifiMessage(Order,status);
                     await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
 
                     ///Если поставили статус "Выполено" то пользователю оформившему данные заказ приходил сообщение с просьбой 
@@ -563,17 +594,21 @@ namespace MyTelegramBot.Bot.AdminModule
         private async Task<IActionResult> FreeOrder()
         {
 
-            var Inwork = OrderFunction.InsertOrderInWork(OrderId, FollowerId, false);
+            if (OrderId > 0)
+            {
 
-            var Order = OrderFunction.GetOrder(OrderId);
-                        
-            BotMessage = new AdminOrderMessage(Order, FollowerId);
-            await base.EditMessage(BotMessage.BuildMsg());
+                var Inwork = OrderFunction.InsertOrderInWork(OrderId, FollowerId, false);
 
-            string notify = "Пользователь " + GeneralFunction.FollowerFullName(FollowerId) + " освободил заказ №" + Order.Number.ToString();
+                var Order = OrderFunction.GetOrder(OrderId);
 
-            BotMessage= new OrderMiniViewMessage(notify, Order.Id);
-            await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+                BotMessage = new AdminOrderMessage(Order, FollowerId);
+                await base.EditMessage(BotMessage.BuildMsg());
+
+                string notify = "Пользователь " + GeneralFunction.FollowerFullName(FollowerId) + " освободил заказ №" + Order.Number.ToString();
+
+                BotMessage = new OrderMiniViewMessage(notify, Order.Id);
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+            }
 
             return OkResult;
             
@@ -589,12 +624,13 @@ namespace MyTelegramBot.Bot.AdminModule
 
             var order = OrderFunction.GetOrder(OrderId);
 
-            if (order != null && order.Follower!=null && order.Follower.Telephone != null && order.Follower.Telephone != "")
+            if (order != null && order.Follower!=null && order.Follower.Telephone!=null && order.Follower.Telephone!="")
             {
                 Contact contact = new Contact
                 {
                     FirstName = order.Follower.FirstName,
-                    PhoneNumber = order.Follower.Telephone
+                    PhoneNumber = order.Follower.Telephone,
+                     UserId=order.Follower.ChatId
 
                 };
 
@@ -670,8 +706,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 await EditMessage(BotMessage.BuildMsg());
 
                 //уведомляем всех о том что кто-то взял заказ работу
-                string notify = "Заказ №" + Order.Number.ToString() + " взят в работу. Пользователь " + GeneralFunction.FollowerFullName(base.FollowerId);
-                BotMessage = new OrderMiniViewMessage(notify, this.OrderId);
+                BotMessage = new OrderActionNotifiMessage(Order, Order.OrdersInWork.LastOrDefault());
+
                 await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
                 return OkResult;
             }

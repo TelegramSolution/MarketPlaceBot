@@ -13,6 +13,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Сообщение с выбором нового статуса для заказа
+    /// </summary>
     public class OrderStatusEditorMessage:BotMessage
     {
         private MarketBotDbContext db { get; set; }

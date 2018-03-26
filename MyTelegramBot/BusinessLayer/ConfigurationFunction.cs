@@ -80,5 +80,48 @@ namespace MyTelegramBot.BusinessLayer
                 db.Dispose();
             }
         }
+
+        public static Configuration TelephoneVerify(Configuration configuration)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                if(configuration!=null && configuration.VerifyTelephone)
+                {
+                    configuration.VerifyTelephone = false;
+
+                    db.Update<Configuration>(configuration);
+
+                    db.SaveChanges();
+
+                    return configuration;
+                }
+
+                if (configuration != null && !configuration.VerifyTelephone)
+                {
+                    configuration.VerifyTelephone = true;
+
+                    db.Update<Configuration>(configuration);
+
+                    db.SaveChanges();
+
+                    return configuration;
+                }
+
+                else
+                    return null;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
     }
 }

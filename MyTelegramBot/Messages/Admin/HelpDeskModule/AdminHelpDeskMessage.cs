@@ -12,6 +12,9 @@ using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Сообещние с заявкой
+    /// </summary>
     public class AdminHelpDeskMessage : BotMessage
     {
         private InlineKeyboardCallbackButton ViewAttachBtn { get; set; }
@@ -79,7 +82,7 @@ namespace MyTelegramBot.Messages.Admin
 
                         HelpAnswerText += counter.ToString() + ") Комментарий:"+" " + answer.Text +" | " 
                                             +" Время:" +" " + answer.Timestamp.ToString() + " | " + " Пользователь:" + " "
-                                            +Bot.GeneralFunction.FollowerFullName(answer.FollowerId) 
+                                            + HrefUrl("https://t.me/"+answer.Follower.UserName, Bot.GeneralFunction.FollowerFullName(answer.Follower)) 
                                             +NewLine()+NewLine();
 
                         counter++;

@@ -21,12 +21,6 @@ namespace MyTelegramBot.Bot
     {
         public const string ModuleName = "ProdEdit";
 
-        ///// <summary>
-        ///// Сообщение с админскими функциями для товара
-        ///// </summary>
-        //private ProductFuncMessage AdminProductFuncMsg { get; set; }
-
-        //private UnitListMessage UnitListMsg { get; set; }
 
         private ProductFunction ProductFunction { get; set; }
 
@@ -525,7 +519,7 @@ namespace MyTelegramBot.Bot
 
             ProductFunction = new ProductFunction();
 
-            var product= ProductFunction.UpdatepMainPhoto(Id, fs_id);
+            var product= ProductFunction.UpdateMainPhoto(Id, fs_id);
 
             AttachmentTelegramFunction.AddAttachmentTelegram(fs_id, BotInfo.Id,base.PhotoId);
 

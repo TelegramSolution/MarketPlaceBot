@@ -93,6 +93,101 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public Product InsertProduct(string Name, 
+                                     int CategoryId, 
+                                     int UnitId, 
+                                     double PriceValue, 
+                                     int CurrencyId=ConstantVariable.CurrencyTypeVariable.Rub ,
+                                     bool Enable=true, 
+                                     string Text="",
+                                     string NoteUrl="")
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+            Product product = null;
+
+            try
+            {
+                if (Name!=null && Name!="" && CategoryId>0 && UnitId>0 && PriceValue>0)
+                {
+                    product = new Product
+                    {
+                        Name = Name,
+                        DateAdd = DateTime.Now,
+                        Enable = Enable,
+                        UnitId = UnitId,
+                        CategoryId = CategoryId,
+                    };
+                    db.Product.Add(product);
+
+                    db.SaveChanges();
+
+                    var price= InsertProductPrice(product.Id, PriceValue, CurrencyId);
+
+                    product.CurrentPriceId = price.Id;
+
+                    db.SaveChanges(); // добавляем цену
+
+                    product.CurrentPrice = price;
+
+                    return product;
+                }
+
+                else
+                    return null;
+            }
+
+            catch
+            {
+                return null;
+            }
+        }
+
+        public Product UpdateProduct(Product SaveProduct)
+        {
+            try
+            {
+                if (SaveProduct != null)
+                {
+                    var product = GetProductById(SaveProduct.Id);
+
+                    if (product.CurrentPrice.Value == SaveProduct.CurrentPrice.Value)
+                    {
+                        db.Update<Product>(SaveProduct);
+
+                        db.SaveChanges();
+
+                    }
+
+
+                    if (product.CurrentPrice.Value != SaveProduct.CurrentPrice.Value && SaveProduct.CurrentPrice.Value>0)
+                    {
+                        var price = InsertProductPrice(SaveProduct.Id, SaveProduct.CurrentPrice.Value, Convert.ToInt32(SaveProduct.CurrentPrice.CurrencyId));
+
+                        SaveProduct.CurrentPriceId = price.Id;
+
+                        SaveProduct.CurrentPrice = price;
+
+                        db.Update<Product>(SaveProduct);
+
+                        db.SaveChanges();
+                    }
+
+                   
+                }
+
+                return SaveProduct;
+            }
+
+            catch (Exception e)
+            {
+                return SaveProduct;
+            }
+
+            finally
+            {
+                
+            }
+        }
 
         public Product UpdateName(int ProductId, string Name)
         {
@@ -182,7 +277,7 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
-        public Product UpdatepMainPhoto(int ProductId,int AttachFsId)
+        public Product UpdateMainPhoto(int ProductId,int AttachFsId)
         {
             try
             {
@@ -204,6 +299,35 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public AttachmentFs InsertMainPhoto(int ProductId, Stream image, string Name="Photo.jpg")
+        {
+            try
+            {
+
+                MemoryStream memoryStream = new MemoryStream();
+                image.CopyTo(memoryStream);
+
+                AttachmentFs attachmentFs = new AttachmentFs
+                {
+                    AttachmentTypeId = ConstantVariable.MediaTypeVariable.Photo,
+                    Name = Name,
+                    Fs = memoryStream.ToArray(),
+                    GuId = Guid.NewGuid()
+                };
+
+                db.AttachmentFs.Add(attachmentFs);
+
+                db.SaveChanges();
+
+                return attachmentFs;
+            }
+
+            catch
+            {
+                return null;
+            }
+        }
+
         public Product GetProduct(int ProductId)
         {
             try
@@ -213,12 +337,40 @@ namespace MyTelegramBot.BusinessLayer
                     .Include(p => p.CurrentPrice)
                     .Include(p => p.Unit)
                     .Include(p => p.Stock)
+                    .Include(p=>p.MainPhotoNavigation)
                     .Include(p => p.Category).FirstOrDefault();
             }
 
             catch(Exception e)
             {
                 return null;
+            }
+        }
+
+        public static List<AttachmentFs> GetAdditionalPhoto(int ProductId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var list = db.ProductPhoto.Where(p => p.ProductId == ProductId).Include(p => p.AttachmentFs).ToList();
+
+                List<AttachmentFs> result = new List<AttachmentFs>();
+
+                foreach (var attach in list)
+                    result.Add(attach.AttachmentFs);
+
+                return result;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
             }
         }
 
@@ -247,6 +399,27 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public static List<Product> GetAllProductList()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Product.Where(p => p.CurrentPriceId > 0).Include(p => p.CurrentPrice.Currency)
+                    .Include(p => p.Category).Include(p => p.Unit).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
         public Product GetProduct(string Name)
         {
             try
@@ -265,6 +438,41 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
 
+        }
+
+        /// <summary>
+        /// Функция проверяет является ли данное имя запрещенным.
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <returns></returns>
+        public bool NameIsProhibited(string Name)
+        {
+            StreamReader stream = null;
+                
+
+            try
+            {
+                stream = new StreamReader("Files\\ProhibitedNames.txt");
+                string Read= stream.ReadToEnd();
+
+                List<string> Item = Read.Split(',').ToList(); 
+                //найдено запрещенное имя
+                if (Item.Where(i => i == Name).FirstOrDefault() != null)
+                    return true;
+
+                else
+                    return false;
+            }
+
+            catch
+            {
+                return false;
+            }
+
+            finally
+            {
+                stream.Dispose();
+            }
         }
 
         public Product UpdatePrice(int ProductId, double Value, int CurrencyId)
@@ -356,7 +564,7 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
-        public Stock InsertStock(int ProductId, int NewBalance, int Quantity, string Comment="")
+        public Stock InsertStock(int ProductId, int? NewBalance, int Quantity, string Comment="")
         {
             try
             {
@@ -521,6 +729,7 @@ namespace MyTelegramBot.BusinessLayer
                         {
                             AttachmentFsId = attachmentFs.Id,
                             ProductId = ProductId
+                           
                         };
 
                         db.ProductPhoto.Add(productPhoto);
@@ -540,6 +749,38 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
            
+        }
+
+        public ProductPhoto InsertAdditionallPhoto(int ProductId, Stream image, string Name = "")
+        {
+            try
+            {
+                MemoryStream memory = new MemoryStream();
+
+                image.CopyTo(memory);
+
+                var attach= InsertAttachmentFs(memory.ToArray(), Name: Name);
+
+                ProductPhoto productPhoto = new ProductPhoto
+                {
+                    AttachmentFsId = attach.Id,
+                    ProductId = ProductId,
+                    MainPhoto = false
+                };
+
+                db.ProductPhoto.Add(productPhoto);
+
+                db.SaveChanges();
+
+                productPhoto.AttachmentFs = attach;
+
+                return productPhoto;
+            }
+
+            catch
+            {
+                return null;
+            }
         }
 
         public int RemoveAdditionalPhoto(int ProductId, int AttachFsId)
@@ -566,6 +807,29 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public int RemoveAdditionalPhoto(int AttachFsId)
+        {
+            try
+            {
+                var photo = db.ProductPhoto.Where(p => p.AttachmentFsId == AttachFsId).FirstOrDefault();
+
+                if (photo != null)
+                {
+                    db.ProductPhoto.Remove(photo);
+
+                    return db.SaveChanges();
+                }
+
+                else
+                    return 0;
+
+            }
+
+            catch
+            {
+                return -1;
+            }
+        }
         private AttachmentFs InsertAttachmentFs(byte[] PhotoByte, int AttachmentTypeId= ConstantVariable.MediaTypeVariable.Photo,string Caption="", string Name = "Photo.jpg")
         {
             try

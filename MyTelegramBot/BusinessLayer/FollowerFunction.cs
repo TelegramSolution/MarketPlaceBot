@@ -212,7 +212,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var follower = db.Follower.Find(FollowerId);
+                var follower = db.Follower.Where(f=>f.Id==FollowerId).Include(f=>f.Admin).FirstOrDefault();
 
                 return follower;
             }
@@ -239,7 +239,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var follower= db.Follower.Find(FollowerId);
+                var follower= db.Follower.Where(f => f.Id == FollowerId).Include(f => f.Admin).FirstOrDefault();
 
                 if (follower != null && follower.Blocked==false)
                 {
@@ -273,7 +273,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var follower = db.Follower.Find(FollowerId);
+                var follower = db.Follower.Where(f => f.Id == FollowerId).Include(f => f.Admin).FirstOrDefault();
 
                 if (follower != null && follower.Blocked)
                 {
@@ -295,6 +295,26 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+
+        public static List<Follower> GetFollowerList()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Follower.ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
 
         /// <summary>
         /// Все адреса пользователя

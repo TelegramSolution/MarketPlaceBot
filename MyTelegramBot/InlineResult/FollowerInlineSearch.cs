@@ -55,7 +55,7 @@ namespace MyTelegramBot.InlineResult
         {
             db = new MarketBotDbContext();
 
-            this.FollowerList = GetFollower();
+            this.FollowerList = GetFollower().Take(MaxResult).ToList();
 
             InputTextMessageContent[] textcontent = new InputTextMessageContent[FollowerList.Count];
             InlineQueryResultArticle[] article = new InlineQueryResultArticle[FollowerList.Count];

@@ -8,8 +8,6 @@ namespace MyTelegramBot
         public AttachmentFs()
         {
             AttachmentTelegram = new HashSet<AttachmentTelegram>();
-            FeedBackAttachmentFs = new HashSet<FeedBackAttachmentFs>();
-            HelpDeskAnswerAttachment = new HashSet<HelpDeskAnswerAttachment>();
             HelpDeskAttachment = new HashSet<HelpDeskAttachment>();
             Product = new HashSet<Product>();
             ProductPhoto = new HashSet<ProductPhoto>();
@@ -24,8 +22,7 @@ namespace MyTelegramBot
 
         public AttachmentType AttachmentType { get; set; }
         public ICollection<AttachmentTelegram> AttachmentTelegram { get; set; }
-        public ICollection<FeedBackAttachmentFs> FeedBackAttachmentFs { get; set; }
-        public ICollection<HelpDeskAnswerAttachment> HelpDeskAnswerAttachment { get; set; }
+
         public ICollection<HelpDeskAttachment> HelpDeskAttachment { get; set; }
         public ICollection<Product> Product { get; set; }
         public ICollection<ProductPhoto> ProductPhoto { get; set; }

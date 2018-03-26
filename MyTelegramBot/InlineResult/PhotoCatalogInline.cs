@@ -55,7 +55,7 @@ namespace MyTelegramBot.InlineResult
         {
             db = new MarketBotDbContext();
 
-            var ProductList = GetProductList();
+            var ProductList = GetProductList().Take(MaxResult).ToList();
 
             InlineQueryResult[] result;
 

@@ -14,6 +14,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages
 {
+    /// <summary>
+    /// все доп. фото товара
+    /// </summary>
     public class ProductAllPhotoMessage : BotMessage
     {
         private int ProductId { get; set; }

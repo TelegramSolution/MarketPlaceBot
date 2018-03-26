@@ -108,7 +108,7 @@ namespace MyTelegramBot.Messages
                                     + Bold("Стоимость доставки:") + Order.OrderAddress.ShipPriceValue.ToString() + NewLine()
                                     + Bold("Общая стоимость: ") + total.ToString() +" "+ Order.OrderProduct.FirstOrDefault().Price.Currency.ShortName + NewLine()
                                     + Bold("Комментарий: ") + Order.Text + NewLine()
-                                    + Bold("Способо получения закза: ") + " Доставка" + NewLine()
+                                    + Bold("Способ получения заказа: ") + " Доставка" + NewLine()
                                     + Bold("Адрес доставки: ") + Address.House.Street.City.Name + ", " + Address.House.Street.Name + ",д. " + Address.House.Number + "," + Address.House.Apartment + NewLine()
                                     + Bold("Время: ") + Order.DateAdd.ToString() + NewLine()
                                     + Bold("Оплачено: ") + paid

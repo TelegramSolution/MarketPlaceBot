@@ -13,7 +13,7 @@ using MyTelegramBot.Bot.Core;
 namespace MyTelegramBot.Messages.Admin
 {
     /// <summary>
-    /// Сообщение со списком едениц измерения
+    /// Сообщение с выбором новой еденицы измерения для товара
     /// </summary>
     public class UnitListMessage:BotMessage
     {

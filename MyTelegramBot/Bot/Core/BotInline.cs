@@ -32,7 +32,10 @@ namespace MyTelegramBot.Bot.Core
         protected MarketBotDbContext db { get; set; }
 
         protected InlineKeyboardMarkup keyboardMarkup { get; set; }
+
         public abstract InlineQueryResult[] GetResult();
+
+        protected int MaxResult = 50;
 
         /// <summary>
         /// json объект который будет находится внутри Inline кнопки в поле CallBackData

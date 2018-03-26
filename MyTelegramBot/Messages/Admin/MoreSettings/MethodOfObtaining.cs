@@ -14,7 +14,7 @@ using MyTelegramBot.Bot.Core;
 namespace MyTelegramBot.Messages.Admin
 {
     /// <summary>
-    /// Сообщение со способами получения заказа
+    /// Управалние способами получения заказа Доставка / самовывоз
     /// </summary>
     public class MethodOfObtaining:BotMessage
     {

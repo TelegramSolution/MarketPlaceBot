@@ -7,7 +7,6 @@ using Telegram.Bot.Types;
 using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
-using MyTelegramBot.Messages.Admin;
 using MyTelegramBot.Bot.Core;
 using MyTelegramBot.BusinessLayer;
 
@@ -81,20 +80,25 @@ namespace MyTelegramBot.Bot
                 return -1;
             }
 
+            string caption = String.Empty;
+
+            if (base.Caption != null)
+                caption = base.Caption;
+
             if (base.PhotoId != null)
-                return await base.InsertToAttachmentFs(base.PhotoId);
+                return await base.InsertToAttachmentFs(base.PhotoId,caption);
 
             if (base.VideoId != null)
-                return await base.InsertToAttachmentFs(base.VideoId);
+                return await base.InsertToAttachmentFs(base.VideoId, caption);
 
             if (base.AudioId != null)
-                return await base.InsertToAttachmentFs(base.AudioId);
+                return await base.InsertToAttachmentFs(base.AudioId, caption);
 
             if (base.VoiceId != null)
-                return await base.InsertToAttachmentFs(base.VoiceId);
+                return await base.InsertToAttachmentFs(base.VoiceId, caption);
 
             if (base.VideoNoteId != null)
-                return await base.InsertToAttachmentFs(base.VideoNoteId);
+                return await base.InsertToAttachmentFs(base.VideoNoteId, caption);
 
 
             else

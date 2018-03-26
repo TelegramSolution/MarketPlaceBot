@@ -22,6 +22,8 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton BasketEditBtn { get; set; }
 
+        private InlineKeyboardCallbackButton MainMenuBtn { get; set; }
+
         private Follower Follower { get; set; }
 
         private List<Basket> Basket { get; set; }
@@ -48,9 +50,11 @@ namespace MyTelegramBot.Messages
                 ClearBasketBtn = ClearBasket(Follower.Id);
                 ToCheckOutBtn = ToCheckOut(Follower.Id);
                 BasketEditBtn = BasketEdit(Follower.Id);
+                MainMenuBtn = BuildInlineBtn("На главную", BuildCallData(MainMenuBot.ToMainMenuCmd, MainMenuBot.ModuleName));
                 SetInlineKeyBoard();
                 string Info = BasketPositionInfo.GetPositionInfo(Follower.Id, BotId);
                 base.TextMessage = Bold("Ваша корзина:") + NewLine() + Info;
+                
             }
 
             else
@@ -64,6 +68,8 @@ namespace MyTelegramBot.Messages
 
         private void SetInlineKeyBoard()
         {
+            
+
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -78,6 +84,11 @@ namespace MyTelegramBot.Messages
                         {
                             ClearBasketBtn
                         },
+                new[]
+                        {
+                            MainMenuBtn
+                        }
+
 
                  });
         }

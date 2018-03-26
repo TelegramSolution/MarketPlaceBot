@@ -433,10 +433,7 @@ namespace MyTelegramBot.Bot.Core
 
         }
 
-        public virtual Task<IActionResult> Response()
-        {
-            return null;
-        }
+        public abstract Task<IActionResult> Response();
 
         /// <summary>
         /// Отправить сообщение 
@@ -445,22 +442,19 @@ namespace MyTelegramBot.Bot.Core
         /// <param name="EditMessageId"></param>
         /// <param name="ReplyToMessageId"></param>
         /// <returns></returns>
-        protected async Task<Message> SendMessage(BotMessage botMessage, int EditMessageId = 0, int ReplyToMessageId = 0)
+        protected async Task<Message> SendMessage(BotMessage botMessage, int EditMessageId = 0, int ReplyToMessageId = 0, bool DisableWeb=true)
         {
-            IReplyMarkup replyMarkup;
             try
             {
-                replyMarkup = botMessage.MessageReplyMarkup;
-
 
                 if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && EditMessageId != 0)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, true, false, ReplyToMessageId, replyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
                     return null;
@@ -522,8 +516,6 @@ namespace MyTelegramBot.Bot.Core
         /// <returns></returns>
         protected async Task<Message> EditMessage(BotMessage botMessage)
         {
-            IReplyMarkup replyMarkup;
-            replyMarkup = botMessage.MessageReplyMarkup;
 
             try
             {
@@ -532,7 +524,7 @@ namespace MyTelegramBot.Bot.Core
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, true, replyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, this.MessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
 
 
@@ -543,7 +535,7 @@ namespace MyTelegramBot.Bot.Core
 
             catch
             {
-                return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, replyMarkup);
+                return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, botMessage.MessageReplyMarkup);
             }
 
         }
@@ -583,7 +575,7 @@ namespace MyTelegramBot.Bot.Core
                     && message.MediaFile.FileTo.FileId == null)
                     mess = await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
 
-                if (message.MediaFile == null && message.TextMessage != null)
+                if (message.MediaFile == null && message.TextMessage != null )
                     mess = await TelegramClient.SendTextMessageAsync(ChatId, message.TextMessage, ParseMode.Html, false, false, 0, message.MessageReplyMarkup);
 
                 //Если мы отрпавляем файл для этого бота первый раз, то Записываем FileId в базу для этог бота, что бы в следующий раз не отслылать целый файл
@@ -724,7 +716,7 @@ namespace MyTelegramBot.Bot.Core
             {
 
                 await AnswerCallback();
-                return await TelegramClient.SendContactAsync(ChatId, contact.PhoneNumber, contact.FirstName);
+                return await TelegramClient.SendContactAsync(ChatId, contact.PhoneNumber, contact.FirstName, contact.LastName);
 
             }
 
@@ -778,7 +770,7 @@ namespace MyTelegramBot.Bot.Core
         /// </summary>
         /// <param name="id">FileId файл на сервере телеграм</param>
         /// <returns>Возращает id записи из таблицы AttachmentFS</returns>
-        protected async Task<int> InsertToAttachmentFs(string id = null)
+        protected async Task<int> InsertToAttachmentFs(string id = null, string Caption="")
         {
             if (id == null)
                 id = FileId;
@@ -915,7 +907,7 @@ namespace MyTelegramBot.Bot.Core
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
                     InsertToAttachmentTelegram(message.MediaFile, this.AudioId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendAudioAsync(this.ChatId,message.MediaFile.FileTo,message.MediaFile.Caption,100,"audio.mp3","help",replyMarkup:message.MessageReplyMarkup);
             }
 
             catch
@@ -929,9 +921,9 @@ namespace MyTelegramBot.Bot.Core
             try
             {
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
-                    InsertToAttachmentTelegram(message.MediaFile, this.VideoId);
+                    InsertToAttachmentTelegram(message.MediaFile, message.MediaFile.FileTo.FileId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendVideoAsync(this.ChatId, message.MediaFile.FileTo, caption:message.MediaFile.Caption,replyMarkup:message.MessageReplyMarkup);
             }
 
             catch
@@ -947,7 +939,7 @@ namespace MyTelegramBot.Bot.Core
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
                     InsertToAttachmentTelegram(message.MediaFile, this.VideoNoteId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendVideoNoteAsync(this.ChatId, message.MediaFile.FileTo,replyMarkup:message.MessageReplyMarkup);
             }
 
             catch
@@ -989,14 +981,14 @@ namespace MyTelegramBot.Bot.Core
         }
 
 
-        protected async Task<Message> SendDocument(FileToSend FiletoSend, string Caption = "")
+        protected async Task<Message> SendDocument(FileToSend FiletoSend, string Caption = "", IReplyMarkup replyMarkup=null)
         {
             try
             {
                 if (this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback();
 
-                return await TelegramClient.SendDocumentAsync(this.ChatId, FiletoSend, Caption);
+                return await TelegramClient.SendDocumentAsync(this.ChatId, FiletoSend, Caption, replyMarkup: replyMarkup);
             }
 
             catch (Exception exp)
@@ -1087,7 +1079,7 @@ namespace MyTelegramBot.Bot.Core
             try
             {
 
-                if (BotInfo.Configuration.OwnerPrivateNotify)
+                if (BotInfo.Configuration.OwnerPrivateNotify && BotInfo.OwnerChatId!=ChatId) // не отправляем уведомление самому себе
                     await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), message);
 
                 if (operators != null)
@@ -1096,8 +1088,8 @@ namespace MyTelegramBot.Bot.Core
                     {
                         System.Threading.Thread.Sleep(300);
 
-                        if (admin.NotyfiActive)
-                                await SendMessage(admin.Follower.ChatId, message, true);
+                        if (admin.NotyfiActive && admin.Follower.ChatId!=ChatId) // не отправляем уведомление самому себе
+                                await SendMessage(admin.Follower.ChatId, message);
  
                     }
 
@@ -1128,7 +1120,7 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
-                return await SendMessage(Convert.ToInt32(BotInfo.Configuration.PrivateGroupChatId), message);
+                return await SendMessage(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId), message);
             }
 
             catch
@@ -1207,6 +1199,86 @@ namespace MyTelegramBot.Bot.Core
             catch
             {
                 return null;
+            }
+        }
+
+        protected void SendAction (ChatAction chatAction=ChatAction.UploadDocument)
+        {
+            try
+            {
+                TelegramClient.SendChatActionAsync(ChatId, chatAction);
+            }
+
+            catch
+            {
+              
+            }
+        }
+
+        protected async Task<bool> BotIsAdministratorInGroupChat(long ChatGroupId)
+        {
+            try
+            {
+                var result= await TelegramClient.GetChatAdministratorsAsync(ChatGroupId);
+
+
+                if (result.Where(r => r.User.IsBot && r.User.Id == BotInfo.ChatId).FirstOrDefault() != null)
+                    return true;
+
+                else
+                    return false;
+
+
+            }
+
+            catch
+            {
+                return false;
+            }
+        }
+
+        protected async Task<string> CreateInviteToGroupChat(long ChatGroupId,int UserChatId)
+        {
+            try
+            {
+                //если до этого пользователь был кикнут ботом, то нужно разбанить его
+                //иначе ссылка не будет работать
+                //await UnbanChatMember(ChatGroupId, UserChatId);
+
+                return await TelegramClient.ExportChatInviteLinkAsync(ChatGroupId);
+            }
+
+            catch
+            {
+                return null;
+            }
+        }
+
+        protected async Task<bool> KickMember(long ChatGroupId, int ChatId)
+        {
+            try
+            {
+               return await TelegramClient.KickChatMemberAsync(ChatGroupId, ChatId);
+            }
+
+            catch
+            {
+                return false;
+            }
+
+
+        }
+
+        private async Task<bool> UnbanChatMember (long ChatGroupId, int ChatId)
+        {
+            try
+            {
+                return await TelegramClient.UnbanChatMemberAsync(ChatGroupId, ChatId);
+            }
+
+            catch
+            {
+                return false;
             }
         }
     }

@@ -28,7 +28,7 @@ namespace MyTelegramBot.InlineResult
 
         public override InlineQueryResult[] GetResult()
         {
-           var list = PaymentsFunction.GetPaymentsList();
+           var list = PaymentsFunction.GetPaymentsList().Take(MaxResult).ToList();
 
 
             InputTextMessageContent[] textcontent = new InputTextMessageContent[list.Count];

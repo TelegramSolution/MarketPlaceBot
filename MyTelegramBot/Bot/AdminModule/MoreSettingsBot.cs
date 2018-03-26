@@ -11,6 +11,7 @@ using MyTelegramBot.Messages;
 using Microsoft.EntityFrameworkCore;
 using MyTelegramBot.Bot.Core;
 using MyTelegramBot.Messages.Admin.PaymentsModule;
+using MyTelegramBot.BusinessLayer;
 
 namespace MyTelegramBot.Bot.AdminModule
 {
@@ -112,6 +113,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string CurrencyEditorUpdCmd = "CurrencyUpd";
 
+        public const string TelephoneVerifyEnableCmd = "TelephoneVerifyEnable";
 
         public MoreSettingsBot(Update _update) : base(_update)
         {
@@ -271,6 +273,10 @@ namespace MyTelegramBot.Bot.AdminModule
                     case CurrencyEditorCmd:
                         return await SendCurrencyEditor();
 
+                    case TelephoneVerifyEnableCmd:
+                        return await TelephoneVerifyEnable();
+
+
                     default:
                         return null;
                 }
@@ -281,6 +287,22 @@ namespace MyTelegramBot.Bot.AdminModule
                 return null;
         }
 
+
+        private async Task<IActionResult> TelephoneVerifyEnable()
+        {
+            BotInfo.Configuration=ConfigurationFunction.TelephoneVerify(BotInfo.Configuration);
+
+            BotMessage = new MoreSettingsMessage(BotInfo);
+
+            await EditMessage(BotMessage.BuildMsg());
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// изменить валюту в системе
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> UpdCurrency()
         {
             MarketBotDbContext db = new MarketBotDbContext();
@@ -302,6 +324,10 @@ namespace MyTelegramBot.Bot.AdminModule
             return await SendCurrencyEditor();
         }
 
+        /// <summary>
+        /// отправить сообщения с выбором валюты для системы (рубль, гривна)
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> SendCurrencyEditor()
         {
             BotMessage = new CurrencySettingsMessage(base.BotInfo);
@@ -531,7 +557,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
         private async Task<IActionResult> SendMoreSettings(int MessageId = 0)
         {
-            BotMessage =new MoreSettingsMessage();
+            BotMessage =new MoreSettingsMessage(base.BotInfo);
             await SendMessage(BotMessage.BuildMsg(), MessageId);
 
             return OkResult;

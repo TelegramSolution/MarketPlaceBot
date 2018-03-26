@@ -45,7 +45,7 @@ namespace MyTelegramBot.InlineResult
         {
             BotId = GeneralFunction.GetBotInfo().Id;
 
-            AdditionalPhotos = ProductFunction.GetAdditionalPhoto(ProductId, BotId);
+            AdditionalPhotos = ProductFunction.GetAdditionalPhoto(ProductId, BotId).Take(MaxResult).ToList();
 
             InlineQueryResult [] result = new InlineQueryResult[AdditionalPhotos.Count];
 

@@ -380,13 +380,11 @@ namespace MyTelegramBot.Bot.Core
                 this.NextPageBtn = this.BuildNextPageBtn<T>(Pages, this.SelectPageNumber, CmdName, CmdModuleName, Argument);
 
                 this.PreviousPageBtn = this.BuildPreviousPageBtn<T>(Pages, this.SelectPageNumber, CmdName, CmdModuleName, Argument);
-
-                return PageNavigatorKeyboard(this.NextPageBtn, this.PreviousPageBtn, BackBtn,RowBtns);
+                
             }
 
-            else
-                return null;
-            
+            return PageNavigatorKeyboard(BackBtn, NextBtn: this.NextPageBtn, PrevBtn: this.PreviousPageBtn, RowBtns: RowBtns);
+
         }
 
         /// <summary>
@@ -396,7 +394,7 @@ namespace MyTelegramBot.Bot.Core
         /// <param name="PrevBtn">кнопка "пред. запись"</param>
         /// <param name="BackBtn">кнопка "вернуться назад"</param>
         /// <returns></returns>
-        private IReplyMarkup PageNavigatorKeyboard(InlineKeyboardCallbackButton NextBtn, InlineKeyboardCallbackButton PrevBtn, InlineKeyboardCallbackButton BackBtn, InlineKeyboardButton[] RowBtns=null)
+        private IReplyMarkup PageNavigatorKeyboard(InlineKeyboardCallbackButton BackBtn, InlineKeyboardCallbackButton NextBtn = null, InlineKeyboardCallbackButton PrevBtn = null, InlineKeyboardButton[] RowBtns=null)
         {
             if (NextBtn !=null && PrevBtn !=null && BackBtn !=null && RowBtns==null)
             {

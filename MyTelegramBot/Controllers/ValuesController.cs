@@ -23,6 +23,7 @@ namespace MyTelegramBot.Controllers
    
     public class ValuesController : Controller
     {
+        
        
         private OkResult OkResult { get; set; }
 
@@ -55,10 +56,17 @@ namespace MyTelegramBot.Controllers
             if (update != null && update.CallbackQuery != null && update.CallbackQuery.Data != null && update.InlineQuery == null)
             {
                 ModuleName = JsonConvert.DeserializeObject<BotCommand>(update.CallbackQuery.Data).M;
+                
             }
 
             if(update.InlineQuery == null)
             {
+                if (Result == null && ModuleName != null && ModuleName == ReportsBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    BotCore = new ReportsBot(update);
+                    Result = await BotCore.Response();
+                }
+
                 if (Result == null && ModuleName != null && ModuleName == MoreSettingsBot.ModuleName || Result == null && ModuleName == null)
                 {
                     BotCore = new MoreSettingsBot(update);
@@ -68,6 +76,12 @@ namespace MyTelegramBot.Controllers
                 if (Result == null && ModuleName != null && ModuleName == HelpDeskProccessingBot.ModuleName || Result == null && ModuleName == null && update.InlineQuery == null)
                 {
                     BotCore = new HelpDeskProccessingBot(update);
+                    Result = await BotCore.Response();
+                }
+
+                if(Result==null && ModuleName!=null && ModuleName==NotificationBot.ModuleName || Result==null && ModuleName == null)
+                {
+                    BotCore = new NotificationBot(update);
                     Result = await BotCore.Response();
                 }
 
@@ -106,6 +120,13 @@ namespace MyTelegramBot.Controllers
                 || Result == null && update.PreCheckoutQuery != null)
                 {
                     BotCore = new OrderBot(update);
+                    Result = await BotCore.Response();
+                }
+
+                if (Result == null && ModuleName != null && ModuleName == OperatorBot.ModuleName || Result == null && ModuleName == null
+                || Result == null && update.PreCheckoutQuery != null)
+                {
+                    BotCore = new OperatorBot(update);
                     Result = await BotCore.Response();
                 }
 
@@ -160,14 +181,30 @@ namespace MyTelegramBot.Controllers
 
             if (update.Message != null && update.Message.Chat!=null)
             {
-                BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.Message.Chat.Id), 
-                    update.Message.Chat.FirstName, update.Message.Chat.LastName, update.Message.Chat.Username);
+                try
+                {
+                    BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.Message.Chat.Id),
+                        update.Message.Chat.FirstName, update.Message.Chat.LastName, update.Message.Chat.Username);
+                }
+
+                catch
+                {
+
+                }
             }
 
-            if (update.CallbackQuery != null && update.CallbackQuery.Message != null && update.CallbackQuery.Message.Chat!=null)
-                BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.CallbackQuery.Message.Chat.Id), 
-                    update.CallbackQuery.Message.Chat.FirstName, update.CallbackQuery.Message.Chat.LastName, update.CallbackQuery.Message.Chat.Username);
+            if (update.CallbackQuery != null && update.CallbackQuery.Message != null && update.CallbackQuery.Message.Chat != null)
+                try
+                {
+                    BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.CallbackQuery.Message.Chat.Id),
+                        update.CallbackQuery.Message.Chat.FirstName, update.CallbackQuery.Message.Chat.LastName, update.CallbackQuery.Message.Chat.Username);
 
+
+                }
+                catch
+                {
+
+                }
 
             AddUpdateMsgToDb(update);
 

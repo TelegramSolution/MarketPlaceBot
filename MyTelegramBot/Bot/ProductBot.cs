@@ -20,11 +20,8 @@ namespace MyTelegramBot.Bot
 
         private int ProductId { get; set; }
 
-        private ProductRemoveFromBasket ProductRemoveFromBasketMsg { get; set; }
-
         private ProductViewMessage ProductViewMsg { get; set; }
 
-        private AddProductToBasketMessage AddProductToBasketMsg { get; set; }
 
         /// <summary>
         /// Сообщение со всеми фотографиями товара
@@ -42,13 +39,16 @@ namespace MyTelegramBot.Bot
 
         public const string MoreInfoProductCmd = "MoreInfoProduct";
 
-        public const string ProductCmd = "/product";
+        public const string ProductCmd = "/item";
 
         public const string ViewAllPhotoProductCmd = "ViewAllPhotoProduct";
 
         public const string CmdViewFeedBack = "ViewFeedBack";
 
         public const string CmdAddFeedBackProduct = "AddFbToPrdct";
+
+        public const string CmdProductPage = "ProductPage";
+
 
         public ProductBot(Update _update) : base(_update)
         {
@@ -63,8 +63,6 @@ namespace MyTelegramBot.Bot
                 {
                     ProductId = Argumetns[0];
                     ProductViewMsg = new ProductViewMessage(this.ProductId, BotInfo.Id);
-                    AddProductToBasketMsg = new AddProductToBasketMessage(base.FollowerId, this.ProductId, BotInfo.Id);
-                    ProductRemoveFromBasketMsg = new ProductRemoveFromBasket(this.FollowerId, this.ProductId, BotInfo.Id);
                 }
 
             }
@@ -94,27 +92,21 @@ namespace MyTelegramBot.Bot
 
                 //Пользователь нажал "Подробнее" 
                 case MoreInfoProductCmd:
-                    return await MoreInfoProduct();
+                    return await SendProductUrl();
 
                 case ViewAllPhotoProductCmd:
                     return await SendAllProductPhoto();
 
-                case ViewAllProductInCategoryMessage.NextPageCmd:
-                    return await SendProductPage(Argumetns[1], Argumetns[0]);
+                case CmdProductPage:
+                    return await SendProductPage(Argumetns[0], Argumetns[1]);
 
                 case CmdViewFeedBack:
                     return await SendFeedBack();
             }
 
-            //ПОльзователь через инлай режим отправил в чат навзание 
-            //товара. Отправляем пользователю сообщение с этим товаром
-            if (Update.Message != null && Update.Message.Text != null && Update.Message.Text.Length > 0 && Connection.getConnection().Product.Where(p => p.Name == CommandName).FirstOrDefault() != null)
-            {
-                ProductViewMsg = new ProductViewMessage(base.CommandName);
-                return await GetProduct();
-            }
 
-            //команда /product
+
+            //команда /item
             if (base.CommandName.Contains(ProductCmd))
                 return await GetProductCommand();
 
@@ -265,16 +257,14 @@ namespace MyTelegramBot.Bot
 
         }
 
-        private async Task<IActionResult> MoreInfoProduct()
+
+        private async Task<IActionResult> SendProductUrl()
         {
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-
-                var product = db.Product.Find(ProductId);
-                await SendUrl("Вернуться к товару /product" + product.Id + BotMessage.NewLine() + BotMessage.NewLine() + product.TelegraphUrl);
-                return OkResult;
-
-            }
+            var product = BusinessLayer.ProductFunction.GetProductById(ProductId);
+            BotMessage = new ProductViewUrl(product);
+            var mess = BotMessage.BuildMsg();
+            await SendUrl(mess.TextMessage, mess.MessageReplyMarkup);
+            return OkResult;          
         }
     }
 }

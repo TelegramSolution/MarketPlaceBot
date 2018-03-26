@@ -30,7 +30,7 @@ namespace MyTelegramBot.InlineResult
 
         public override InlineQueryResult[] GetResult()
         {
-            var Address = FollowerFunction.FollowerAddress(FollowerId);
+            var Address = FollowerFunction.FollowerAddress(FollowerId).Take(MaxResult).ToList();
 
             InlineQueryResultLocation[] location = new InlineQueryResultLocation[Address.Count];
             InlineQueryResult[] result = new InlineQueryResult[Address.Count];

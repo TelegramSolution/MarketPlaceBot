@@ -31,6 +31,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string EnterTextForceReply = "Введите описание товара:";
 
+        public const string StockValueForceReply = "Введите текущее количество:";
+
         MarketBotDbContext db { get; set; }
 
         Messages.Admin.ProductFuncMessage ProductFuncMsg { get; set; }
@@ -74,6 +76,9 @@ namespace MyTelegramBot.Bot.AdminModule
                 if (base.OriginalMessage.Contains(UploadImageForceReply))
                     return await UpdPhoto();
 
+                if (base.OriginalMessage.Contains(StockValueForceReply))
+                    return await UpdStock();
+
                 else
                     return null;
             }
@@ -93,14 +98,19 @@ namespace MyTelegramBot.Bot.AdminModule
 
             var categorys = CategoryList();
 
+            bool IsProhibited = ProductFunction.NameIsProhibited(product_name);
+
             if (product != null)
                 return await SendTextMessageAndForceReply("Товар с таким именем уже существует", EnterProductNameForceReply);
+
+            if(IsProhibited)
+                return await SendTextMessageAndForceReply("Запрещенное название!", EnterProductNameForceReply);
 
             else
             {
                  product = ProductFunction.InsertProduct(product_name,true);
 
-                if (product != null)
+                if (product != null && !IsProhibited)
                     return await SendTextMessageAndForceReply("Введите название новой категории или выберите уже существующую."+BotMessage.NewLine()
                         + BotMessage.Bold("Список категорий:") + categorys, EnterCategoryForceReply + product.Name);
 
@@ -208,17 +218,17 @@ namespace MyTelegramBot.Bot.AdminModule
                 {
                     product=ProductFunction.UpdatePrice(product.Id, price,Convert.ToInt32(BotInfo.Configuration.CurrencyId));
                     ProductFunction.Dispose();
-                    return await SendForceReplyMessage(UploadImageForceReply+product.Name);
+                    return await SendForceReplyMessage(StockValueForceReply+product.Name);
                 }
 
                 else
-                    return await SendTextMessageAndForceReply(product.Name + " /adminproduct" + product.Id + " Ошибка! Значение должно быть больше 0", EnterPriceForceReply + product.Name);
+                    return await SendTextMessageAndForceReply(product.Name + "Ошибка! Значение должно быть больше 0", EnterPriceForceReply + product.Name);
 
             }
 
             catch
             {
-                return await SendTextMessageAndForceReply(product.Name + " /adminproduct" + product.Id + " Ошибка! Неверный формат данных", EnterPriceForceReply + product.Name);
+                return await SendTextMessageAndForceReply(product_name + "Ошибка! Неверный формат данных", EnterPriceForceReply + product_name);
             }
         }
 
@@ -259,7 +269,7 @@ namespace MyTelegramBot.Bot.AdminModule
             if(base.PhotoId!=null && Product != null)
             {
                 int FsId= await InsertToAttachmentFs(base.PhotoId);
-                Product=ProductFunction.UpdatepMainPhoto(Product.Id, FsId);
+                Product=ProductFunction.UpdateMainPhoto(Product.Id, FsId);
                 AttachmentTelegramFunction.AddAttachmentTelegram(FsId, base.BotInfo.Id, base.PhotoId);
                 ProductFunction.Dispose();
                 ProductId = Product.Id;
@@ -279,6 +289,36 @@ namespace MyTelegramBot.Bot.AdminModule
             }
 
             return OkResult;
+        }
+
+        private async Task<IActionResult> UpdStock()
+        {
+            ProductFunction = new ProductFunction();
+
+            string product_name = OriginalMessage.Substring(StockValueForceReply.Length);
+
+            var product = ProductFunction.GetProduct(product_name);
+
+            try
+            {
+                int balance = Convert.ToInt32(ReplyToMessageText);
+
+                if (balance >= 0 && product != null)
+                {
+                    product = ProductFunction.UpdateStock(product.Id, balance,"Добавление нового товара через диалог с ботом");
+                    ProductFunction.Dispose();
+                    return await SendForceReplyMessage(UploadImageForceReply + product.Name);
+                }
+
+                else
+                    return await SendTextMessageAndForceReply(product.Name + " /adminproduct" + product.Id + " Ошибка! Значение должно быть больше 0", StockValueForceReply + product.Name);
+
+            }
+
+            catch
+            {
+                return await SendTextMessageAndForceReply(product_name + "Ошибка! Неверный формат данных", StockValueForceReply + product_name);
+            }
         }
 
         private string CategoryList()

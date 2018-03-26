@@ -31,7 +31,7 @@ namespace MyTelegramBot.InlineResult
 
         public override InlineQueryResult[] GetResult()
         {
-             list = HelpDeskFunction.GetHelpDeskList(Number);
+             list = HelpDeskFunction.GetHelpDeskList(Number).Take(MaxResult).ToList();
 
 
             InputTextMessageContent[] textcontent = new InputTextMessageContent[list.Count];

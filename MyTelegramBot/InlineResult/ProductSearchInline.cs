@@ -25,7 +25,7 @@ namespace MyTelegramBot.InlineResult
             this.Query = Query;
 
 
-            SqlQuery = "SELECT TOP 20 Product.* FROM Product Inner Join Category On Category.Id=Product.CategoryId "
+            SqlQuery = "SELECT Product.* FROM Product Inner Join Category On Category.Id=Product.CategoryId "
                 + "WHERE Product.Name LIKE @name and Product.Enable=1 OR Category.Name LIKE @name and Product.Enable=1 OR "
                 + "Product.Text LIKE @name and Product.Enable=1";
         }
@@ -51,7 +51,7 @@ namespace MyTelegramBot.InlineResult
         {
             db = new MarketBotDbContext();
 
-            var ProductList = GetProductList();
+            var ProductList = GetProductList().Take(MaxResult).ToList();
 
             InputTextMessageContent[] textcontent = new InputTextMessageContent[ProductList.Count];
             InlineQueryResultArticle[] article = new InlineQueryResultArticle[ProductList.Count];
@@ -64,7 +64,7 @@ namespace MyTelegramBot.InlineResult
                 textcontent[i] = new InputTextMessageContent();
                 textcontent[i].ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html;
                 textcontent[i].DisableWebPagePreview = true;
-                textcontent[i].MessageText = "/product"+prod.Id.ToString();
+                textcontent[i].MessageText = ProductBot.ProductCmd + prod.Id.ToString();
 
                 article[i] = new InlineQueryResultArticle();
                 article[i].HideUrl = true;

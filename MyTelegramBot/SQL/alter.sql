@@ -1,4 +1,4 @@
-/****** Object:  Table [dbo].[Address]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Address]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -14,7 +14,7 @@ CREATE TABLE [dbo].[Address](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[Admin]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Admin]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -33,7 +33,7 @@ CREATE TABLE [dbo].[Admin](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[AdminKey]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[AdminKey]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -54,7 +54,7 @@ CREATE TABLE [dbo].[AdminKey](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[AttachmentFs]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[AttachmentFs]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -85,7 +85,7 @@ CREATE TABLE [dbo].[AttachmentFs](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[AttachmentTelegram]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[AttachmentTelegram]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -106,7 +106,7 @@ CREATE TABLE [dbo].[AttachmentTelegram](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[AttachmentType]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[AttachmentType]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -125,7 +125,7 @@ CREATE TABLE [dbo].[AttachmentType](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Available—ities]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Available—ities]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -145,7 +145,7 @@ CREATE TABLE [dbo].[Available—ities](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Basket]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Basket]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -165,7 +165,7 @@ CREATE TABLE [dbo].[Basket](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[BotInfo]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[BotInfo]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -191,7 +191,7 @@ CREATE TABLE [dbo].[BotInfo](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Category]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Category]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -211,7 +211,7 @@ CREATE TABLE [dbo].[Category](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[City]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[City]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -231,7 +231,7 @@ CREATE TABLE [dbo].[City](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Company]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Company]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -258,7 +258,7 @@ CREATE TABLE [dbo].[Company](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Configuration]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Configuration]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -296,7 +296,7 @@ CREATE TABLE [dbo].[Configuration](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Currency]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Currency]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -317,7 +317,7 @@ CREATE TABLE [dbo].[Currency](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[FeedBack]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[FeedBack]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -329,7 +329,6 @@ CREATE TABLE [dbo].[FeedBack](
 	[Text] [varchar](2500) NULL,
 	[DateAdd] [datetime] NULL,
 	[OrderId] [int] NULL,
-	[RaitingId] [int] NULL,
 	[RaitingValue] [int] NULL,
 	[ProductId] [int] NULL,
 	[Enable] [bit] NULL,
@@ -342,23 +341,7 @@ CREATE TABLE [dbo].[FeedBack](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[FeedBackAttachmentFs]    Script Date: 11.03.2018 19:50:47 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[FeedBackAttachmentFs](
-	[FeedBackId] [int] NOT NULL,
-	[AttachmentFsId] [int] NOT NULL,
- CONSTRAINT [PK_FeedBackAttachmentFs] PRIMARY KEY CLUSTERED 
-(
-	[FeedBackId] ASC,
-	[AttachmentFsId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
-
-GO
-/****** Object:  Table [dbo].[Follower]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Follower]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -384,7 +367,7 @@ CREATE TABLE [dbo].[Follower](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[HelpDesk]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[HelpDesk]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -410,7 +393,7 @@ CREATE TABLE [dbo].[HelpDesk](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[HelpDeskAnswer]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[HelpDeskAnswer]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -434,23 +417,7 @@ CREATE TABLE [dbo].[HelpDeskAnswer](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[HelpDeskAnswerAttachment]    Script Date: 11.03.2018 19:50:47 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[HelpDeskAnswerAttachment](
-	[HelpDeskAnswerId] [int] NOT NULL,
-	[AttachmentFsId] [int] NOT NULL,
- CONSTRAINT [PK_HelpDeskAnswerAttachment] PRIMARY KEY CLUSTERED 
-(
-	[HelpDeskAnswerId] ASC,
-	[AttachmentFsId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
-
-GO
-/****** Object:  Table [dbo].[HelpDeskAttachment]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[HelpDeskAttachment]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -466,7 +433,7 @@ CREATE TABLE [dbo].[HelpDeskAttachment](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[HelpDeskInWork]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[HelpDeskInWork]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -484,7 +451,7 @@ CREATE TABLE [dbo].[HelpDeskInWork](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[House]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[House]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -508,7 +475,7 @@ CREATE TABLE [dbo].[House](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Invoice]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Invoice]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -534,7 +501,7 @@ CREATE TABLE [dbo].[Invoice](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Notification]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Notification]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -542,10 +509,11 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[Notification](
-	[Id] [int] NOT NULL,
+	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[FollowerId] [int] NULL,
 	[DateAdd] [datetime] NULL,
 	[Text] [varchar](5000) NULL,
+	[Sended] [bit] NULL,
  CONSTRAINT [PK_Notification] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -555,7 +523,7 @@ CREATE TABLE [dbo].[Notification](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[OrderAddress]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[OrderAddress]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -572,7 +540,7 @@ CREATE TABLE [dbo].[OrderAddress](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[OrderProduct]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[OrderProduct]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -591,7 +559,7 @@ CREATE TABLE [dbo].[OrderProduct](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[Orders]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Orders]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -619,7 +587,7 @@ CREATE TABLE [dbo].[Orders](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[OrdersInWork]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[OrdersInWork]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -637,7 +605,7 @@ CREATE TABLE [dbo].[OrdersInWork](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[OrderStatus]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[OrderStatus]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -661,7 +629,7 @@ CREATE TABLE [dbo].[OrderStatus](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[OrderTemp]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[OrderTemp]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -685,7 +653,7 @@ CREATE TABLE [dbo].[OrderTemp](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Payment]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Payment]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -709,7 +677,7 @@ CREATE TABLE [dbo].[Payment](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[PaymentType]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[PaymentType]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -730,7 +698,7 @@ CREATE TABLE [dbo].[PaymentType](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[PaymentTypeConfig]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[PaymentTypeConfig]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -755,7 +723,7 @@ CREATE TABLE [dbo].[PaymentTypeConfig](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[PickupPoint]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[PickupPoint]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -775,7 +743,7 @@ CREATE TABLE [dbo].[PickupPoint](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Product]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Product]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -805,7 +773,7 @@ CREATE TABLE [dbo].[Product](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[ProductPhoto]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[ProductPhoto]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -822,7 +790,7 @@ CREATE TABLE [dbo].[ProductPhoto](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[ProductPrice]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[ProductPrice]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -842,22 +810,7 @@ CREATE TABLE [dbo].[ProductPrice](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[Raiting]    Script Date: 11.03.2018 19:50:47 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Raiting](
-	[Id] [int] NOT NULL,
-	[Value] [smallint] NULL,
- CONSTRAINT [PK_Raiting] PRIMARY KEY CLUSTERED 
-(
-	[Id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
-
-GO
-/****** Object:  Table [dbo].[Region]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Region]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -876,7 +829,7 @@ CREATE TABLE [dbo].[Region](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[ReportsRequestLog]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[ReportsRequestLog]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -892,7 +845,7 @@ CREATE TABLE [dbo].[ReportsRequestLog](
 ) ON [PRIMARY]
 
 GO
-/****** Object:  Table [dbo].[Status]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Status]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -912,7 +865,7 @@ CREATE TABLE [dbo].[Status](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Stock]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Stock]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -935,7 +888,7 @@ CREATE TABLE [dbo].[Stock](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Street]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Street]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -955,7 +908,7 @@ CREATE TABLE [dbo].[Street](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[TelegramMessage]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[TelegramMessage]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -979,7 +932,7 @@ CREATE TABLE [dbo].[TelegramMessage](
 GO
 SET ANSI_PADDING OFF
 GO
-/****** Object:  Table [dbo].[Units]    Script Date: 11.03.2018 19:50:47 ******/
+/****** Object:  Table [dbo].[Units]    Script Date: 20.03.2018 21:48:13 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -1074,21 +1027,6 @@ REFERENCES [dbo].[Product] ([Id])
 GO
 ALTER TABLE [dbo].[FeedBack] CHECK CONSTRAINT [FK_FeedBack_Product]
 GO
-ALTER TABLE [dbo].[FeedBack]  WITH CHECK ADD  CONSTRAINT [FK_Feedback_Raiting] FOREIGN KEY([RaitingId])
-REFERENCES [dbo].[Raiting] ([Id])
-GO
-ALTER TABLE [dbo].[FeedBack] CHECK CONSTRAINT [FK_Feedback_Raiting]
-GO
-ALTER TABLE [dbo].[FeedBackAttachmentFs]  WITH CHECK ADD  CONSTRAINT [FK_FeedBackAttachmentFs_AttachmentFs] FOREIGN KEY([AttachmentFsId])
-REFERENCES [dbo].[AttachmentFs] ([Id])
-GO
-ALTER TABLE [dbo].[FeedBackAttachmentFs] CHECK CONSTRAINT [FK_FeedBackAttachmentFs_AttachmentFs]
-GO
-ALTER TABLE [dbo].[FeedBackAttachmentFs]  WITH CHECK ADD  CONSTRAINT [FK_FeedBackAttachmentFs_FeedBack] FOREIGN KEY([FeedBackId])
-REFERENCES [dbo].[FeedBack] ([Id])
-GO
-ALTER TABLE [dbo].[FeedBackAttachmentFs] CHECK CONSTRAINT [FK_FeedBackAttachmentFs_FeedBack]
-GO
 ALTER TABLE [dbo].[HelpDesk]  WITH CHECK ADD  CONSTRAINT [FK_HelpDesk_BotInfo] FOREIGN KEY([BotInfoId])
 REFERENCES [dbo].[BotInfo] ([Id])
 GO
@@ -1108,16 +1046,6 @@ ALTER TABLE [dbo].[HelpDeskAnswer]  WITH CHECK ADD  CONSTRAINT [FK_HelpDeskAnswe
 REFERENCES [dbo].[HelpDesk] ([Id])
 GO
 ALTER TABLE [dbo].[HelpDeskAnswer] CHECK CONSTRAINT [FK_HelpDeskAnswer_HelpDesk]
-GO
-ALTER TABLE [dbo].[HelpDeskAnswerAttachment]  WITH CHECK ADD  CONSTRAINT [FK_HelpDeskAnswerAttachment_Attachment] FOREIGN KEY([AttachmentFsId])
-REFERENCES [dbo].[AttachmentFs] ([Id])
-GO
-ALTER TABLE [dbo].[HelpDeskAnswerAttachment] CHECK CONSTRAINT [FK_HelpDeskAnswerAttachment_Attachment]
-GO
-ALTER TABLE [dbo].[HelpDeskAnswerAttachment]  WITH CHECK ADD  CONSTRAINT [FK_HelpDeskAnswerAttachment_HelpDesk] FOREIGN KEY([HelpDeskAnswerId])
-REFERENCES [dbo].[HelpDeskAnswer] ([Id])
-GO
-ALTER TABLE [dbo].[HelpDeskAnswerAttachment] CHECK CONSTRAINT [FK_HelpDeskAnswerAttachment_HelpDesk]
 GO
 ALTER TABLE [dbo].[HelpDeskAttachment]  WITH CHECK ADD  CONSTRAINT [FK_HelpDeskAttachment_Attachment] FOREIGN KEY([AttachmentFsId])
 REFERENCES [dbo].[AttachmentFs] ([Id])
@@ -1213,6 +1141,16 @@ ALTER TABLE [dbo].[OrdersInWork]  WITH CHECK ADD  CONSTRAINT [FK_OrdersInWork_Or
 REFERENCES [dbo].[Orders] ([Id])
 GO
 ALTER TABLE [dbo].[OrdersInWork] CHECK CONSTRAINT [FK_OrdersInWork_Orders]
+GO
+ALTER TABLE [dbo].[OrderStatus]  WITH CHECK ADD  CONSTRAINT [FK_OrderStatus_Follower] FOREIGN KEY([FollowerId])
+REFERENCES [dbo].[Follower] ([Id])
+GO
+ALTER TABLE [dbo].[OrderStatus] CHECK CONSTRAINT [FK_OrderStatus_Follower]
+GO
+ALTER TABLE [dbo].[OrderStatus]  WITH CHECK ADD  CONSTRAINT [FK_OrderStatus_Orders] FOREIGN KEY([OrderId])
+REFERENCES [dbo].[Orders] ([Id])
+GO
+ALTER TABLE [dbo].[OrderStatus] CHECK CONSTRAINT [FK_OrderStatus_Orders]
 GO
 ALTER TABLE [dbo].[OrderStatus]  WITH CHECK ADD  CONSTRAINT [FK_OrderStatus_Status] FOREIGN KEY([StatusId])
 REFERENCES [dbo].[Status] ([Id])

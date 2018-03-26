@@ -11,6 +11,9 @@ using MyTelegramBot.Bot.Core;
 
 namespace MyTelegramBot.Messages.Admin
 {
+    /// <summary>
+    /// Настройка Qiwi. Ввести токер, тест соединения и тд
+    /// </summary>
     public class AdminQiwiSettingsMessage:BotMessage
     {
         private InlineKeyboardCallbackButton RemoveBtn { get; set; }

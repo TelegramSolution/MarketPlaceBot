@@ -41,7 +41,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                return db.Payment.Include(p => p.Invoice.Orders).OrderByDescending(p=>p.Id).ToList();
+                return db.Payment.Include(p => p.Invoice.Orders).Include(p=>p.Invoice.PaymentType).OrderByDescending(p=>p.Id).ToList();
             }
 
             catch (Exception e)

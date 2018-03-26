@@ -34,5 +34,25 @@ namespace MyTelegramBot.BusinessLayer
                 db.Dispose();
             }
         }
+
+        public static List<Stock> GetAllStockHistory()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.Stock.Include(s => s.Product).OrderByDescending(s=>s.Id).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
     }
 }
