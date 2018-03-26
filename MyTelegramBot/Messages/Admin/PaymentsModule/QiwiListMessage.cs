@@ -36,7 +36,8 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
 
             PaymentTypeConfigList = db.PaymentTypeConfig.Where(p => p.PaymentId == ConstantVariable.PaymentTypeVariable.QIWI).ToList();
 
-            base.TextMessage =base.CreditCardEmodji+ "Что бы добавить новую запись нажмите сюда /addqiwi"+NewLine()+NewLine();
+            base.TextMessage =base.CreditCardEmodji+ "Что бы добавить новую запись нажмите сюда /addqiwi"+NewLine()+
+                HrefUrl("https://qiwi.com/api","Получить Qiwi Api")+NewLine()+NewLine();
 
             Pages = base.BuildDataPage<PaymentTypeConfig>(PaymentTypeConfigList, base.PageSize);
 

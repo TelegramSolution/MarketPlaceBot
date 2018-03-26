@@ -455,10 +455,7 @@ namespace MyTelegramBot.Bot.AdminModule
                     var Order = OrderFunction.GetOrder(OrderId);
 
                     //уведомляем всех о новом статусе заказа
-                    string textmsg = "Пользователь: " + GeneralFunction.FollowerFullName(Order.CurrentStatusNavigation.FollowerId)
-                        + " изменил статус заказа №" + Order.Number.ToString()
-                        + Core.BotMessage.NewLine() + Order.CurrentStatusNavigation.Status.Name + ": " + Order.CurrentStatusNavigation.Text;
-                    BotMessage = new OrderMiniViewMessage(textmsg, Order.Id);
+                    BotMessage = new OrderActionNotifiMessage(Order,status);
                     await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
 
                     ///Если поставили статус "Выполено" то пользователю оформившему данные заказ приходил сообщение с просьбой 
@@ -709,8 +706,8 @@ namespace MyTelegramBot.Bot.AdminModule
                 await EditMessage(BotMessage.BuildMsg());
 
                 //уведомляем всех о том что кто-то взял заказ работу
-                string notify = "Заказ №" + Order.Number.ToString() + " взят в работу. Пользователь " + GeneralFunction.FollowerFullName(base.FollowerId);
-                BotMessage = new OrderMiniViewMessage(notify, this.OrderId);
+                BotMessage = new OrderActionNotifiMessage(Order, Order.OrdersInWork.LastOrDefault());
+
                 await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
                 return OkResult;
             }

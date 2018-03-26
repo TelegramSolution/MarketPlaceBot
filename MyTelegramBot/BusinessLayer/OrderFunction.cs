@@ -77,6 +77,7 @@ namespace MyTelegramBot.BusinessLayer
 
                     db.OrdersInWork.Add(ordersInWork);
                     db.SaveChanges();
+                    ordersInWork.Follower = db.Follower.Find(FollowerId);
                     return ordersInWork;
                 }
 
@@ -243,7 +244,7 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var status = db.OrderStatus.Find(OrderStatusId);
+                var status = db.OrderStatus.Where(o=>o.Id==OrderStatusId).Include(o=>o.Status).Include(o=>o.Follower).FirstOrDefault();
                 var order = db.Orders.Find(status.OrderId);
                 if (status != null && order != null)
                 {
@@ -255,6 +256,7 @@ namespace MyTelegramBot.BusinessLayer
                     order.CurrentStatus = status.Id;
                     db.Update<Orders>(order);
                     db.SaveChanges();
+
 
                     return status;
                 }

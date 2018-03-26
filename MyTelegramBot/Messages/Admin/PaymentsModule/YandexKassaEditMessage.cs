@@ -43,7 +43,9 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
 
             if (YandexKassaConfig != null)
             {
-                base.TextMessage = "Яндекс Касса (бот не передает в Кассу данные для фискализации. Будет реализовано позднее)" + NewLine() + NewLine() +
+                base.TextMessage = "Яндекс Касса (бот не передает в Кассу данные для фискализации. Будет реализовано позднее)"+NewLine()+
+                    HrefUrl("Как подключить яндекс кассу к боту ?", "https://kassa.yandex.ru/manuals/telegram")
+                    + NewLine() + NewLine() +
                     Bold("Идентификатор магазина: ") + YandexKassaConfig.Login + NewLine() +
                     Bold("Платежный токен: ") + YandexKassaConfig.Pass + NewLine();
 
@@ -71,7 +73,8 @@ namespace MyTelegramBot.Messages.Admin.PaymentsModule
             else
             {
                 AddBtn = BuildInlineBtn("Добавить", BuildCallData(MoreSettingsBot.YandexAddCmd, MoreSettingsBot.ModuleName), base.PenEmodji);
-                base.TextMessage = "Яндекс Касса (бот не передает в Кассу данные для фискализации. Будет реализовано позднее)" + NewLine();
+                base.TextMessage = "Яндекс Касса (бот не передает в Кассу данные для фискализации. Будет реализовано позднее)" + NewLine()
+                     +HrefUrl("Как подключить яндекс кассу к боту ?", "https://kassa.yandex.ru/manuals/telegram");
                 base.MessageReplyMarkup = new InlineKeyboardMarkup(new[]
                 {
                         new[]

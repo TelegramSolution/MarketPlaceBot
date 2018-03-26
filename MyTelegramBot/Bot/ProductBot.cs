@@ -263,7 +263,7 @@ namespace MyTelegramBot.Bot
             {
 
                 var product = db.Product.Find(ProductId);
-                await SendUrl("Вернуться к товару /product" + product.Id + BotMessage.NewLine() + BotMessage.NewLine() + product.TelegraphUrl);
+                await SendUrl("Вернуться к товару /item" + product.Id + BotMessage.NewLine() + BotMessage.NewLine() + product.TelegraphUrl);
                 return OkResult;
 
             }
