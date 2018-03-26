@@ -193,10 +193,18 @@ namespace MyTelegramBot.Controllers
                 }
             }
 
-            if (update.CallbackQuery != null && update.CallbackQuery.Message != null && update.CallbackQuery.Message.Chat!=null)
-                BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.CallbackQuery.Message.Chat.Id), 
-                    update.CallbackQuery.Message.Chat.FirstName, update.CallbackQuery.Message.Chat.LastName, update.CallbackQuery.Message.Chat.Username);
+            if (update.CallbackQuery != null && update.CallbackQuery.Message != null && update.CallbackQuery.Message.Chat != null)
+                try
+                {
+                    BusinessLayer.FollowerFunction.InsertFollower(Convert.ToInt32(update.CallbackQuery.Message.Chat.Id),
+                        update.CallbackQuery.Message.Chat.FirstName, update.CallbackQuery.Message.Chat.LastName, update.CallbackQuery.Message.Chat.Username);
 
+
+                }
+                catch
+                {
+
+                }
 
             AddUpdateMsgToDb(update);
 

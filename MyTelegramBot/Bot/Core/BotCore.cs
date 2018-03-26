@@ -770,7 +770,7 @@ namespace MyTelegramBot.Bot.Core
         /// </summary>
         /// <param name="id">FileId файл на сервере телеграм</param>
         /// <returns>Возращает id записи из таблицы AttachmentFS</returns>
-        protected async Task<int> InsertToAttachmentFs(string id = null)
+        protected async Task<int> InsertToAttachmentFs(string id = null, string Caption="")
         {
             if (id == null)
                 id = FileId;
@@ -907,7 +907,7 @@ namespace MyTelegramBot.Bot.Core
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
                     InsertToAttachmentTelegram(message.MediaFile, this.AudioId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendAudioAsync(this.ChatId,message.MediaFile.FileTo,message.MediaFile.Caption,100,"audio.mp3","help",replyMarkup:message.MessageReplyMarkup);
             }
 
             catch
@@ -921,9 +921,9 @@ namespace MyTelegramBot.Bot.Core
             try
             {
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
-                    InsertToAttachmentTelegram(message.MediaFile, this.VideoId);
+                    InsertToAttachmentTelegram(message.MediaFile, message.MediaFile.FileTo.FileId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendVideoAsync(this.ChatId, message.MediaFile.FileTo, caption:message.MediaFile.Caption,replyMarkup:message.MessageReplyMarkup);
             }
 
             catch
@@ -939,7 +939,7 @@ namespace MyTelegramBot.Bot.Core
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
                     InsertToAttachmentTelegram(message.MediaFile, this.VideoNoteId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendVideoNoteAsync(this.ChatId, message.MediaFile.FileTo,replyMarkup:message.MessageReplyMarkup);
             }
 
             catch
