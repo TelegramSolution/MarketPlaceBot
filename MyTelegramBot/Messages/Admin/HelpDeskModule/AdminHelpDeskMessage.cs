@@ -82,7 +82,7 @@ namespace MyTelegramBot.Messages.Admin
 
                         HelpAnswerText += counter.ToString() + ") Комментарий:"+" " + answer.Text +" | " 
                                             +" Время:" +" " + answer.Timestamp.ToString() + " | " + " Пользователь:" + " "
-                                            +Bot.GeneralFunction.FollowerFullName(answer.FollowerId) 
+                                            + HrefUrl("https://t.me/"+answer.Follower.UserName, Bot.GeneralFunction.FollowerFullName(answer.Follower)) 
                                             +NewLine()+NewLine();
 
                         counter++;

@@ -177,6 +177,7 @@ namespace MyTelegramBot.BusinessLayer
                 Help.Closed = true;
                 db.Update<HelpDesk>(Help);
                 db.SaveChanges();
+                helpDeskAnswer.Follower = db.Follower.Find(FollowerId);
                 Help.HelpDeskAnswer.Add(helpDeskAnswer);
                 return Help;
             }
@@ -215,6 +216,7 @@ namespace MyTelegramBot.BusinessLayer
 
                 db.HelpDeskInWork.Add(helpDeskInWork);
                 db.SaveChanges();
+                helpDeskInWork.Follower = db.Follower.Find(FollowerId);
                 return helpDeskInWork;
             }
 
@@ -321,11 +323,16 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                return db.HelpDesk.Where(h => h.Number == Number)
+                var list = db.HelpDesk.Where(h => h.Number == Number)
                                     .Include(h=>h.Follower)
                                     .Include(h => h.HelpDeskAnswer)
                                     .Include(h => h.HelpDeskAttachment)
                                     .Include(h => h.HelpDeskInWork).FirstOrDefault();
+
+                foreach (var Answer in list.HelpDeskAnswer)
+                    Answer.Follower = db.Follower.Find(Answer.FollowerId);
+
+                return list;
             }
 
             catch

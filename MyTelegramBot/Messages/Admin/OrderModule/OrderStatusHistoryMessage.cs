@@ -36,14 +36,14 @@ namespace MyTelegramBot.Messages.Admin
         {
             db = new MarketBotDbContext();
 
-            OrderStatusList = db.OrderStatus.Where(s => s.OrderId == OrderId && s.Enable).Include(s => s.Status).OrderBy(s=>s.Id).ToList();
+            OrderStatusList = db.OrderStatus.Where(s => s.OrderId == OrderId && s.Enable).Include(s => s.Status).Include(s=>s.Follower).OrderBy(s=>s.Id).ToList();
 
             int counter = 1;
 
             foreach (OrderStatus os in OrderStatusList)
             {
                base.TextMessage+=counter.ToString() + ") Статус: " + os.Status.Name + " | Комментарий: " + os.Text + " | Пользователь: "
-                    + Bot.GeneralFunction.FollowerFullName(os.FollowerId) + " | Время: " + os.Timestamp.ToString() + NewLine() + NewLine();
+                    + HrefUrl("https://t.me/"+os.Follower.UserName,Bot.GeneralFunction.FollowerFullName(os.Follower)) + " | Время: " + os.Timestamp.ToString() + NewLine() + NewLine();
 
                 counter++;
             }

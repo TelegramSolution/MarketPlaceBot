@@ -442,7 +442,7 @@ namespace MyTelegramBot.Bot.Core
         /// <param name="EditMessageId"></param>
         /// <param name="ReplyToMessageId"></param>
         /// <returns></returns>
-        protected async Task<Message> SendMessage(BotMessage botMessage, int EditMessageId = 0, int ReplyToMessageId = 0)
+        protected async Task<Message> SendMessage(BotMessage botMessage, int EditMessageId = 0, int ReplyToMessageId = 0, bool DisableWeb=true)
         {
             try
             {
@@ -454,7 +454,7 @@ namespace MyTelegramBot.Bot.Core
                     return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html,false, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
                     return null;
