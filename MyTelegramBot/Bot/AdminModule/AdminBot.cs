@@ -587,8 +587,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
                         db.Configuration.FirstOrDefault().PrivateGroupChatId = base.GroupChatId.ToString();
 
-                        if (db.SaveChanges() > 0)
-                            await SendMessage(base.GroupChatId, new BotMessage { TextMessage = "Успех!" });
+                        db.SaveChanges();
+                        await SendMessage(base.GroupChatId, new BotMessage { TextMessage = "Успех!" });
 
                         db.Dispose();
 

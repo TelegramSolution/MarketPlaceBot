@@ -1120,7 +1120,7 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
-                return await SendMessage(Convert.ToInt32(BotInfo.Configuration.PrivateGroupChatId), message);
+                return await SendMessage(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId), message);
             }
 
             catch

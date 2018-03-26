@@ -455,8 +455,8 @@ namespace MyTelegramBot.Bot.AdminModule
                     var Order = OrderFunction.GetOrder(OrderId);
 
                     //уведомляем всех о новом статусе заказа
-                    string textmsg = "Пользователь:" + GeneralFunction.FollowerFullName(Order.CurrentStatusNavigation.FollowerId)
-                        + "изменил статус заказа №" + Order.Number.ToString()
+                    string textmsg = "Пользователь: " + GeneralFunction.FollowerFullName(Order.CurrentStatusNavigation.FollowerId)
+                        + " изменил статус заказа №" + Order.Number.ToString()
                         + Core.BotMessage.NewLine() + Order.CurrentStatusNavigation.Status.Name + ": " + Order.CurrentStatusNavigation.Text;
                     BotMessage = new OrderMiniViewMessage(textmsg, Order.Id);
                     await SendMessageAllBotEmployeess(BotMessage.BuildMsg());

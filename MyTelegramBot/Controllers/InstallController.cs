@@ -76,7 +76,7 @@ namespace MyTelegramBot.Controllers
         }
 
         [HttpGet]
-        public IActionResult InstallServerVersion(string token, string domainname)
+        public IActionResult InstallServerVersion(string token, string domainname, string HttpsPort="443")
         {
             db = new MarketBotDbContext();
             string name = Bot.GeneralFunction.GetBotName();
@@ -89,7 +89,7 @@ namespace MyTelegramBot.Controllers
                 if (BotInf != null)
                 {
                     BotInf.Token = token;
-                    BotInf.WebHookUrl = "https://" + domainname;
+                    BotInf.WebHookUrl = "https://" + domainname+":"+ HttpsPort;
                     BotInf.ServerVersion = true;
                     BotInf.HomeVersion = false;
                     db.SaveChanges();
@@ -100,7 +100,7 @@ namespace MyTelegramBot.Controllers
 
                 else // инф. в базе еще нет. Добавляем
                 {               
-                    InsertNewBotToDb(token, name, "https://" + domainname, true);
+                    InsertNewBotToDb(token, name, "https://" + domainname + ":" + HttpsPort, true);
                     db.Dispose();
                     return Json(token.Split(':').ElementAt(1).Substring(0, 15));
                     

@@ -24,7 +24,8 @@ namespace MyTelegramBot.Messages
 
         private int CategoryId { get; set; }
 
-        MarketBotDbContext db;
+
+        MarketBotDbContext db { get; set; }
 
 
         /// <summary>
