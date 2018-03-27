@@ -158,10 +158,13 @@ namespace MyTelegramBot.BusinessLayer
 
             try
             {
-                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId).Include(h=>h.Follower).Include(h => h.HelpDeskAttachment).
-                         Include(h => h.HelpDeskAnswer)
+                var Help = db.HelpDesk.Where(h => h.Id == HelpDeskId).Include(h=>h.Follower).Include(h => h.HelpDeskAttachment)
                         .Include(h => h.HelpDeskInWork)
                         .FirstOrDefault();
+
+                var AnswerList = db.HelpDeskAnswer.Where(a => a.HelpDeskId == HelpDeskId).Include(a => a.Follower).ToList();
+
+                Help.HelpDeskAnswer = AnswerList;
 
                 HelpDeskAnswer helpDeskAnswer = new HelpDeskAnswer
                 {
@@ -175,11 +178,17 @@ namespace MyTelegramBot.BusinessLayer
                 };
 
                 db.HelpDeskAnswer.Add(helpDeskAnswer);
+
                 Help.Closed = true;
+
                 db.Update<HelpDesk>(Help);
+
                 db.SaveChanges();
+
                 helpDeskAnswer.Follower = db.Follower.Find(FollowerId);
+
                 Help.HelpDeskAnswer.Add(helpDeskAnswer);
+
                 return Help;
             }
 
