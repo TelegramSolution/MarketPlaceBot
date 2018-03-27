@@ -127,6 +127,7 @@ namespace MyTelegramBot.BusinessLayer
 
                     db.HelpDeskAnswer.Add(helpDeskAnswer);
                     db.SaveChanges();
+                    helpDeskAnswer.Follower = db.Follower.Find(FollowerId);
                     Help.HelpDeskAnswer.Add(helpDeskAnswer);
                     return Help;
 

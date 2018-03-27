@@ -890,7 +890,7 @@ namespace MyTelegramBot.Bot.Core
                 if (message.MediaFile.AttachmentFsId > 0 && message.MediaFile.FileTo.FileId != null)
                     InsertToAttachmentTelegram(message.MediaFile, this.VoiceId);
 
-                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, Caption, 0, false, 0, message.MessageReplyMarkup);
+                return await TelegramClient.SendVoiceAsync(this.ChatId, message.MediaFile.FileTo, message.MediaFile.Caption, 0, false, 0, message.MessageReplyMarkup);
             }
 
             catch
