@@ -164,7 +164,6 @@ namespace MyTelegramBot.BusinessLayer
 
                 var AnswerList = db.HelpDeskAnswer.Where(a => a.HelpDeskId == HelpDeskId).Include(a => a.Follower).ToList();
 
-                Help.HelpDeskAnswer = AnswerList;
 
                 HelpDeskAnswer helpDeskAnswer = new HelpDeskAnswer
                 {
@@ -184,6 +183,8 @@ namespace MyTelegramBot.BusinessLayer
                 db.Update<HelpDesk>(Help);
 
                 db.SaveChanges();
+
+                Help.HelpDeskAnswer = AnswerList;
 
                 helpDeskAnswer.Follower = db.Follower.Find(FollowerId);
 
