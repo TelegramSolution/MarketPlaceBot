@@ -84,10 +84,10 @@ namespace MyTelegramBot.Messages
                         {
                                 MenuBtn,
                         },
-                    //new [] 
-                    //    {
-                    //            OpenSourceBtn
-                    //    },
+                    new []
+                        {
+                                OpenSourceBtn
+                        },
 
                  });
 

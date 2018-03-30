@@ -279,7 +279,8 @@ namespace MyTelegramBot.Bot.AdminModule
             if (WhoItWorkNow.Follower.Id == FollowerId)
             {
                 HelpDesk=HelpDeskFunction.HelpDeskClosed(HelpDeskId, FollowerId);
-                await SendHelpDesk(HelpDeskId);
+                BotMessage = new AdminHelpDeskMessage(HelpDesk);
+                await EditMessage(BotMessage.BuildMsg());
 
                 //уведомляем всех сотрудников
                 BotMessage =new HelpDeskActionNotifiMessage(HelpDesk, HelpDesk.HelpDeskAnswer.LastOrDefault());
