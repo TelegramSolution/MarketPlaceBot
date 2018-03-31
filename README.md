@@ -27,4 +27,4 @@ https://t.me/joinchat/IJImaxHdEPugfhqdq_OGcg
 https://github.com/TelegramSolution/MarketPlaceBot/releases/latest
 
 Видеодемонстрация:
-https://youtu.be/XNORkoxw_OI
+https://youtu.be/fYtglYPh-wM
