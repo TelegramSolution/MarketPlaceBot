@@ -116,6 +116,8 @@ namespace MyTelegramBot.BusinessLayer
                         Enable = Enable,
                         UnitId = UnitId,
                         CategoryId = CategoryId,
+                        TelegraphUrl=NoteUrl,
+                        Text=Text
                     };
                     db.Product.Add(product);
 
