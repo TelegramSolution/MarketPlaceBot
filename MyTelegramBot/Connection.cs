@@ -25,11 +25,7 @@ namespace MyTelegramBot
 
                 }
 
-                //if (dbContext != null)
-                //{
-                //    dbContext.Dispose();
-                //    dbContext = new MarketBotDbContext();
-                //}
+
                 return dbContext;
             }
 
