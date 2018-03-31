@@ -27,6 +27,7 @@ namespace MyTelegramBot.Messages
         private InlineKeyboardCallbackButton NextBtn { get; set; }
 
         Configuration Configuration { get; set; }
+
         public UserNameImageMessage(Configuration configuration)
         {
             Configuration = configuration;
