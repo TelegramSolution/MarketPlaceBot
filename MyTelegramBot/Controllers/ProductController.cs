@@ -235,7 +235,7 @@ namespace MyTelegramBot.Controllers
 
 
             if (image != null) // загружаем фотографию в базу данных
-                attachmentFs = ProductFunc.InsertMainPhoto(SaveProduct.Id, image.OpenReadStream(), image.Name);
+                attachmentFs = ProductFunc.InsertMainPhoto(SaveProduct.Id, image.OpenReadStream(), image.FileName);
 
 
             if (attachmentFs != null) // обновляем id фотографии  у продукта
