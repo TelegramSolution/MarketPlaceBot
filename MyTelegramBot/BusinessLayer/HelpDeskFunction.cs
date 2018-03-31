@@ -443,6 +443,7 @@ namespace MyTelegramBot.BusinessLayer
 
                 var LastHelp = db.HelpDesk.Where(h => h.Send == true).OrderByDescending(h => h.Number).Include(h => h.HelpDeskAttachment).FirstOrDefault();
 
+
                 if (Help != null)
                 {
                     int number = 1;
@@ -457,6 +458,8 @@ namespace MyTelegramBot.BusinessLayer
                     Help.Closed = false;
 
                     db.SaveChanges();
+
+                    Help.Follower = db.Follower.Find(Help.FollowerId);
 
                     return Help;
                 }

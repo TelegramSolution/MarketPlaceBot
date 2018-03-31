@@ -551,13 +551,13 @@ namespace MyTelegramBot.Bot.Core
 
             try
             {
+                
 
                 if (this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(message.CallBackTitleText);
 
                 //максимальная длина подписи для фотографии 200 символов
-                if (message.MediaFile != null && message.MediaFile.Caption != null
-                    && message.MediaFile.Caption != "" && message.MediaFile.Caption.Length < 200)
+                if (message.MediaFile != null && message.MediaFile.Caption != null && message.MediaFile.Caption.Length < 200)
                     mess = await TelegramClient.SendPhotoAsync(ChatId, message.MediaFile.FileTo, message.MediaFile.Caption, false, 0, message.MessageReplyMarkup);
 
                 if (message.MediaFile != null && message.MediaFile.Caption == null)
