@@ -21,6 +21,6 @@ https://t.me/testmcdonaldsbot
 https://t.me/joinchat/IJImaxHdEPugfhqdq_OGcg
 
 Скачать:
-https://github.com/TelegramSolution/MarketPlaceBot/releases
+https://github.com/TelegramSolution/MarketPlaceBot/releases/latest
 
 
