@@ -19,8 +19,25 @@ namespace MyTelegramBot.Bot.Core
 {
     public class BotMessage
     {
+        /// <summary>
+        /// ➖
+        /// </summary>
+        protected readonly string Minus = "\u2796";
 
+        /// <summary>
+        /// ➕
+        /// </summary>
+        protected readonly string Plus = "\u2795";
 
+        /// <summary>
+        /// 🏞
+        /// </summary>
+        protected readonly string PictureEmodji2 = "\ud83c\udfde";
+
+        /// <summary>
+        /// ℹ️
+        /// </summary>
+        protected readonly string InfoEmodji = "\u2139\ufe0f";
 
         /// <summary>
         /// 🔍 лупа
