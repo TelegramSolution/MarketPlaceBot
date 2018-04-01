@@ -49,6 +49,15 @@ namespace MyTelegramBot.Bot
 
         public const string CmdProductPage = "ProductPage";
 
+        /// <summary>
+        /// перейти на вторую стр. с кнопками
+        /// </summary>
+        public const string CmdPage2Buttons = "ProductPage2Btn";
+
+        /// <summary>
+        /// вернуться на основую стр. с нопками
+        /// </summary>
+        public const string CmdBackToMainPageButtons = "BackToMainPageBtn";
 
         public ProductBot(Update _update) : base(_update)
         {
@@ -102,6 +111,12 @@ namespace MyTelegramBot.Bot
 
                 case CmdViewFeedBack:
                     return await SendFeedBack();
+
+                case CmdPage2Buttons:
+                    return await SendSecondPageButtons(ProductId);
+
+                case CmdBackToMainPageButtons:
+                    return await SendMainPageButtons(ProductId);
             }
 
 
@@ -112,6 +127,30 @@ namespace MyTelegramBot.Bot
 
             else
                 return null;
+        }
+
+        private async Task<IActionResult> SendMainPageButtons(int ProductId)
+        {
+            ProductViewMessage productView = new ProductViewMessage(BusinessLayer.ProductFunction.GetProductById(ProductId));
+
+            await base.EditInlineReplyKeyboard(productView.MainPageButtons());
+
+            return OkResult;
+        }
+
+
+        /// <summary>
+        /// отправить вторую стр. кнопок для товара
+        /// </summary>
+        /// <param name="ProductId"></param>
+        /// <returns></returns>
+        private async Task<IActionResult> SendSecondPageButtons (int ProductId)
+        {
+            ProductViewMessage productView = new ProductViewMessage(BusinessLayer.ProductFunction.GetProductById(ProductId));
+
+            await base.EditInlineReplyKeyboard(productView.SecondPageButtons());
+
+            return OkResult;
         }
 
         /// <summary>

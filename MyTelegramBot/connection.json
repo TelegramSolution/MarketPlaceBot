@@ -1,1 +1,1 @@
-Server=localhost;Database=MarketBotDb33;Integrated Security = FALSE;Trusted_Connection = True;
+Server=localhost;Database=BgDb;Integrated Security = FALSE;Trusted_Connection = True;

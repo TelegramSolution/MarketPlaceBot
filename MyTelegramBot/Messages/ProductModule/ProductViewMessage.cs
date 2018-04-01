@@ -27,7 +27,7 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardCallbackButton ReturnToCatalogListBtn { get; set; }
 
-        private InlineKeyboardCallbackButton InfoProductBtn { get; set; }
+        private InlineKeyboardCallbackButton UrlProductBtn { get; set; }
 
         private InlineKeyboardCallbackButton ViewBasketBtn { get; set; }
 
@@ -42,6 +42,15 @@ namespace MyTelegramBot.Messages
 
         private InlineKeyboardButton SearchProductBtn { get; set; }
 
+        /// <summary>
+        /// Кнопка для отображения доп. кнопок (Отзыв, Фотографии, Подробное описание, Назад)
+        /// </summary>
+        private InlineKeyboardCallbackButton Page2Btn { get; set; }
+
+        /// <summary>
+        /// вернуться назад к основным кнопкам
+        /// </summary>
+        private InlineKeyboardCallbackButton BackToMainPageBtn { get; set; }
 
         private int CategoryId { get; set; }
 
@@ -73,20 +82,6 @@ namespace MyTelegramBot.Messages
             this.BotId = BotId;
         }
 
-        public ProductViewMessage (string ProductName)
-        {
-            try
-            {
-                this.ProductName = ProductName;
-                using (MarketBotDbContext db = new MarketBotDbContext())
-                    Product = db.Product.Where(p => p.Name == ProductName && p.Enable == true).Include(p => p.CurrentPrice).Include(p => p.Stock).FirstOrDefault();
-            }
-
-            catch
-            {
-
-            }
-        }
 
         public override BotMessage BuildMsg()
         {
@@ -112,7 +107,7 @@ namespace MyTelegramBot.Messages
 
                     GetMainPhoto(db, base.TextMessage);
 
-                    base.MessageReplyMarkup = SetInlineKeyBoard();
+                    base.MessageReplyMarkup = MainPageButtons();
 
 
                 }
@@ -162,35 +157,32 @@ namespace MyTelegramBot.Messages
         }
 
 
-        public InlineKeyboardMarkup SetInlineKeyBoard()
+        public InlineKeyboardMarkup MainPageButtons()
         {
-            NextProductBtn = ListingProduct(GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.Next2Emodji);
+            NextProductBtn = ListingProduct(GetNextProductId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.NextEmodji);
 
-            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Фотокаталог" + base.PictureEmodji, InlineFind.PhotoCatalog + "|");
+            PhotoCatalogBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(base.PictureEmodji, InlineFind.PhotoCatalog + "|");
 
-            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Поиск" + base.SearchEmodji, InlineFind.SearchProduct + "|");
+            SearchProductBtn = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(base.SearchEmodji, InlineFind.SearchProduct + "|");
 
-            PreviousProductBtn = ListingProduct(GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.Previuos2Emodji);
+            PreviousProductBtn = ListingProduct(GetPreviousId(Product.Id, Convert.ToInt32(Product.CategoryId)), base.PreviuosEmodji);
 
-            ReturnToCatalogListBtn = ReturnToCatalogList();
+            ReturnToCatalogListBtn = BuildInlineBtn("\u2934\ufe0f", BuildCallData("ReturnToCatalogList", CategoryBot.ModuleName));
 
-            ViewBasketBtn = base.BuildInlineBtn("Перейти в корзину", base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName), base.BasketEmodji);
+            ViewBasketBtn = base.BuildInlineBtn(base.BasketEmodji, base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName));
 
-            ViewAllPhotoBtn = base.BuildInlineBtn("Все фотографии", BuildCallData("ViewAllPhotoProduct", ProductBot.ModuleName, Product.Id), base.PictureEmodji);
 
-            ViewFeedBackBtn = BuildInlineBtn("Отзывы", BuildCallData(ProductBot.CmdViewFeedBack, ProductBot.ModuleName, Product.Id), base.StartEmodji);
+            Page2Btn= BuildInlineBtn(base.Next2Emodji, BuildCallData(ProductBot.CmdPage2Buttons, ProductBot.ModuleName, Product.Id));
 
-            if (Product.TelegraphUrl != null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
-                InfoProductBtn = MoreInfoProduct(Product.Id);
 
             if (Product.Stock.Count > 0 && Product.Stock.LastOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
             {
-                AddToBasketBtn = BuildInlineBtn("+", base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, Product.Id));
-                RemoveFromBasketBtn = BuildInlineBtn("-", base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, Product.Id));
+                AddToBasketBtn = BuildInlineBtn(base.Plus, base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, Product.Id));
+                RemoveFromBasketBtn = BuildInlineBtn(base.Minus, base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, Product.Id));
             }
 
 
-            if (InfoProductBtn != null && AddToBasketBtn != null)
+            if (AddToBasketBtn != null)
                 return new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -201,26 +193,21 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
-                            PhotoCatalogBtn, SearchProductBtn
+                            RemoveFromBasketBtn, AddToBasketBtn
+
                         },
                 new[]
                         {
-                            ViewAllPhotoBtn,InfoProductBtn,ViewFeedBackBtn
+                            PhotoCatalogBtn, SearchProductBtn,ViewBasketBtn,Page2Btn
                         },
                 
-                new[]
-                        {
-                            RemoveFromBasketBtn,
-                            AddToBasketBtn
-                        },
-                new[]
-                        {
-                            ViewBasketBtn
-                        }
+
 
                  });
 
-            if (InfoProductBtn == null && AddToBasketBtn != null)
+
+
+            if (AddToBasketBtn == null)
                 return new InlineKeyboardMarkup(
                 new[]{
                 new[]
@@ -231,78 +218,9 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
-                            PhotoCatalogBtn, SearchProductBtn
-                        },
-                new[]
-                        {
-                            ViewAllPhotoBtn,ViewFeedBackBtn
-                        }
-                ,
-
-                new[]
-                        {
-                            RemoveFromBasketBtn,
-                            AddToBasketBtn
-                        },
-                new[]
-                        {
-                            ViewBasketBtn
-                        }
-
-                });
-
-            if (InfoProductBtn != null && AddToBasketBtn == null)
-                return new InlineKeyboardMarkup(
-                new[]{
-                new[]
-                        {
-                            PreviousProductBtn,
-                            ReturnToCatalogListBtn,
-                            NextProductBtn
-                        },
-                new[]
-                        {
-                            PhotoCatalogBtn, SearchProductBtn
+                            PhotoCatalogBtn, SearchProductBtn,ViewBasketBtn,Page2Btn
                         },
 
-                new[]
-                        {
-                            ViewAllPhotoBtn,InfoProductBtn,ViewFeedBackBtn
-                        }
-                ,
-
-                new[]
-                        {
-                            ViewBasketBtn
-                        }
-
-                });
-
-
-            if (InfoProductBtn == null && AddToBasketBtn == null)
-                return new InlineKeyboardMarkup(
-                new[]{
-                new[]
-                        {
-                            PreviousProductBtn,
-                            ReturnToCatalogListBtn,
-                            NextProductBtn
-                        },
-                new[]
-                        {
-                            PhotoCatalogBtn, SearchProductBtn
-                        },
-
-                new[]
-                        {
-                            ViewAllPhotoBtn,ViewFeedBackBtn
-                        }
-                ,
-
-                new[]
-                        {
-                            ViewBasketBtn
-                        }
 
                 });
 
@@ -310,7 +228,50 @@ namespace MyTelegramBot.Messages
                 return null;
         }
 
+        public InlineKeyboardMarkup SecondPageButtons()
+        {
+            if (Product == null && ProductId > 0)
+                Product = BusinessLayer.ProductFunction.GetProductById(ProductId);
 
+            ViewAllPhotoBtn = base.BuildInlineBtn("Все фотографии", BuildCallData(ProductBot.ViewAllPhotoProductCmd, ProductBot.ModuleName, Product.Id), base.PictureEmodji);
+
+            ViewFeedBackBtn = base.BuildInlineBtn("Отзывы", BuildCallData(ProductBot.CmdViewFeedBack, ProductBot.ModuleName, Product.Id), base.StartEmodji);
+
+            BackToMainPageBtn = base.BuildInlineBtn(base.Previuos2Emodji, BuildCallData(ProductBot.CmdBackToMainPageButtons, ProductBot.ModuleName, Product.Id));
+
+            if (Product.TelegraphUrl != null && Product.TelegraphUrl.Length > 0) // Если есть ссылка на заметку то делаем кнопку "Подробнее"
+                UrlProductBtn = BuildInlineBtn("Подробное описание", BuildCallData(ProductBot.MoreInfoProductCmd, ProductBot.ModuleName, Product.Id));
+
+            if(UrlProductBtn!=null)
+                return new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                           ViewAllPhotoBtn,ViewFeedBackBtn
+                        },
+                new[]
+                        {
+                            BackToMainPageBtn,UrlProductBtn
+                        },
+
+
+                });
+
+            else
+                return new InlineKeyboardMarkup(
+                new[]{
+                new[]
+                        {
+                           ViewAllPhotoBtn,ViewFeedBackBtn
+                        },
+                new[]
+                        {
+                            UrlProductBtn
+                        },
+
+
+                });
+        }
 
         private InlineKeyboardCallbackButton ListingProduct(int ProductId, string BtnText)
         {
@@ -319,26 +280,6 @@ namespace MyTelegramBot.Messages
             return button;
         }
 
-        private InlineKeyboardCallbackButton MoreInfoProduct (int ProductId)
-        {
-            string data = base.BuildCallData(Bot.ProductBot.MoreInfoProductCmd, ProductBot.ModuleName,ProductId);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("Подробнее "+ base.NoteBookEmodji, data);
-            return button;
-        }
-
-        private InlineKeyboardCallbackButton ReturnToCatalogList()
-        {
-            string data = base.BuildCallData("ReturnToCatalogList",CategoryBot.ModuleName);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("\u2934\ufe0f", data);
-            return button;
-        }
-
-        private InlineKeyboardCallbackButton ViewBasket()
-        {
-            string data = base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName);
-            InlineKeyboardCallbackButton button = new InlineKeyboardCallbackButton("Посмотреть корзину"+ "\u2139\ufe0f", data);
-            return button;
-        }
 
         
         private void GetMainPhoto(MarketBotDbContext db,string Caption)

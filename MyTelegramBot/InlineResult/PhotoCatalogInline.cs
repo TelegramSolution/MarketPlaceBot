@@ -78,7 +78,7 @@ namespace MyTelegramBot.InlineResult
                     cachedPhoto.Caption = caption;
                     cachedPhoto.Id = ProductList[i].Id.ToString();
                     cachedPhoto.FileId = attach_telegram.FileId;
-                    cachedPhoto.ReplyMarkup = productView.SetInlineKeyBoard();
+                    cachedPhoto.ReplyMarkup = productView.MainPageButtons();
                     cachedPhotoList.Add(cachedPhoto);
                 }
             }
