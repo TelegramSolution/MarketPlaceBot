@@ -1179,6 +1179,9 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
+
+                await AnswerCallback();
+
                 return await TelegramClient.EditMessageReplyMarkupAsync(ChatId, MessageId, replyMarkup);
             }
 

@@ -463,19 +463,28 @@ namespace MyTelegramBot.Bot
         /// <returns></returns>
         private async Task<IActionResult> UpdateProductText()
         {
-            ProductFunction = new ProductFunction();
+            if (base.ReplyToMessageText.Length <= 100)
+            {
 
-            string Text = base.ReplyToMessageText;
+                ProductFunction = new ProductFunction();
 
-            int ProductId = ProductGet(ProductEditNameRelpy);
+                string Text = base.ReplyToMessageText;
 
-            var Product = ProductFunction.UpdateText(ProductId, Text);
+                int ProductId = ProductGet(ProductEditNameRelpy);
 
-            ProductFunction.Dispose();
+                var Product = ProductFunction.UpdateText(ProductId, Text);
 
-            return await SendProductFunc(Product);
+                ProductFunction.Dispose();
 
+                return await SendProductFunc(Product);
 
+            }
+
+            else
+            {
+                await SendMessage(new BotMessage { TextMessage = "Ошибка! Максимум 100 символов" });
+                 return OkResult;
+            }
         }
 
 

@@ -207,6 +207,9 @@ namespace MyTelegramBot.Controllers
             if(SaveProduct!=null && SaveProduct.CategoryId<1)
                 return Json("Выбертие категорию");
 
+            if(SaveProduct != null && SaveProduct.Text!=null && SaveProduct.Text.Length>100)
+                return Json("Ошибка. Максимальная длина описания 100 символов");
+
             if (!NameIsProhibited && SaveProduct != null && SaveProduct.Id > 0) // обновление уже сущ. товара
             {
                 await UpdateProduct(SaveProduct, image);

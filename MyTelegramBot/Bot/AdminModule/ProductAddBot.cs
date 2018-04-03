@@ -25,11 +25,9 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string EnterPriceForceReply = "Введите цену:";
 
-        public const string EnterDescriptionForceReply = "Введите описание:";
-
         public const string UploadImageForceReply = "Загрузите изборажение:";
 
-        public const string EnterTextForceReply = "Введите описание товара:";
+        public const string EnterTextForceReply = "Введите краткое описание:";
 
         public const string StockValueForceReply = "Введите текущее количество:";
 
@@ -149,7 +147,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 ProductFunction.Dispose();
 
-                return await SendForceReplyMessage(EnterTextForceReply + Product.Name);
+                return await SendTextMessageAndForceReply("Введите краткое описание вашего товара. Максмимум 100 символов",
+                                                            EnterTextForceReply + Product.Name);
             }
 
             else
@@ -242,17 +241,25 @@ namespace MyTelegramBot.Bot.AdminModule
 
             string units = UnitsList();
 
-            if (Product != null)
+            if (Product != null && ReplyToMessageText.Length<=100)
             {
                 Product = ProductFunction.UpdateText(Product.Id, ReplyToMessageText);
                 ProductFunction.Dispose();
                 return await SendTextMessageAndForceReply("Еденица измерения:" + units, EnterUnitForceReply + Product.Name);
             }
 
+            if (Product != null && ReplyToMessageText.Length > 100)
+            {
+                ProductFunction.Dispose();
+                return await SendTextMessageAndForceReply("Ошибка! Максимум 100 символов", EnterTextForceReply + Product.Name);
+
+            }
+
             else
             {
                 ProductFunction.Dispose();
-                return await SendForceReplyMessage(EnterTextForceReply + Product.Name);
+                return await SendTextMessageAndForceReply("Введите краткое описание вашего товара. Максмимум 100 символов", EnterTextForceReply + Product.Name);
+
             }
         }
 
