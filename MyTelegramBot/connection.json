@@ -1,1 +1,1 @@
-Server=localhost;Database=fdsdDb;Integrated Security = FALSE;Trusted_Connection = True;
+Server=localhost;Database=MacDacDB;Integrated Security = FALSE;Trusted_Connection = True;

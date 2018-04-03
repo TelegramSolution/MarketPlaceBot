@@ -144,22 +144,12 @@ namespace MyTelegramBot.Bot.Core
 
                 if (GetFrom(inlineQuery.Query) == SearchProduct)
                     BotInline = new InlineResult.ProductSearchInline(QueryLine(inlineQuery.Query));
-
+    
                 if (BotInline != null)
-                    await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
-            
+                  return  await AnswerInline(inlineQuery.Id, BotInline.GetResult());
 
-            try
-            {
-                if (BotInline != null)
-                    await TelegramBot.AnswerInlineQueryAsync(inlineQuery.Id, BotInline.GetResult());
-            }
-            catch
-            {
-
-            }
-
-            return true;
+                else
+                  return false;
         }
 
         public string GetFrom(string query)
@@ -178,6 +168,20 @@ namespace MyTelegramBot.Bot.Core
             catch
             {
                 return "";
+            }
+        }
+
+
+        private async Task<bool> AnswerInline(string inlineQueryId, InlineQueryResult [] inlineQueryResult)
+        {
+            try
+            {
+              return await TelegramBot.AnswerInlineQueryAsync(inlineQueryId, inlineQueryResult);
+            }
+
+            catch
+            {
+                return false;
             }
         }
 
