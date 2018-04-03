@@ -1,3 +1,4 @@
+
 INSERT [dbo].[Status] ([Id], [Name], [Enable]) VALUES (1, N'Ожидает обработки', 1)
 INSERT [dbo].[Status] ([Id], [Name], [Enable]) VALUES (2, N'Согласован', 1)
 INSERT [dbo].[Status] ([Id], [Name], [Enable]) VALUES (3, N'Отменен', 1)
