@@ -19,6 +19,8 @@ namespace MyTelegramBot.Model
 
         public string Path { get; set; }
 
+        public string DbName { get; set; }
+
         public string DbConnectionString { get; set; }
 
         public string HostName { get; set; }

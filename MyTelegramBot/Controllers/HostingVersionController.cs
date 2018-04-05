@@ -23,101 +23,79 @@ namespace MyTelegramBot.Controllers
 
         MarketBotDbContext DbContext { get; set; }
 
+        private string Result { get; set; }
+
+        private Model.HostInfo HostInfo { get; set; }
 
         public IActionResult Install(string token, string BotName ,bool IsDemo=false)
         {
-            if (CreateDb(BotName + "Db"))
+            string dbname = BotName + "Db";
+
+            HostInfo = new Model.HostInfo();
+
+            if (CreateDb(dbname))
             {
                 string read = ReadFile("HostInfo.json");
 
                 if (read != null)
+                    HostInfo = JsonConvert.DeserializeObject<Model.HostInfo>(read);
+
+                HostInfo.CreateTimeStamp = DateTime.Now;
+                HostInfo.BotName = BotName;
+                HostInfo.IsDemo = IsDemo;
+                HostInfo.IsFree = false;
+                HostInfo.Token = token;
+                HostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", dbname);
+                HostInfo.DbName = dbname;
+
+                WriteFile("connection.json", HostInfo.DbConnectionString);
+
+                WriteFile("HostInfo.json", JsonConvert.SerializeObject(HostInfo));
+
+                Dictionary<string, string> dictionary = new Dictionary<string, string>
                 {
-                    Model.HostInfo hostInfo = JsonConvert.DeserializeObject<Model.HostInfo>(read);
+                    { "name", BotName }
+                };
 
-                    hostInfo.CreateTimeStamp = DateTime.Now;
-                    hostInfo.BotName = BotName;
-                    hostInfo.IsDemo = IsDemo;
-                    hostInfo.IsFree = false;
-                    hostInfo.Token = token;
-                    hostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", BotName + "Db");
+                WriteFile("name.json", JsonConvert.SerializeObject(dictionary));
 
-                    WriteFile("connection.json", hostInfo.DbConnectionString);
+                return Json(HostInfo);
 
-                    WriteFile("HostInfo.json", JsonConvert.SerializeObject(hostInfo));
-
-                    return Json(hostInfo);
-
-                    //WriteFile("name.json", "{ "name": "BurgerKingTestBot" }")
-                }
-
-                else
-                {
-                    Model.HostInfo hostInfo = new Model.HostInfo();
-                    hostInfo.CreateTimeStamp = DateTime.Now;
-                    hostInfo.BotName = BotName;
-                    hostInfo.IsDemo = IsDemo;
-                    hostInfo.IsFree = false;
-                    hostInfo.Token = token;
-                    hostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", BotName + "Db");
-
-                    WriteFile("connection.json", hostInfo.DbConnectionString);
-
-                    WriteFile("HostInfo.json", JsonConvert.SerializeObject(hostInfo));
-
-                    return Json(hostInfo);
-
-                }
             }
 
             else
             {
-                Dictionary<string, string> Result = new Dictionary<string, string>();
-                Result.Add("Ok", "false");
-                Result.Add("Reslut", "Ошибка при создании базы данных");
-                return Json(Result);
+                Dictionary<string, string> dictionary = new Dictionary<string, string>
+                {
+                    { "Ok", "false" },
+                    { "Result", Result }
+                };
+
+                return Json(dictionary);
             }
         }
 
-        public bool CreateDb(string DbName)
+        public IActionResult Unistall()
         {
-            DbContext = new MarketBotDbContext();
-
             try
             {
-                string CreateSqlQuery = String.Format("CREATE DATABASE [{0}]  CONTAINMENT = NONE " +
-                    " ON  PRIMARY (NAME =N'{0}', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )," +
-                    "  FILEGROUP [BotDbFs] CONTAINS FILESTREAM  DEFAULT" +
-                    " ( NAME = N'{0}_fs', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_fs' , MAXSIZE = UNLIMITED)  LOG ON " +
-                    " ( NAME = N'{0}_log', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)", DbName);
+                string read = ReadFile("HostInfo.json");
+                Model.HostInfo hostInfo = JsonConvert.DeserializeObject<Model.HostInfo>(read);
+                hostInfo.BotName = null;
+                hostInfo.DbConnectionString = null;
+                hostInfo.Token = null;
+                hostInfo.IsFree = true;
+                hostInfo.DbName = null;
+                hostInfo.Blocked = false;
 
-                DbContext.Database.ExecuteSqlCommand(new RawSqlString(CreateSqlQuery));
+                WriteFile("HostInfo.json", JsonConvert.SerializeObject(hostInfo));
 
-                DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE "+ DbName+ " "+ ReadFile("SQL\\alter.sql")));
-
-                DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\2insert.txt")));
-
-
-                Dictionary<string, string> dictionary = new Dictionary<string, string>();
-
-                dictionary.Add("Ok", "true");
-                dictionary.Add("Result", "Успешно созада база данных " + DbName);
-
-                return true;
-
-               
+                return Ok();
             }
 
-            catch (Exception e)
+            catch
             {
-                Dictionary<string, string> dictionary = new Dictionary<string, string>();
-                dictionary.Add("Ok", "false");
-                dictionary.Add("Result", e.Message);
-                return false;
-            }
-
-            finally
-            {
-                DbContext.Dispose();
+                return NotFound();
             }
         }
 
@@ -171,6 +149,47 @@ namespace MyTelegramBot.Controllers
             catch
             {
                 return false;
+            }
+        }
+
+        private bool CreateDb(string DbName)
+        {
+            DbContext = new MarketBotDbContext();
+
+            try
+            {
+                string CreateSqlQuery = String.Format("CREATE DATABASE [{0}]  CONTAINMENT = NONE " +
+                    " ON  PRIMARY (NAME =N'{0}', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )," +
+                    "  FILEGROUP [BotDbFs] CONTAINS FILESTREAM  DEFAULT" +
+                    " ( NAME = N'{0}_fs', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_fs' , MAXSIZE = UNLIMITED)  LOG ON " +
+                    " ( NAME = N'{0}_log', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)", DbName);
+
+                DbContext.Database.ExecuteSqlCommand(new RawSqlString(CreateSqlQuery));
+
+                DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\alter.sql")));
+
+                DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\insert.sql")));
+
+
+                Dictionary<string, string> dictionary = new Dictionary<string, string>();
+
+                
+                Result= "Успешно созада база данных " + DbName;
+
+                return true;
+
+
+            }
+
+            catch (Exception e)
+            {
+                Result = e.Message;
+                return false;
+            }
+
+            finally
+            {
+                DbContext.Dispose();
             }
         }
     }
