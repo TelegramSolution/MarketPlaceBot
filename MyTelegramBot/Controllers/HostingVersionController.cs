@@ -27,6 +27,7 @@ namespace MyTelegramBot.Controllers
 
         private Model.HostInfo HostInfo { get; set; }
 
+        [HttpGet]
         public IActionResult Install(string token, string BotName ,bool IsDemo=false)
         {
             string dbname = BotName + "Db";
@@ -75,6 +76,7 @@ namespace MyTelegramBot.Controllers
             }
         }
 
+        [HttpGet]
         public IActionResult Unistall()
         {
             try
@@ -97,6 +99,16 @@ namespace MyTelegramBot.Controllers
             {
                 return NotFound();
             }
+        }
+
+        public IActionResult Block()
+        {
+            return Ok();
+        }
+
+        public IActionResult UnBlock()
+        {
+            return Ok();
         }
 
         public IActionResult UpdDbConnectionString(string ConnectionString)
@@ -169,9 +181,6 @@ namespace MyTelegramBot.Controllers
                 DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\alter.sql")));
 
                 DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\insert.sql")));
-
-
-                Dictionary<string, string> dictionary = new Dictionary<string, string>();
 
                 
                 Result= "Успешно созада база данных " + DbName;
