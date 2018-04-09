@@ -8,18 +8,20 @@ using Microsoft.AspNetCore.Mvc;
 namespace ManagementBots.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Servers")]
+    [Route("Servers")]
     public class ServersController : Controller
     {
         // GET: api/Servers
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult Index()
         {
             ManagementBots.BotMngmntDbContext botMngmntDb = new BotMngmntDbContext();
 
             var list = botMngmntDb.Server.ToList();
 
-            return Ok();
+            botMngmntDb.Dispose();
+
+            return View();
         }
 
         // GET: api/Servers/5
