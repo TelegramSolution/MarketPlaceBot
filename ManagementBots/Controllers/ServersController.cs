@@ -13,9 +13,13 @@ namespace ManagementBots.Controllers
     {
         // GET: api/Servers
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IActionResult Get()
         {
-            return new string[] { "value1", "value2" };
+            ManagementBots.BotMngmntDbContext botMngmntDb = new BotMngmntDbContext();
+
+            var list = botMngmntDb.Server.ToList();
+
+            return Ok();
         }
 
         // GET: api/Servers/5

@@ -262,7 +262,7 @@ namespace MyTelegramBot.Controllers
                 db.BotInfo.Add(botInfo);
                 db.SaveChanges();
 
-                var conf = new Configuration { BotInfoId=botInfo.Id, VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1 };
+                var conf = new Configuration { BotInfoId=botInfo.Id, VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1 , BotBlocked=false};
                 db.Configuration.Add(conf);
                 db.SaveChanges();
 

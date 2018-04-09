@@ -8,7 +8,7 @@ namespace MyTelegramBot
         public int Id { get; set; }
         public string ExampleCsvFileId { get; set; }
         public string TemplateCsvFileId { get; set; }
-        public bool? BotBlocked { get; set; }
+        public bool BotBlocked { get; set; }
         public string ManualFileId { get; set; }
 
         /// <summary>

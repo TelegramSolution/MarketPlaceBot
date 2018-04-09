@@ -27,6 +27,8 @@ namespace MyTelegramBot.Model
 
         public DateTime CreateTimeStamp { get; set; }
 
+        public string UrlWebHook { get; set; }
+
         public bool IsFree { get; set; }
 
         public bool IsDemo { get; set; }

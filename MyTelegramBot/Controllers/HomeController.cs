@@ -243,7 +243,7 @@ namespace MyTelegramBot.Controllers
                         _bot.Name = Bot.GeneralFunction.GetBotName();
                         _bot.ServerVersion = false;
                         _bot.HomeVersion = false;
-                        _bot.Configuration = new Configuration { VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1 };
+                        _bot.Configuration = new Configuration { VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1, BotBlocked = false };
                         _bot = InsertBotInfo(_bot);
                         Company company = new Company { Instagram = "https://www.instagram.com/", Vk = "https://vk.com/", Chanel = "https://t.me/", Chat = "https://t.me/" };
                         db.Company.Add(company);

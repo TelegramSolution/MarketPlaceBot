@@ -123,5 +123,57 @@ namespace MyTelegramBot.BusinessLayer
                 db.Dispose();
             }
         }
+
+        public static Configuration BotBlocked()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var conf = db.BotInfo.Where(b => b.Name == GeneralFunction.GetBotName()).Include(b => b.Configuration).FirstOrDefault().Configuration;
+
+                conf.BotBlocked = true;
+
+                db.SaveChanges();
+
+                return conf;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static Configuration BotUnblocked()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var conf = db.BotInfo.Where(b => b.Name == GeneralFunction.GetBotName()).Include(b => b.Configuration).FirstOrDefault().Configuration;
+
+                conf.BotBlocked = false;
+
+                db.SaveChanges();
+
+                return conf;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
     }
 }

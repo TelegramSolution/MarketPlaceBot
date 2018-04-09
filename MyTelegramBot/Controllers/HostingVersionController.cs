@@ -10,7 +10,7 @@ using Telegram.Bot;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-
+using System.Data.SqlClient;
 
 namespace MyTelegramBot.Controllers
 {
@@ -28,13 +28,13 @@ namespace MyTelegramBot.Controllers
         private Model.HostInfo HostInfo { get; set; }
 
         [HttpGet]
-        public IActionResult Install(string token, string BotName ,bool IsDemo=false)
+        public IActionResult Install(string Token, string BotName, string UrlWebHook, bool IsDemo=false)
         {
             string dbname = BotName + "Db";
 
             HostInfo = new Model.HostInfo();
 
-            if (CreateDb(dbname))
+            if (CreateDb(dbname) && InsertNewBotToDb(Token,BotName, UrlWebHook, true))
             {
                 string read = ReadFile("HostInfo.json");
 
@@ -45,7 +45,8 @@ namespace MyTelegramBot.Controllers
                 HostInfo.BotName = BotName;
                 HostInfo.IsDemo = IsDemo;
                 HostInfo.IsFree = false;
-                HostInfo.Token = token;
+                HostInfo.Token = Token;
+                HostInfo.UrlWebHook = UrlWebHook;
                 HostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", dbname);
                 HostInfo.DbName = dbname;
 
@@ -103,18 +104,18 @@ namespace MyTelegramBot.Controllers
 
         public IActionResult Block()
         {
+            BusinessLayer.ConfigurationFunction.BotBlocked();
+
             return Ok();
         }
 
         public IActionResult UnBlock()
         {
+            BusinessLayer.ConfigurationFunction.BotUnblocked();
+
             return Ok();
         }
 
-        public IActionResult UpdDbConnectionString(string ConnectionString)
-        {
-            return Ok();
-        }
 
         [HttpGet]
         public IActionResult GetInfo()
@@ -166,28 +167,88 @@ namespace MyTelegramBot.Controllers
 
         private bool CreateDb(string DbName)
         {
-            DbContext = new MarketBotDbContext();
+            SqlConnection sqlConnection = null;
 
             try
             {
+
+                sqlConnection = new SqlConnection("Server=localhost;Database=master;Integrated Security = FALSE;Trusted_Connection = True;");
+                sqlConnection.Open();
+
                 string CreateSqlQuery = String.Format("CREATE DATABASE [{0}]  CONTAINMENT = NONE " +
-                    " ON  PRIMARY (NAME =N'{0}', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )," +
-                    "  FILEGROUP [BotDbFs] CONTAINS FILESTREAM  DEFAULT" +
-                    " ( NAME = N'{0}_fs', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_fs' , MAXSIZE = UNLIMITED)  LOG ON " +
-                    " ( NAME = N'{0}_log', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)", DbName);
+                " ON  PRIMARY (NAME =N'{0}', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )," +
+                "  FILEGROUP [BotDbFs] CONTAINS FILESTREAM  DEFAULT" +
+                " ( NAME = N'{0}_fs', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_fs' , MAXSIZE = UNLIMITED)  LOG ON " +
+                " ( NAME = N'{0}_log', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)", DbName);
 
-                DbContext.Database.ExecuteSqlCommand(new RawSqlString(CreateSqlQuery));
+                SqlCommand sqlCommand = new SqlCommand(CreateSqlQuery, sqlConnection);
+                sqlCommand.ExecuteNonQuery();
 
-                DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\alter.sql")));
+                sqlCommand = new System.Data.SqlClient.SqlCommand("USE " + DbName + " " + ReadFile("SQL\\alter.sql"), sqlConnection);
+                sqlCommand.ExecuteNonQuery();
 
-                DbContext.Database.ExecuteSqlCommand(new RawSqlString("USE " + DbName + " " + ReadFile("SQL\\insert.sql")));
-
+                sqlCommand = new System.Data.SqlClient.SqlCommand("USE " + DbName + " " + ReadFile("SQL\\insert.txt"), sqlConnection);
+                sqlCommand.ExecuteNonQuery();
                 
                 Result= "Успешно созада база данных " + DbName;
 
                 return true;
 
 
+            }
+
+            catch (Exception e)
+            {
+                Result = e.Message;
+                return false;
+            }
+
+            finally
+            {
+                sqlConnection.Close();
+            }
+        }
+
+        private bool InsertNewBotToDb(string token, string name, string Url, bool IsServerVersion = false)
+        {
+            try
+            {
+
+                DbContext = new MarketBotDbContext();
+
+                if (token != null && name != null && Url != null)
+                {
+                    var spl = token.Split(':');
+                    int chat_id = Convert.ToInt32(spl[0]);
+
+                    BotInfo botInfo = new BotInfo
+                    {
+                        Token = token,
+                        Name = name,
+                        WebHookUrl = Url,
+                        Timestamp = DateTime.Now,
+                        HomeVersion = !IsServerVersion,
+                        ServerVersion = IsServerVersion,
+                        ChatId = chat_id
+
+                    };
+
+                    DbContext.BotInfo.Add(botInfo);
+                    DbContext.SaveChanges();
+
+                    var conf = new Configuration { BotInfoId = botInfo.Id, VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1, BotBlocked = false };
+                    DbContext.Configuration.Add(conf);
+                    DbContext.SaveChanges();
+
+                    Company company = new Company { Instagram = "https://www.instagram.com/", Vk = "https://www.vk.com/", Chanel = "https://t.me/", Chat = "https://t.me/" };
+                    DbContext.Company.Add(company);
+                    DbContext.SaveChanges();
+
+                    return true;
+                }
+
+                else
+                    return false;
             }
 
             catch (Exception e)
