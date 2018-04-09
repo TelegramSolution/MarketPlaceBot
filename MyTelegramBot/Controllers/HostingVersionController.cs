@@ -102,6 +102,7 @@ namespace MyTelegramBot.Controllers
             }
         }
 
+        [HttpGet]
         public IActionResult Block()
         {
             BusinessLayer.ConfigurationFunction.BotBlocked();
@@ -109,6 +110,7 @@ namespace MyTelegramBot.Controllers
             return Ok();
         }
 
+        [HttpGet]
         public IActionResult UnBlock()
         {
             BusinessLayer.ConfigurationFunction.BotUnblocked();
