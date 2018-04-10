@@ -9,7 +9,9 @@ namespace ManagementBots.Db
         {
             BotBlocked = new HashSet<BotBlocked>();
             BotDeleted = new HashSet<BotDeleted>();
+            DnsHistory = new HashSet<DnsHistory>();
             ServiceNavigation = new HashSet<Service>();
+            WebAppHistory = new HashSet<WebAppHistory>();
         }
 
         public int Id { get; set; }
@@ -31,6 +33,8 @@ namespace ManagementBots.Db
         public WebApp WebApp { get; set; }
         public ICollection<BotBlocked> BotBlocked { get; set; }
         public ICollection<BotDeleted> BotDeleted { get; set; }
+        public ICollection<DnsHistory> DnsHistory { get; set; }
         public ICollection<Service> ServiceNavigation { get; set; }
+        public ICollection<WebAppHistory> WebAppHistory { get; set; }
     }
 }

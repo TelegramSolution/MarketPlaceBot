@@ -8,6 +8,7 @@ namespace ManagementBots.Db
         public Dns()
         {
             Bot = new HashSet<Bot>();
+            DnsHistory = new HashSet<DnsHistory>();
         }
 
         public int Id { get; set; }
@@ -15,8 +16,9 @@ namespace ManagementBots.Db
         public string Ip { get; set; }
         public string SslPath { get; set; }
         public DateTime? TimeStamp { get; set; }
-        public bool? Enable { get; set; }
+        public bool Enable { get; set; }
 
         public ICollection<Bot> Bot { get; set; }
+        public ICollection<DnsHistory> DnsHistory { get; set; }
     }
 }

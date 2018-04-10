@@ -247,6 +247,16 @@ namespace ManagementBots.Db
             modelBuilder.Entity<DnsHistory>(entity =>
             {
                 entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Bot)
+                    .WithMany(p => p.DnsHistory)
+                    .HasForeignKey(d => d.BotId)
+                    .HasConstraintName("FK_DnsHistory_Bot");
+
+                entity.HasOne(d => d.Dns)
+                    .WithMany(p => p.DnsHistory)
+                    .HasForeignKey(d => d.DnsId)
+                    .HasConstraintName("FK_DnsHistory_DNS");
             });
 
             modelBuilder.Entity<Follower>(entity =>
@@ -444,6 +454,11 @@ namespace ManagementBots.Db
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ServiceList_Bot");
 
+                entity.HasOne(d => d.Invoice)
+                    .WithMany(p => p.Service)
+                    .HasForeignKey(d => d.InvoiceId)
+                    .HasConstraintName("FK_Service_Invoice");
+
                 entity.HasOne(d => d.ServiceType)
                     .WithMany(p => p.Service)
                     .HasForeignKey(d => d.ServiceTypeId)
@@ -462,11 +477,26 @@ namespace ManagementBots.Db
                 entity.Property(e => e.Port)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.HasOne(d => d.Server)
+                    .WithMany(p => p.WebApp)
+                    .HasForeignKey(d => d.ServerId)
+                    .HasConstraintName("FK_WebApp_Server");
             });
 
             modelBuilder.Entity<WebAppHistory>(entity =>
             {
                 entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Bot)
+                    .WithMany(p => p.WebAppHistory)
+                    .HasForeignKey(d => d.BotId)
+                    .HasConstraintName("FK_WebAppHistory_Bot");
+
+                entity.HasOne(d => d.WebApp)
+                    .WithMany(p => p.WebAppHistory)
+                    .HasForeignKey(d => d.WebAppId)
+                    .HasConstraintName("FK_WebAppHistory_WebApp");
             });
         }
     }

@@ -8,6 +8,7 @@ namespace ManagementBots.Db
         public Invoice()
         {
             Payment = new HashSet<Payment>();
+            Service = new HashSet<Service>();
         }
 
         public int Id { get; set; }
@@ -19,5 +20,6 @@ namespace ManagementBots.Db
 
         public PaymentSystem PaymentSystem { get; set; }
         public ICollection<Payment> Payment { get; set; }
+        public ICollection<Service> Service { get; set; }
     }
 }

@@ -21,6 +21,7 @@ namespace ManagementBots.Db
         public bool? IsStart { get; set; }
 
         public Bot BotNavigation { get; set; }
+        public Invoice Invoice { get; set; }
         public ServiceType ServiceType { get; set; }
         public ICollection<Bot> Bot { get; set; }
     }

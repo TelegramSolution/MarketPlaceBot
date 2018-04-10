@@ -9,5 +9,8 @@ namespace ManagementBots.Db
         public int? DnsId { get; set; }
         public int? BotId { get; set; }
         public DateTime? TimeStamp { get; set; }
+
+        public Bot Bot { get; set; }
+        public Dns Dns { get; set; }
     }
 }

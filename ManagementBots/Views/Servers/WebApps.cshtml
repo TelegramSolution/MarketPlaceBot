@@ -1,0 +1,145 @@
+﻿@model IEnumerable<ManagementBots.Db.WebApp>
+@{
+    int count = 0;
+    int? server_id = ViewBag.ServerId;
+    Layout = "_Layout";
+}
+
+<h1>@ViewBag.Title</h1>
+<h3>Добавить веб приложение</h3>
+
+
+<form class="form-inline">
+    <div class="form-group">
+        @Html.Hidden("ServerId",@server_id)
+        <label for="ServerName">Порт</label><br />
+        <input type="text" class="form-control" id="Port" placeholder="8080">
+    </div>
+
+    <div class="form-group">
+        <label for="Enable">Активен</label><br />
+        <input type="checkbox" id="Enable" value="true">
+    </div>
+
+    <div class="form-group">
+        <br />
+        <button type="button" class="btn btn-success"
+                onclick="Save('0',
+                            $('#ServerId').val(),
+                            $('#Port').val(),
+                            $('#Enable').prop('checked'))">
+            Добавить
+        </button>
+    </div>
+</form>
+<br />
+
+<h3>Список веб приложений на сервере</h3>
+
+
+<form class="form-inline">
+
+    <br />
+    @foreach (var s in Model)
+     {
+                count++;
+
+        <div class="form-group" id="@s.Id">
+            @Html.HiddenFor(m => s.Id, new { @id = "Id" + count })
+
+            @Html.HiddenFor(m => s.ServerId, new { @id = "ServerId" + count })
+
+            <div class="form-group">
+                <label for="ServerName">Порт</label><br />
+                @Html.TextBoxFor(m => s.Port, new { @id = "Port" + count, @class = "form-control" })
+            </div> 
+
+            <div class="form-group">
+                <label for="Ip">Активно</label><br />
+                @Html.CheckBoxFor(m => s.Enable, new { @id = "Enable" + count, @class = "form-control" })
+            </div>
+
+
+                <br />
+                <button type="button" class="btn btn-success"
+                        onclick="Save($('#Id'+@count).val(),
+                            $('#ServerId'+@count).val(),
+                            $('#Port'+@count).val(),
+                            $('#Enable'+@count).prop('checked'))">
+                    Сохранить
+                </button>
+
+                <button type="button" class="btn btn-danger"
+                        onclick="Delete($('#Id'+@count).val())">
+                    Удалить
+                </button>
+
+                <button type="button" class="btn btn-info" onclick="location.href = 'WebApps/Get?Id='+@s.Id;">
+                    Подробнее
+                </button>
+
+            </div>
+            <br />
+
+
+      }
+</form>
+
+
+
+<script type="text/javascript">
+
+    function Save(Id, ServerId, Port,Enable) {
+
+            var webApp = {
+                'Id': Id,
+                'ServerId': ServerId,
+                'Port': Port,
+                'Enable': Enable
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/WebApp/Post/',
+                data: JSON.stringify(webApp),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json"
+            }).done(function (data) {
+
+                if (data == 'Добавлено')
+                    location.reload();
+
+                else
+                    alert(data);
+               
+
+            }).error(function (data) {
+                // если с ответом сервера чтото пошло не так...
+            })
+        }
+
+
+        function Delete(ID) {
+            $.get(
+                "/WebApp/Delete/",
+                {
+                    Id: ID,
+                },
+                onAjaxSuccess
+            );
+
+            function onAjaxSuccess(data) {
+
+                // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+                if (data == 'Удалено')
+                    location.reload();
+
+                else
+                    alert(data);
+            }
+
+        }
+
+		
+</script>
