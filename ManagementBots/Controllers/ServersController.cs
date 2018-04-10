@@ -106,7 +106,7 @@ namespace ManagementBots.Controllers
             {
                 dbContext = new BotMngmntDbContext();
 
-                var AppsLsit = dbContext.WebApp.Where(w => w.ServerId == ServerId).ToList();
+                var AppsLsit = dbContext.WebApp.Where(w => w.ServerId == ServerId).Include(w=>w.Server).ToList();
 
                 var Server = dbContext.Server.Find(ServerId);
 

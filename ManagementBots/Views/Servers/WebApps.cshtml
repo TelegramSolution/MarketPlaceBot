@@ -50,6 +50,11 @@
             @Html.HiddenFor(m => s.ServerId, new { @id = "ServerId" + count })
 
             <div class="form-group">
+                <label for="ServerName">URL</label><br />
+                <a href="http://@s.Server.Ip:@s.Port/home">@s.Server.Ip : @s.Port</a>
+            </div> 
+
+            <div class="form-group">
                 <label for="ServerName">Порт</label><br />
                 @Html.TextBoxFor(m => s.Port, new { @id = "Port" + count, @class = "form-control" })
             </div> 
@@ -74,7 +79,7 @@
                     Удалить
                 </button>
 
-                <button type="button" class="btn btn-info" onclick="location.href = 'WebApps/Get?Id='+@s.Id;">
+                <button type="button" data-toggle="modal" data-target="#myModal" class="btn btn-info" onclick="HistoryApp() ">
                     Подробнее
                 </button>
 
@@ -86,6 +91,22 @@
 </form>
 
 
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">История</h4>
+            </div>
+            <div class="modal-body">
+                text
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">
 
@@ -119,7 +140,7 @@
         }
 
 
-        function Delete(ID) {
+    function Delete(ID) {
             $.get(
                 "/WebApp/Delete/",
                 {
@@ -141,5 +162,23 @@
 
         }
 
-		
+    function HistoryApp(ID) {
+        $.get(
+            "/WebApp/History/",
+            {
+                WebAppId: ID,
+            },
+            onAjaxSuccess
+        );
+
+        function onAjaxSuccess(data) {
+
+            $('#myModal').on('shown.bs.modal')
+            $('#myModal').html(table);
+            $('#div.modal-body').text('<p> А вот и текст! </p>');
+
+        }
+
+
+    }	
 </script>

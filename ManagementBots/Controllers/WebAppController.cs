@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ManagementBots.Db;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementBots.Controllers
 {
@@ -51,7 +52,7 @@ namespace ManagementBots.Controllers
             {
                 var repeat = DbContext.WebApp.Where(w => w.ServerId == webApp.ServerId && w.Port == webApp.Port).FirstOrDefault();
 
-                if (repeat != null)
+                if (repeat != null && webApp!=null && webApp.Id==0)
                     return Json(String.Format("Веб приложения с портом {0} уже существует", webApp.Port));
 
                 if(webApp!=null && webApp.Port!="" && webApp.ServerId>0 && webApp.Id == 0 && IsnertWebApp(webApp).Id>0)
@@ -70,6 +71,44 @@ namespace ManagementBots.Controllers
             catch (Exception e)
             {
                 return Json(e.Message);
+            }
+
+            finally
+            {
+                DbContext.Dispose();
+            }
+        }
+
+        [HttpGet]
+        public IActionResult History(int WebAppId)
+        {
+            DbContext = new BotMngmntDbContext();
+
+            try
+            {
+                var list = DbContext.WebAppHistory.Where(h => h.WebAppId == WebAppId).Include(h => h.Bot).ToList();
+
+                List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+
+
+                foreach(var history in list)
+                {
+                    Dictionary<string, string> row = new Dictionary<string, string>();
+
+                    row.Add("Id",history.Id.ToString());
+                    row.Add("TimeStamp", history.TimeStamp.ToString());
+                    row.Add("BotName", history.Bot.BotName);
+                    row.Add("BotId", history.BotId.ToString());
+
+                    result.Add(row);
+                }
+
+                return Json(result);
+            }
+
+            catch
+            {
+                return NotFound();
             }
 
             finally
