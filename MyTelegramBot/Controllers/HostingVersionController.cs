@@ -83,12 +83,19 @@ namespace MyTelegramBot.Controllers
             try
             {
                 string read = ReadFile("HostInfo.json");
+
                 Model.HostInfo hostInfo = JsonConvert.DeserializeObject<Model.HostInfo>(read);
+
+                DetachDatabase(hostInfo.DbName);
+
+                DeleteDatabaseFile(hostInfo.DbName);
+
                 hostInfo.BotName = null;
                 hostInfo.DbConnectionString = null;
                 hostInfo.Token = null;
                 hostInfo.IsFree = true;
                 hostInfo.DbName = null;
+                hostInfo.UrlWebHook = null;
                 hostInfo.Blocked = false;
 
                 WriteFile("HostInfo.json", JsonConvert.SerializeObject(hostInfo));
@@ -118,6 +125,28 @@ namespace MyTelegramBot.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        /// <summary>
+        /// отправить владельцу бота с помощью его же бота текстовое сообщение
+        /// </summary>
+        /// <param name="Text"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> SendTextMsgToOwner(string Text)
+        {
+            var  result = await Bot.GeneralFunction.SendTextMsgToOwner(Text);
+
+            if (result != null)
+                return Ok();
+
+            else
+               return NotFound();
+        }
+
+        [HttpGet]
+        public IActionResult Test()
+        {
+            return Ok();
+        }
 
         [HttpGet]
         public IActionResult GetInfo()
@@ -186,10 +215,10 @@ namespace MyTelegramBot.Controllers
                 SqlCommand sqlCommand = new SqlCommand(CreateSqlQuery, sqlConnection);
                 sqlCommand.ExecuteNonQuery();
 
-                sqlCommand = new System.Data.SqlClient.SqlCommand("USE " + DbName + " " + ReadFile("SQL\\alter.sql"), sqlConnection);
+                sqlCommand = new SqlCommand("USE " + DbName + " " + ReadFile("SQL\\alter.sql"), sqlConnection);
                 sqlCommand.ExecuteNonQuery();
 
-                sqlCommand = new System.Data.SqlClient.SqlCommand("USE " + DbName + " " + ReadFile("SQL\\insert.txt"), sqlConnection);
+                sqlCommand = new SqlCommand("USE " + DbName + " " + ReadFile("SQL\\insert.txt"), sqlConnection);
                 sqlCommand.ExecuteNonQuery();
                 
                 Result= "Успешно созада база данных " + DbName;
@@ -262,6 +291,58 @@ namespace MyTelegramBot.Controllers
             finally
             {
                 DbContext.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Отсоеденить базу данных
+        /// </summary>
+        /// <param name="DbName"></param>
+        /// <returns></returns>
+        private bool DetachDatabase(string DbName)
+        {
+            SqlConnection sqlConnection = null;
+
+            try
+            {
+                sqlConnection = new SqlConnection("Server=localhost;Database=master;Integrated Security = FALSE;Trusted_Connection = True;");
+                sqlConnection.Open();
+
+                SqlCommand sqlCommand = new SqlCommand(String.Format("EXEC sp_detach_db '{0}', 'true';",DbName), sqlConnection);
+                sqlCommand.ExecuteNonQuery();
+
+                return true;
+            }
+
+            catch
+            {
+                return false;
+            }
+
+            finally
+            {
+                sqlConnection.Close();
+            }
+        }
+
+        private bool DeleteDatabaseFile(string DbName)
+        {
+            string path = @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\";
+
+            try
+            {
+                System.IO.File.Delete(String.Format(path + "{0}.mdf", DbName));
+
+                System.IO.File.Delete(String.Format(path + "{0}_log.ldf", DbName));
+
+                Directory.Delete(String.Format(path+ "{0}_fs",DbName), true);
+
+                return true;
+            }
+
+            catch
+            {
+                return false;
             }
         }
     }

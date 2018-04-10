@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ManagementBots.Db;
 
 namespace ManagementBots.Controllers
 {
@@ -15,13 +16,13 @@ namespace ManagementBots.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            ManagementBots.BotMngmntDbContext botMngmntDb = new BotMngmntDbContext();
+            BotMngmntDbContext botMngmntDb = new BotMngmntDbContext();
 
             var list = botMngmntDb.Server.ToList();
 
             botMngmntDb.Dispose();
 
-            return View();
+            return View("Index2",list);
         }
 
         // GET: api/Servers/5

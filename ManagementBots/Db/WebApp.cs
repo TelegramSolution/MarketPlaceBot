@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagementBots
+namespace ManagementBots.Db
 {
-    public partial class Dns
+    public partial class WebApp
     {
-        public Dns()
+        public WebApp()
         {
             Bot = new HashSet<Bot>();
         }
 
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Ip { get; set; }
-        public string SslPath { get; set; }
-        public DateTime? TimeStamp { get; set; }
+        public int? ServerId { get; set; }
+        public string Port { get; set; }
         public bool? Enable { get; set; }
 
         public ICollection<Bot> Bot { get; set; }

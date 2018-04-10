@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagementBots
+namespace ManagementBots.Db
 {
     public partial class Configuration
     {
@@ -12,6 +12,10 @@ namespace ManagementBots
         public bool? VerifyTelephone { get; set; }
         public bool? OwnerPrivateNotify { get; set; }
         public string UserNameFaqFileId { get; set; }
+        public double? Price { get; set; }
+        public int? DemoVersionDuration { get; set; }
+        public int? WaitingDayForPayment { get; set; }
+        public string Sslpath { get; set; }
 
         public BotInfo BotInfo { get; set; }
     }

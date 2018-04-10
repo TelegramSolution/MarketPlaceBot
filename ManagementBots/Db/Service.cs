@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagementBots
+namespace ManagementBots.Db
 {
-    public partial class ServiceList
+    public partial class Service
     {
-        public ServiceList()
+        public Service()
         {
             Bot = new HashSet<Bot>();
         }
 
         public int Id { get; set; }
-        public int? BotId { get; set; }
+        public int BotId { get; set; }
         public int? ServiceTypeId { get; set; }
         public int? InvoiceId { get; set; }
         public DateTime? CreateTimeStamp { get; set; }

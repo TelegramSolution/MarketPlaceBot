@@ -2,10 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace ManagementBots
+namespace ManagementBots.Db
 {
     public partial class BotMngmntDbContext : DbContext
     {
+        public virtual DbSet<ActionHistory> ActionHistory { get; set; }
+        public virtual DbSet<ActionType> ActionType { get; set; }
         public virtual DbSet<AttachmentFs> AttachmentFs { get; set; }
         public virtual DbSet<AttachmentTelegram> AttachmentTelegram { get; set; }
         public virtual DbSet<AttachmentType> AttachmentType { get; set; }
@@ -25,8 +27,9 @@ namespace ManagementBots
         public virtual DbSet<Notification> Notification { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
         public virtual DbSet<PaymentSystem> PaymentSystem { get; set; }
+        public virtual DbSet<PaymentSystemConfig> PaymentSystemConfig { get; set; }
         public virtual DbSet<Server> Server { get; set; }
-        public virtual DbSet<ServiceList> ServiceList { get; set; }
+        public virtual DbSet<Service> Service { get; set; }
         public virtual DbSet<ServiceType> ServiceType { get; set; }
         public virtual DbSet<WebApp> WebApp { get; set; }
         public virtual DbSet<WebAppHistory> WebAppHistory { get; set; }
@@ -42,6 +45,27 @@ namespace ManagementBots
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ActionHistory>(entity =>
+            {
+                entity.Property(e => e.Text)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+                entity.HasOne(d => d.ActionType)
+                    .WithMany(p => p.ActionHistory)
+                    .HasForeignKey(d => d.ActionTypeId)
+                    .HasConstraintName("FK_ActionHistory_ActionType");
+            });
+
+            modelBuilder.Entity<ActionType>(entity =>
+            {
+                entity.Property(e => e.Name)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<AttachmentFs>(entity =>
             {
                 entity.HasIndex(e => e.GuId)
@@ -108,11 +132,6 @@ namespace ManagementBots
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.CurrentService)
-                    .WithMany(p => p.Bot)
-                    .HasForeignKey(d => d.CurrentServiceId)
-                    .HasConstraintName("FK_Bot_ServiceList");
-
                 entity.HasOne(d => d.DomainName)
                     .WithMany(p => p.Bot)
                     .HasForeignKey(d => d.DomainNameId)
@@ -122,6 +141,11 @@ namespace ManagementBots
                     .WithMany(p => p.Bot)
                     .HasForeignKey(d => d.FollowerId)
                     .HasConstraintName("FK_Bot_Follower");
+
+                entity.HasOne(d => d.Service)
+                    .WithMany(p => p.Bot)
+                    .HasForeignKey(d => d.ServiceId)
+                    .HasConstraintName("FK_Bot_ServiceList");
 
                 entity.HasOne(d => d.WebApp)
                     .WithMany(p => p.Bot)
@@ -184,6 +208,11 @@ namespace ManagementBots
 
                 entity.Property(e => e.PrivateGroupChatId)
                     .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Sslpath)
+                    .HasColumnName("SSLPath")
+                    .HasMaxLength(255)
                     .IsUnicode(false);
 
                 entity.Property(e => e.UserNameFaqFileId)
@@ -361,6 +390,29 @@ namespace ManagementBots
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<PaymentSystemConfig>(entity =>
+            {
+                entity.Property(e => e.Login)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Pass)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Server)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+
+                entity.HasOne(d => d.PaymentSystem)
+                    .WithMany(p => p.PaymentSystemConfig)
+                    .HasForeignKey(d => d.PaymentSystemId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_PaymentSystemConfig_PaymentSystem");
+            });
+
             modelBuilder.Entity<Server>(entity =>
             {
                 entity.Property(e => e.Ip)
@@ -371,24 +423,29 @@ namespace ManagementBots
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Text)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.WanIp)
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });
 
-            modelBuilder.Entity<ServiceList>(entity =>
+            modelBuilder.Entity<Service>(entity =>
             {
                 entity.Property(e => e.CreateTimeStamp).HasColumnType("datetime");
 
                 entity.Property(e => e.StartTimeStamp).HasColumnType("datetime");
 
                 entity.HasOne(d => d.BotNavigation)
-                    .WithMany(p => p.ServiceList)
+                    .WithMany(p => p.ServiceNavigation)
                     .HasForeignKey(d => d.BotId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ServiceList_Bot");
 
                 entity.HasOne(d => d.ServiceType)
-                    .WithMany(p => p.ServiceList)
+                    .WithMany(p => p.Service)
                     .HasForeignKey(d => d.ServiceTypeId)
                     .HasConstraintName("FK_ServiceList_ServiceType");
             });

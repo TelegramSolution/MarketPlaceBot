@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagementBots
+namespace ManagementBots.Db
 {
     public partial class Server
     {
@@ -10,5 +10,6 @@ namespace ManagementBots
         public string Ip { get; set; }
         public string WanIp { get; set; }
         public bool? Enable { get; set; }
+        public string Text { get; set; }
     }
 }

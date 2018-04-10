@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ManagementBots
+namespace ManagementBots.Db
 {
     public partial class HelpDeskAttachment
     {
