@@ -53,7 +53,7 @@ namespace ManagementBots.Controllers
                 var repeat = DbContext.WebApp.Where(w => w.ServerId == webApp.ServerId && w.Port == webApp.Port).FirstOrDefault();
 
                 if (repeat != null && webApp!=null && webApp.Id==0)
-                    return Json(String.Format("Веб приложения с портом {0} уже существует", webApp.Port));
+                    return Json(String.Format("Веб приложение с портом {0} уже существует", webApp.Port));
 
                 if(webApp!=null && webApp.Port!="" && webApp.ServerId>0 && webApp.Id == 0 && IsnertWebApp(webApp).Id>0)
                     return Json("Добавлено");
