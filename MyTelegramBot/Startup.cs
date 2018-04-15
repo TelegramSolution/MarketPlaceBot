@@ -52,7 +52,7 @@ namespace MyTelegramBot
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            app.UseMiddleware<AdminWhiteListMiddleware>();
+           // app.UseMiddleware<AdminWhiteListMiddleware>();
 
             app.UseMvc();
 

@@ -47,11 +47,11 @@
         <div class="form-group" id="@s.Id">
             @Html.HiddenFor(m => s.Id, new { @id = "Id" + count })
 
-            @Html.HiddenFor(m => s.ServerId, new { @id = "ServerId" + count })
+            @Html.HiddenFor(m => s.ServerWebAppId, new { @id = "ServerId" + count })
 
             <div class="form-group">
                 <label for="ServerName">URL</label><br />
-                <a href="http://@s.Server.Ip:@s.Port/home">@s.Server.Ip : @s.Port</a>
+                <a href="http://@s.ServerWebApp.Ip:@s.Port/home">@s.ServerWebApp.Ip : @s.Port</a>
             </div> 
 
             <div class="form-group">

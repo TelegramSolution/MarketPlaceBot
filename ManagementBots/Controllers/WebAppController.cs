@@ -50,15 +50,15 @@ namespace ManagementBots.Controllers
 
             try
             {
-                var repeat = DbContext.WebApp.Where(w => w.ServerId == webApp.ServerId && w.Port == webApp.Port).FirstOrDefault();
+                var repeat = DbContext.WebApp.Where(w => w.ServerWebAppId == webApp.ServerWebAppId && w.Port == webApp.Port).FirstOrDefault();
 
                 if (repeat != null && webApp!=null && webApp.Id==0)
                     return Json(String.Format("Веб приложение с портом {0} уже существует", webApp.Port));
 
-                if(webApp!=null && webApp.Port!="" && webApp.ServerId>0 && webApp.Id == 0 && IsnertWebApp(webApp).Id>0)
+                if(webApp!=null && webApp.Port!="" && webApp.ServerWebAppId > 0 && webApp.Id == 0 && IsnertWebApp(webApp).Id>0)
                     return Json("Добавлено");
 
-                if(webApp != null && webApp.Port != "" && webApp.ServerId > 0 && webApp.Id > 0)
+                if(webApp != null && webApp.Port != "" && webApp.ServerWebAppId > 0 && webApp.Id > 0)
                 {
                     UpdateWebApp(webApp);
                     return Json("Сохранено");

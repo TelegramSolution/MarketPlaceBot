@@ -6,13 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 using ManagementBots.Db;
 using Microsoft.EntityFrameworkCore;
 using ManagementBots.BusinessLayer;
-
+using System.IO;
 
 namespace ManagementBots.Controllers
 {
     public class DNSController : Controller
     {
         BotMngmntDbContext DbContext { get; set; }
+
+        SshFunction ssh { get; set; }
 
         [HttpGet]
         public IActionResult Index()
@@ -35,7 +37,7 @@ namespace ManagementBots.Controllers
 
                 if (dns != null && dns.Name != null && dns.Name != "" && dns.Ip != "" && dns.Id > 0)
                 {
-                    UpdateDns(dns);
+                    DbUpdateDns(dns);
                     return Json("Сохранено");
                 }
 
@@ -46,8 +48,8 @@ namespace ManagementBots.Controllers
 
                 if (dns != null && dns.Name != null && dns.Name != "" && dns.Ip != "" && dns.Id == 0)
                 {
-                    dns.SslPath = BusinessLayer.SSL.GenerateSSL(GeneralFunction.SslNetworkFolder(), dns.Name);
-                    InsertDns(dns);
+                    CreateDNS(dns);
+
                     return Json("Добавлено");
                 }
 
@@ -145,7 +147,35 @@ namespace ManagementBots.Controllers
             }
         }
 
-        private Dns InsertDns(Dns dns)
+        private Dns CreateDNS(Dns dns)
+        {
+
+            //генерируем сертификат
+            BusinessLayer.SSL.GenerateSSL(GeneralFunction.SslPathOnMainServer(), dns.Name);
+
+            //копируем файлы сертификата на прокси сервера
+            var ProxyList = DbContext.ProxyServer.Where(p => p.Enable).ToList();
+
+            foreach (var proxy in ProxyList)
+            {
+                ssh = new SshFunction(proxy.Ip, proxy.CertPath, proxy.UserName, proxy.PassPhrase);
+
+                ssh.ConnectToServer();
+
+                ssh.SCPFile(OpenFile(dns.PublicKeyPathOnMainServer()), dns.PublicKeyPathOnProxy());
+
+                ssh.SCPFile(OpenFile(dns.PrivateKeyPathOnMainServer()), dns.PrivateKeyPathOnProxy());
+
+                ssh.Disconnect();
+            }
+
+            dns.SslPathOnProxy = GeneralFunction.SslPathOnProxyServer();
+            dns.SslPathOnMainServer = GeneralFunction.SslPathOnMainServer();
+            return DbInsertDns(dns);
+
+        }
+
+        private Dns DbInsertDns(Dns dns)
         {
             dns.TimeStamp = DateTime.Now;
 
@@ -157,14 +187,28 @@ namespace ManagementBots.Controllers
             return dns;
         }
 
-
-        private Dns UpdateDns(Dns dns)
+        private Dns DbUpdateDns(Dns _dns)
         {
+            var dns = DbContext.Dns.Find(_dns.Id);
+
+            dns.Name = _dns.Name;
+            dns.Enable = _dns.Enable;
+            dns.Ip = _dns.Ip;
+            
             DbContext.Update<Dns>(dns);
 
             DbContext.SaveChanges();
 
             return dns;
+        }
+
+        private Stream OpenFile(string Path)
+        {
+            FileStream fstream = System.IO.File.OpenRead(Path);
+
+            return fstream;
+
+
         }
     }
 }

@@ -66,11 +66,6 @@
                @Html.CheckBoxFor(m => s.Enable, new { @id = "Enable" + count, @class = "form-control" })
             </div>
 
-            <div class="form-group">
-                <label for="SslPath">Путь до SSL сертификата</label><br />
-                @Html.DisplayFor(m=>s.SslPath, new { @id = "SslPath" + count, @class = "form-control" })
-            </div>
-
                 <br />
                 <button type="button" class="btn btn-success"
                         onclick="Save($('#Id'+@count).val(),
@@ -86,10 +81,6 @@
                     Удалить
                 </button>
 
-                <button type="button" class="btn btn-info" onclick="location.href = '/Dns/History?Id='+@s.Id;">
-                    История
-                </button>
-
             </div>
             <br />
 
@@ -101,13 +92,12 @@
 
 <script type="text/javascript">
 
-    function Save(Id, Name, Ip, Enable, SSLPath) {
+    function Save(Id, Name, Ip, Enable) {
 
             var dns = {
                 'Id': Id,
                 'Name': Name,
                 'Ip': Ip,
-                'SSLPath': SSLPath,
                 'Enable': Enable,
             }
 

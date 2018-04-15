@@ -19,7 +19,7 @@ namespace ManagementBots.Controllers
         {
             BotMngmntDbContext botMngmntDb = new BotMngmntDbContext();
 
-            var list = botMngmntDb.Server.ToList();
+            var list = botMngmntDb.ServerWebApp.ToList();
 
             botMngmntDb.Dispose();
 
@@ -28,7 +28,7 @@ namespace ManagementBots.Controllers
 
 
         [HttpPost]
-        public IActionResult Save([FromBody] Server server)
+        public IActionResult Save([FromBody] ServerWebApp server)
         {
             dbContext = new BotMngmntDbContext();
 
@@ -36,13 +36,13 @@ namespace ManagementBots.Controllers
             {
                 if (server != null && server.ServerName != "" && server.Ip != "" && server.WanIp != "" && server.Id==0)
                 {
-                    if (dbContext.Server.Where(s => s.ServerName == server.ServerName).FirstOrDefault() != null)
+                    if (dbContext.ServerWebApp.Where(s => s.ServerName == server.ServerName).FirstOrDefault() != null)
                         return Json("Сервер с таким именем существует");
 
-                    if (dbContext.Server.Where(s => s.Ip == server.Ip).FirstOrDefault() != null)
+                    if (dbContext.ServerWebApp.Where(s => s.Ip == server.Ip).FirstOrDefault() != null)
                         return Json("Сервер с таким ip - адресом существует");
 
-                    if (dbContext.Server.Where(s => s.WanIp == server.WanIp).FirstOrDefault() != null)
+                    if (dbContext.ServerWebApp.Where(s => s.WanIp == server.WanIp).FirstOrDefault() != null)
                         return Json("Сервер с таким внешним ip - адресом существует");
 
                     if (server.Id == 0 && InsertServer(server) != null)
@@ -79,9 +79,9 @@ namespace ManagementBots.Controllers
 
             try
             {
-                var server = dbContext.Server.Find(Id);
+                var server = dbContext.ServerWebApp.Find(Id);
 
-                dbContext.Remove<Server>(server);
+                dbContext.Remove<ServerWebApp>(server);
 
                 dbContext.SaveChanges();
 
@@ -106,9 +106,9 @@ namespace ManagementBots.Controllers
             {
                 dbContext = new BotMngmntDbContext();
 
-                var AppsLsit = dbContext.WebApp.Where(w => w.ServerId == ServerId).Include(w=>w.Server).ToList();
+                var AppsLsit = dbContext.WebApp.Where(w => w.ServerWebAppId == ServerId).Include(w=>w.ServerWebApp).ToList();
 
-                var Server = dbContext.Server.Find(ServerId);
+                var Server = dbContext.ServerWebApp.Find(ServerId);
 
                 ViewBag.ServerId = ServerId;
 
@@ -128,10 +128,10 @@ namespace ManagementBots.Controllers
             }
         }
 
-        private Server InsertServer(Server server)
+        private ServerWebApp InsertServer(ServerWebApp server)
         {
 
-            dbContext.Server.Add(server);
+            dbContext.ServerWebApp.Add(server);
 
             dbContext.SaveChanges();
 
@@ -140,10 +140,10 @@ namespace ManagementBots.Controllers
 
         }
 
-        private Server UpdateServer(Server server)
+        private ServerWebApp UpdateServer(ServerWebApp server)
         {
 
-            dbContext.Update<Server>(server);
+            dbContext.Update<ServerWebApp>(server);
 
             dbContext.SaveChanges();
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace ManagementBots.Db
 {
-    public partial class Server
+    public partial class ServerWebApp
     {
-        public Server()
+        public ServerWebApp()
         {
             WebApp = new HashSet<WebApp>();
         }

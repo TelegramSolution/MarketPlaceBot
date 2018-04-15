@@ -12,6 +12,7 @@ namespace ManagementBots.Db
             DnsHistory = new HashSet<DnsHistory>();
             ServiceNavigation = new HashSet<Service>();
             WebAppHistory = new HashSet<WebAppHistory>();
+            WebHookUrlHistory = new HashSet<WebHookUrlHistory>();
         }
 
         public int Id { get; set; }
@@ -21,20 +22,24 @@ namespace ManagementBots.Db
         public DateTime? CreateTimeStamp { get; set; }
         public int? FollowerId { get; set; }
         public int? WebAppId { get; set; }
-        public int? DomainNameId { get; set; }
+        public int? ProxyServeId { get; set; }
+        public int? WebHookUrlId { get; set; }
         public int? ServiceId { get; set; }
         public bool? Visable { get; set; }
         public bool? Deleted { get; set; }
         public bool? Blocked { get; set; }
+        public bool? Launched { get; set; }
 
-        public Dns DomainName { get; set; }
         public Follower Follower { get; set; }
+        public ProxyServer ProxyServe { get; set; }
         public Service Service { get; set; }
         public WebApp WebApp { get; set; }
+        public WebHookUrl WebHookUrl { get; set; }
         public ICollection<BotBlocked> BotBlocked { get; set; }
         public ICollection<BotDeleted> BotDeleted { get; set; }
         public ICollection<DnsHistory> DnsHistory { get; set; }
         public ICollection<Service> ServiceNavigation { get; set; }
         public ICollection<WebAppHistory> WebAppHistory { get; set; }
+        public ICollection<WebHookUrlHistory> WebHookUrlHistory { get; set; }
     }
 }

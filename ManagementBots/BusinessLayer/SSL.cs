@@ -9,10 +9,10 @@ namespace ManagementBots.BusinessLayer
 {
     public class SSL
     {
-        public static string GenerateSSL(string Path, string DomainName)
+        public static string GenerateSSL(string CertDirectory, string DomainName)
         {
             //папка где будет хранится сертификат
-            string CertDirectory = Path + "\\" + DomainName+"\\";
+            
 
             //путь до файл openssl.exe
             string openssl = Directory.GetCurrentDirectory() + "\\Files\\OpenSsl\\bin\\openssl.exe";
