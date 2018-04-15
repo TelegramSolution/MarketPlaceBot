@@ -171,7 +171,19 @@ namespace ManagementBots.Controllers
 
             dns.SslPathOnProxy = GeneralFunction.SslPathOnProxyServer();
             dns.SslPathOnMainServer = GeneralFunction.SslPathOnMainServer();
-            return DbInsertDns(dns);
+
+            var HttpPortList = DbContext.WebHookPort.Where(p => p.Enable).ToList();
+
+            dns=DbInsertDns(dns);
+
+            foreach (var port in HttpPortList)
+            {
+                WebHookUrl hookUrl = new WebHookUrl { DnsId = dns.Id, IsFree = true, PortId = port.Id , Controller="bot"};
+                DbContext.WebHookUrl.Add(hookUrl);
+                DbContext.SaveChanges();
+            }
+
+            return dns;
 
         }
 
@@ -210,5 +222,7 @@ namespace ManagementBots.Controllers
 
 
         }
+
+
     }
 }
