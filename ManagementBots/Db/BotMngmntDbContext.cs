@@ -29,6 +29,8 @@ namespace ManagementBots.Db
         public virtual DbSet<PaymentSystem> PaymentSystem { get; set; }
         public virtual DbSet<PaymentSystemConfig> PaymentSystemConfig { get; set; }
         public virtual DbSet<ProxyServer> ProxyServer { get; set; }
+        public virtual DbSet<ReserveWebApp> ReserveWebApp { get; set; }
+        public virtual DbSet<ReserveWebHookUrl> ReserveWebHookUrl { get; set; }
         public virtual DbSet<ServerWebApp> ServerWebApp { get; set; }
         public virtual DbSet<Service> Service { get; set; }
         public virtual DbSet<ServiceType> ServiceType { get; set; }
@@ -155,11 +157,6 @@ namespace ManagementBots.Db
                     .WithMany(p => p.Bot)
                     .HasForeignKey(d => d.WebAppId)
                     .HasConstraintName("FK_Bot_WebApp");
-
-                entity.HasOne(d => d.WebHookUrl)
-                    .WithMany(p => p.Bot)
-                    .HasForeignKey(d => d.WebHookUrlId)
-                    .HasConstraintName("FK_Bot_WebHookUrl");
             });
 
             modelBuilder.Entity<BotBlocked>(entity =>
@@ -253,7 +250,6 @@ namespace ManagementBots.Db
                 entity.Property(e => e.SslPathOnProxy)
                     .HasMaxLength(255)
                     .IsUnicode(false);
-
 
                 entity.Property(e => e.TimeStamp).HasColumnType("datetime");
             });
@@ -451,14 +447,71 @@ namespace ManagementBots.Db
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.Property(e => e.UserName)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-
                 entity.Property(e => e.PassPhrase)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.UserName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<ReserveWebApp>(entity =>
+            {
+                entity.HasKey(e => new { e.BotId, e.WebAppId });
+
+                entity.HasIndex(e => e.BotId)
+                    .HasName("IX_ReserveWebApp_BotId")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.WebAppId)
+                    .HasName("IX_ReserveWebApp_Id")
+                    .IsUnique();
+
+                entity.Property(e => e.TimeStampEnd).HasColumnType("datetime");
+
+                entity.Property(e => e.TimeStampStart).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Bot)
+                    .WithOne(p => p.ReserveWebApp)
+                    .HasForeignKey<ReserveWebApp>(d => d.BotId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ReserveWebApp_Bot");
+
+                entity.HasOne(d => d.WebApp)
+                    .WithOne(p => p.ReserveWebApp)
+                    .HasForeignKey<ReserveWebApp>(d => d.WebAppId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ReserveWebApp_WebApp");
+            });
+
+            modelBuilder.Entity<ReserveWebHookUrl>(entity =>
+            {
+                entity.HasKey(e => new { e.BotId, e.WebHookUrlId });
+
+                entity.HasIndex(e => e.BotId)
+                    .HasName("IX_ReserveWebHookUrl_BotId")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.WebHookUrlId)
+                    .HasName("IX_ReserveWebHookUrl_Id")
+                    .IsUnique();
+
+                entity.Property(e => e.TimeStampEnd).HasColumnType("datetime");
+
+                entity.Property(e => e.TimeStampStart).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Bot)
+                    .WithOne(p => p.ReserveWebHookUrl)
+                    .HasForeignKey<ReserveWebHookUrl>(d => d.BotId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ReserveWebHookUrl_Bot");
+
+                entity.HasOne(d => d.WebHookUrl)
+                    .WithOne(p => p.ReserveWebHookUrl)
+                    .HasForeignKey<ReserveWebHookUrl>(d => d.WebHookUrlId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ReserveWebHookUrl_WebHookUrl");
             });
 
             modelBuilder.Entity<ServerWebApp>(entity =>
@@ -550,6 +603,7 @@ namespace ManagementBots.Db
                 entity.HasOne(d => d.Dns)
                     .WithMany(p => p.WebHookUrl)
                     .HasForeignKey(d => d.DnsId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_WebHookUrl_DNS");
 
                 entity.HasOne(d => d.Port)

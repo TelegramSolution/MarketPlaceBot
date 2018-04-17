@@ -25,16 +25,17 @@ namespace ManagementBots.Db
         public int? ProxyServeId { get; set; }
         public int? WebHookUrlId { get; set; }
         public int? ServiceId { get; set; }
-        public bool? Visable { get; set; }
-        public bool? Deleted { get; set; }
-        public bool? Blocked { get; set; }
-        public bool? Launched { get; set; }
+        public bool Visable { get; set; }
+        public bool Deleted { get; set; }
+        public bool Blocked { get; set; }
+        public bool Launched { get; set; }
 
         public Follower Follower { get; set; }
         public ProxyServer ProxyServe { get; set; }
         public Service Service { get; set; }
         public WebApp WebApp { get; set; }
-        public WebHookUrl WebHookUrl { get; set; }
+        public ReserveWebApp ReserveWebApp { get; set; }
+        public ReserveWebHookUrl ReserveWebHookUrl { get; set; }
         public ICollection<BotBlocked> BotBlocked { get; set; }
         public ICollection<BotDeleted> BotDeleted { get; set; }
         public ICollection<DnsHistory> DnsHistory { get; set; }

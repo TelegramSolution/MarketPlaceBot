@@ -14,10 +14,11 @@ namespace ManagementBots.Db
         public int Id { get; set; }
         public int? ServerWebAppId { get; set; }
         public string Port { get; set; }
-        public bool Enable { get; set; }
-        public bool IsFree { get; set; }
+        public bool? Enable { get; set; }
+        public bool? IsFree { get; set; }
 
         public ServerWebApp ServerWebApp { get; set; }
+        public ReserveWebApp ReserveWebApp { get; set; }
         public ICollection<Bot> Bot { get; set; }
         public ICollection<WebAppHistory> WebAppHistory { get; set; }
     }

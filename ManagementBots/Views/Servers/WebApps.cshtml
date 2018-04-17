@@ -51,7 +51,7 @@
 
             <div class="form-group">
                 <label for="ServerName">URL</label><br />
-                <a href="http://@s.ServerWebApp.Ip:@s.Port/home">@s.ServerWebApp.Ip : @s.Port</a>
+                <a href="http://@s.ServerWebApp.Ip:@s.Port/HostingVersion/GetInfo/">@s.ServerWebApp.Ip:@s.Port</a>
             </div> 
 
             <div class="form-group">
@@ -114,7 +114,7 @@
 
             var webApp = {
                 'Id': Id,
-                'ServerId': ServerId,
+                'ServerWebAppId': ServerId,
                 'Port': Port,
                 'Enable': Enable
             }
@@ -174,8 +174,7 @@
         function onAjaxSuccess(data) {
 
             $('#myModal').on('shown.bs.modal')
-            $('#myModal').html(table);
-            $('#div.modal-body').text('<p> А вот и текст! </p>');
+            $('#myModal.modal-dialog.modal-body').text("ddddddd")
 
         }
 
