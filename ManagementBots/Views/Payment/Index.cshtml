@@ -11,14 +11,18 @@
         <td>Сумма</td>
         <td>Время</td>
         <td>Счет получателя</td>
+        <td>Отправитель</td>
+        <td>Транзакция</td>
         <td>Инвойс</td>
     </tr>
     @foreach (var item in Model)
     {
         <tr><td>@item.Id</td>
-            <td>@item.Summ/td>
-            <td>@item.CreateTimeStamp</td>
+            <td>@item.Summ</td>
+            <td>@item.PaymentTimeStamp</td>
             <td>@item.Invoice.AccountNumber</td>
+            <td>@item.SenderAccountNumber</td>
+            <td>@item.TxId</td>
             <td><a href="~/Invoice/Get/@item.InvoiceId">Инвойс @item.InvoiceId</a></td>
         </tr>
     }

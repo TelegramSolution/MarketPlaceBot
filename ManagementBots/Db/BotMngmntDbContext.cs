@@ -369,6 +369,10 @@ namespace ManagementBots.Db
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
+                entity.Property(e => e.Comment)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
                 entity.Property(e => e.CreateTimeStamp).HasColumnType("datetime");
 
                 entity.HasOne(d => d.PaymentSystem)
@@ -394,6 +398,16 @@ namespace ManagementBots.Db
             modelBuilder.Entity<Payment>(entity =>
             {
                 entity.Property(e => e.CreateTimeStamp).HasColumnType("datetime");
+
+                entity.Property(e => e.PaymentTimeStamp).HasColumnType("datetime");
+
+                entity.Property(e => e.TxId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+                entity.Property(e => e.SenderAccountNumber)
+                .HasMaxLength(50)
+                .IsUnicode(false);
 
                 entity.HasOne(d => d.Invoice)
                     .WithMany(p => p.Payment)

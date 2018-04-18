@@ -10,6 +10,12 @@ namespace ManagementBots.Db
         public double? Summ { get; set; }
         public DateTime? CreateTimeStamp { get; set; }
 
+        public DateTime? PaymentTimeStamp { get; set; }
+
+        public string TxId { get; set; }
+
+        public string SenderAccountNumber { get; set; }
+
         public Invoice Invoice { get; set; }
     }
 }

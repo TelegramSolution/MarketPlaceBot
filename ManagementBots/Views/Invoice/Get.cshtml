@@ -1,0 +1,39 @@
+﻿@model ManagementBots.Db.Service
+@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Invoice № @Model.InvoiceId</h3> 
+
+@Html.Label("", "Время")
+@Html.DisplayFor(m => m.Invoice.CreateTimeStamp, "Время")<br />
+
+@Html.Label("", "Адрес счета получателя")
+@Html.DisplayFor(m => m.Invoice.AccountNumber, "")<br />
+
+@Html.Label("", "Способ оплаты")
+@Html.DisplayFor(m => m.Invoice.PaymentSystem.Name, "")<br />
+
+@Html.Label("", "Сумма")
+@Html.DisplayFor(m => m.Invoice.Summ, "")<br />
+
+@Html.Label("", "Комментарий к платежу")
+@Html.DisplayFor(m => m.Invoice.Comment, "")<br />
+
+@Html.Label("","Тариф")
+@Html.DisplayFor(m=>m.ServiceType.Name) <br />
+
+@Html.Label("","Продолжительность аренды")
+@Html.DisplayFor(m=>m.DayDuration) <br />
+
+
+@Html.Label("", "Дата начала аренды")
+@Html.DisplayFor(m => m.StartTimeStamp) <br />
+
+@Html.Label("", "Бот")
+<a href="~/Bot/Get/@Model.BotId">@Model.BotNavigation.BotName</a><br />
+
+@Html.Label("", "Оплачено")
+@Html.DisplayFor(m => m.Invoice.Paid) <br />
+
+

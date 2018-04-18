@@ -15,8 +15,10 @@ namespace ManagementBots.Db
         public int? PaymentSystemId { get; set; }
         public string AccountNumber { get; set; }
         public double? Summ { get; set; }
-        public bool? Paid { get; set; }
+        public bool Paid { get; set; }
         public DateTime? CreateTimeStamp { get; set; }
+
+        public string Comment { get; set; }
 
         public PaymentSystem PaymentSystem { get; set; }
         public ICollection<Payment> Payment { get; set; }
