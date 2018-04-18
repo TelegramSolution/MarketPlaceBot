@@ -10,19 +10,20 @@ using Microsoft.EntityFrameworkCore;
 namespace ManagementBots.Controllers
 {
     [Produces("application/json")]
-   
-    public class PaymentController : Controller
+
+    public class WebHookUrlController : Controller
     {
         BotMngmntDbContext DbContext { get; set; }
-
-        [HttpGet]
         public IActionResult Index()
         {
             try
             {
                 DbContext = new BotMngmntDbContext();
 
-                return View(DbContext.Payment.Include(p=>p.Invoice).ToList());
+                return View(DbContext.WebHookUrl
+                    .Include(w=>w.Dns)
+                    .Include(w => w.ReserveWebHookUrl.Bot)
+                    .Include(w => w.Port).ToList());
             }
 
             catch (Exception e)
