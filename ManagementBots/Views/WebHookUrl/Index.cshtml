@@ -12,6 +12,7 @@
         <td>Имя</td>
         <td>Свободен</td>
         <td>Зарезервирован до (ожидает оплаты)</td>
+        <td>История</td>
 
     </tr>
     @foreach (var url in Model)
@@ -30,6 +31,12 @@
 
             }
 
+            @if (url.ReserveWebHookUrl == null)
+           {
+                <td></td>
+           }
+
+            <td><a href="/WebHookUrl/History/@url.Id">История</a></td>
         </tr>
     }
 </table>

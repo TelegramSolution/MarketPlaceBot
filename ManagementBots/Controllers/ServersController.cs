@@ -128,6 +128,29 @@ namespace ManagementBots.Controllers
             }
         }
 
+        public IActionResult WebAppHistory(int WebAppId)
+        {
+            try
+            {
+                dbContext = new BotMngmntDbContext();
+
+                var history = dbContext.WebAppHistory.Where(w => w.WebAppId == WebAppId)
+                    .Include(w => w.WebApp)
+                    .Include(w => w.Bot).ToList();
+
+                return View("History", history);
+            }
+
+            catch (Exception e)
+            {
+                return Json(e.Message);
+            }
+
+            finally
+            {
+                dbContext.Dispose();
+            }
+        }
         private ServerWebApp InsertServer(ServerWebApp server)
         {
 

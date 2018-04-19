@@ -42,6 +42,7 @@ namespace ManagementBots.Controllers
         {
             try
             {
+                DbContext = new BotMngmntDbContext(); 
                 if (Insert(Text).Id > 0)
                 {
                     var BotToken = DbContext.BotInfo.LastOrDefault().Token;
@@ -49,8 +50,10 @@ namespace ManagementBots.Controllers
                     var Followers = DbContext.Follower.ToList();
 
                     foreach (var follower in Followers)
+                    {
+                        System.Threading.Thread.Sleep(300);
                         TelegramFunction.SendTextMessage(Text, Convert.ToInt32(follower.ChatId), BotToken);
-
+                    }
                     return Json("Сохранено");
 
                 }
@@ -66,6 +69,7 @@ namespace ManagementBots.Controllers
 
             finally
             {
+                if(DbContext!=null)
                 DbContext.Dispose();
             }
         }

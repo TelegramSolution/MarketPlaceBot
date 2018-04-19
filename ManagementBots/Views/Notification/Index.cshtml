@@ -1,0 +1,51 @@
+﻿@model IEnumerable<ManagementBots.Db.Notification>
+@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Рассылки</h3> 
+
+<label for="Name">Текст уведомления</label><br />
+<input type="text" class="form-control" id="NotiText" placeholder="Текст рассылки">
+<button type="button" class="btn btn-success"
+        onclick="Save($('#NotiText').val())">
+    Сохранить и разослать
+</button> <br /> <br />
+
+<table class="table">
+    <tr>
+        <td>Id</td>
+        <td>Дата</td>
+        <td>Текст</td>
+
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr><td>@item.Id</td>
+            <td>@item.DateAdd</td>
+            <td>@item.Text</td>
+        </tr>
+    }
+</table>
+
+<script type="text/javascript">
+    function Save(Text) {
+        $.get(
+            "/notification/SaveAndSend/",
+            {
+                Text: Text,
+            },
+            onAjaxSuccess
+        );
+
+        function onAjaxSuccess(data) {
+
+            if (data=='Сохранено')
+                location.reload();
+            else
+                alert(data)
+
+        }
+
+    }
+</script>

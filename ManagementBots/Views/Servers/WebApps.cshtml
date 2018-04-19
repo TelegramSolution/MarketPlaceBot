@@ -78,10 +78,9 @@
                         onclick="Delete($('#Id'+@count).val())">
                     Удалить
                 </button>
-
-                <button type="button" data-toggle="modal" data-target="#myModal" class="btn btn-info" onclick="HistoryApp() ">
-                    Подробнее
-                </button>
+            <button type="button" class="btn btn-info" onclick="location.href = '/Servers/WebAppHistory?WebAppId='+@s.Id;">
+                История
+            </button>
 
             </div>
             <br />

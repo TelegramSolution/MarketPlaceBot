@@ -637,10 +637,9 @@ namespace ManagementBots.Db
                     .HasForeignKey(d => d.BotId)
                     .HasConstraintName("FK_WebHookUrlHistory_Bot");
 
-                entity.HasOne(d => d.IdNavigation)
-                    .WithOne(p => p.WebHookUrlHistory)
-                    .HasForeignKey<WebHookUrlHistory>(d => d.Id)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                entity.HasOne(d => d.WebHookUrl)
+                    .WithMany(p => p.WebHookUrlHistory)
+                    .HasForeignKey(d => d.WebHookUrlId)
                     .HasConstraintName("FK_WebHookUrlHistory_WebHookUrl");
             });
         }

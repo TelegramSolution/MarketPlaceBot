@@ -1,0 +1,25 @@
+﻿@model IEnumerable<ManagementBots.Db.WebHookUrlHistory>
+@{
+
+    Layout = "_Layout";
+}
+
+
+<h3>WebHook Url История</h3>
+
+<table class="table">
+    <tr>
+        <td>Url</td>
+        <td>Бот</td>
+        <td>Дата</td>
+
+    </tr>
+    @foreach (var url in Model)
+    {
+        <tr>
+            <td>@url.WebHookUrl.ToString()</td>
+            <td>@url.Bot.BotName</td>
+            <td>@url.Timestamp</td>
+        </tr>
+    }
+</table>

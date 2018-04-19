@@ -234,15 +234,11 @@ namespace ManagementBots.Bot.Core
         {
             try
             {
-                var builder = new ConfigurationBuilder()
-                .SetBasePath(System.IO.Directory.GetCurrentDirectory())
-                .AddJsonFile("name.json");
-                string name = builder.Build().GetSection("name").Value;
 
                 BotInfo bot = new BotInfo();
                 using (Db.BotMngmntDbContext db = new Db.BotMngmntDbContext())
                 {
-                    bot = db.BotInfo.Where(b => b.Name == name).Include(b => b.Configuration).FirstOrDefault();
+                    bot = db.BotInfo.Where(b => b.Name == BusinessLayer.GeneralFunction.BotName()).Include(b => b.Configuration).FirstOrDefault();
 
                     if (bot != null)
                     {
@@ -336,7 +332,7 @@ namespace ManagementBots.Bot.Core
 
             //пользователь процитировал сообщение от бота
             if (message.ReplyToMessage != null && message.ReplyToMessage.From != null
-                && message.ReplyToMessage.From.Username == GeneralFunction.GetBotName())
+                && message.ReplyToMessage.From.Username == BusinessLayer.GeneralFunction.BotName())
             {
                 OriginalMessage = message.ReplyToMessage.Text;
                 ReplyToMessageText = message.Text;

@@ -36,5 +36,30 @@ namespace ManagementBots.Controllers
                 DbContext.Dispose();
             }
         }
+
+        public IActionResult History(int Id)
+        {
+            try
+            {
+                DbContext = new BotMngmntDbContext();
+
+                var history = DbContext.WebHookUrlHistory
+                    .Where(h => h.WebHookUrlId == Id)
+                    .Include(h => h.WebHookUrl.Dns).
+                    Include(h=>h.WebHookUrl.Port)
+                    .Include(h => h.Bot).ToList();
+
+                return View(history);
+            }
+            catch (Exception e)
+            {
+                return Json(e.Message);
+            }
+
+            finally
+            {
+                DbContext.Dispose();
+            }
+        }
     }
 }

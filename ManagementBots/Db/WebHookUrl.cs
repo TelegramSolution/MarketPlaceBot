@@ -5,6 +5,10 @@ namespace ManagementBots.Db
 {
     public partial class WebHookUrl
     {
+        public WebHookUrl()
+        {
+            WebHookUrlHistory = new HashSet<WebHookUrlHistory>();
+        }
         public int Id { get; set; }
         public int? DnsId { get; set; }
         public int? PortId { get; set; }
@@ -14,7 +18,7 @@ namespace ManagementBots.Db
         public Dns Dns { get; set; }
         public WebHookPort Port { get; set; }
         public ReserveWebHookUrl ReserveWebHookUrl { get; set; }
-        public WebHookUrlHistory WebHookUrlHistory { get; set; }
+        public ICollection<WebHookUrlHistory> WebHookUrlHistory { get; set; }
 
         public override string ToString()
         {

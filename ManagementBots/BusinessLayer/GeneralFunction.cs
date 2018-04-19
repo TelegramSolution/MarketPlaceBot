@@ -23,6 +23,14 @@ namespace ManagementBots.BusinessLayer
             return builder.Build().GetSection("CertProxyPath").Value;
         }
 
+        public static string BotName()
+        {
+            var builder = new ConfigurationBuilder()
+            .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json");
+            return builder.Build().GetSection("BotName").Value;
+        }
+
         public static string SslPathOnMainServer()
         {
             return Directory.GetCurrentDirectory() + "\\Files\\Cert\\";

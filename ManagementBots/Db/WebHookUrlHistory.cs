@@ -11,6 +11,6 @@ namespace ManagementBots.Db
         public int? BotId { get; set; }
 
         public Bot Bot { get; set; }
-        public WebHookUrl IdNavigation { get; set; }
+        public WebHookUrl WebHookUrl { get; set; }
     }
 }
