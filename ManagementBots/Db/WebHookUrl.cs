@@ -8,6 +8,7 @@ namespace ManagementBots.Db
         public WebHookUrl()
         {
             WebHookUrlHistory = new HashSet<WebHookUrlHistory>();
+            Bot = new HashSet<Bot>();
         }
         public int Id { get; set; }
         public int? DnsId { get; set; }
@@ -19,6 +20,8 @@ namespace ManagementBots.Db
         public WebHookPort Port { get; set; }
         public ReserveWebHookUrl ReserveWebHookUrl { get; set; }
         public ICollection<WebHookUrlHistory> WebHookUrlHistory { get; set; }
+
+        public ICollection<Bot> Bot { get; set; }
 
         public override string ToString()
         {

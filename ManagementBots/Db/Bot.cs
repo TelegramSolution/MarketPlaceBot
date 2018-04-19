@@ -9,7 +9,6 @@ namespace ManagementBots.Db
         {
             BotBlocked = new HashSet<BotBlocked>();
             BotDeleted = new HashSet<BotDeleted>();
-            DnsHistory = new HashSet<DnsHistory>();
             ServiceNavigation = new HashSet<Service>();
             WebAppHistory = new HashSet<WebAppHistory>();
             WebHookUrlHistory = new HashSet<WebHookUrlHistory>();
@@ -31,14 +30,14 @@ namespace ManagementBots.Db
         public bool Launched { get; set; }
 
         public Follower Follower { get; set; }
-        public ProxyServer ProxyServe { get; set; }
+        public ProxyServer ProxyServer { get; set; }
         public Service Service { get; set; }
         public WebApp WebApp { get; set; }
+        public WebHookUrl WebHookUrl { get; set; }
         public ReserveWebApp ReserveWebApp { get; set; }
         public ReserveWebHookUrl ReserveWebHookUrl { get; set; }
         public ICollection<BotBlocked> BotBlocked { get; set; }
         public ICollection<BotDeleted> BotDeleted { get; set; }
-        public ICollection<DnsHistory> DnsHistory { get; set; }
         public ICollection<Service> ServiceNavigation { get; set; }
         public ICollection<WebAppHistory> WebAppHistory { get; set; }
         public ICollection<WebHookUrlHistory> WebHookUrlHistory { get; set; }

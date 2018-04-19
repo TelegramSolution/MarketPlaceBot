@@ -1,0 +1,129 @@
+﻿@model ManagementBots.Db.Bot
+@{
+
+    Layout = "_Layout";
+}
+
+<button class="btn-danger">Удалить</button>
+
+@if (Model.Blocked == false) {
+<button class="btn-warning">Заблокировать</button>
+}
+
+@if (Model.Blocked == true)
+{
+    <button class="btn-success">Разблокировать</button>
+}
+
+<button class="btn-info">Перенести на другой сервер приложений</button>
+
+
+<h3><a href="https://t.me/@Model.BotName">@Model.BotName</a></h3><br /> 
+
+
+@Html.LabelFor(m => m.Follower.FirstName, "Владелец"):
+<a href="https://t.me/@Model.Follower.UserName">@Model.Follower.FirstName @Model.Follower.LastName</a>
+<br />
+
+@Html.LabelFor(m => m.CreateTimeStamp, "Дата создания"):
+@Html.DisplayFor(m=>m.CreateTimeStamp)
+<br />
+
+@Html.LabelFor(m => m.Launched, "Запущен"):
+@Html.DisplayFor(m => m.Launched)
+<br />
+
+@Html.LabelFor(m => m.Blocked, "Заблокирован"):
+@Html.DisplayFor(m => m.Blocked)
+<br />
+
+@Html.LabelFor(m => m.Blocked, "Удален"):
+@Html.DisplayFor(m => m.Deleted)
+<br />
+
+<hr />
+<h4>Техническая информация</h4>
+
+        @Html.LabelFor(m => m.WebApp.ServerWebApp.Ip, "Адрес сервера приложений"):;
+        @Html.DisplayFor(m => m.WebApp.ServerWebApp.Ip);
+
+        <br />
+
+        @Html.LabelFor(m => m.WebHookUrl, "Веб приложение"):;
+        <a href="http:\\@Model.WebApp.ServerWebApp.Ip:@Model.WebApp.Port">@Model.WebApp.ServerWebApp.Ip:@Model.WebApp.Port</a>
+        <br />
+
+
+@Html.LabelFor(m => m.ProxyServer, "Прокси сервер"):
+@Html.DisplayFor(m => m.ProxyServer.Ip)
+<br />
+
+
+        @Html.LabelFor(m => m.WebHookUrl.Dns.Name, "Доменное имя"):
+        @Html.DisplayFor(m => m.WebHookUrl.Dns.Name);
+        <br />
+
+        @Html.LabelFor(m => m.WebHookUrl.Port.PortNumber, "Вебхук порт"):
+        @Html.DisplayFor(m => m.WebHookUrl.Port.PortNumber);
+        <br />
+
+        <br /> <br />
+
+
+<h4>Услуга № @Model.ServiceId</h4>
+<hr />
+@Html.LabelFor(m => m.Service.ServiceType.Name, "Тариф"):
+@Html.DisplayFor(m => m.Service.ServiceType.Name)
+<br />
+
+@Html.LabelFor(m => m.Service.StartTimeStamp, "Дата начала услуги"):
+@Html.DisplayFor(m => m.Service.StartTimeStamp)
+<br />
+
+@Html.LabelFor(m => m.Service.DayDuration, "Продолжительность"):
+@Html.DisplayFor(m => m.Service.DayDuration)
+<br />
+
+@Html.LabelFor(m => m.Service.DayDuration, "Инвойс"):
+<a href="~/Invoice/Get/@Model.Service.InvoiceId">@Model.Service.InvoiceId</a>
+<br />
+
+<h3>История Услуг</h3>
+<table class="table">
+    <tr>
+        <td>Дата создания</td>
+        <td>Название услугу</td>
+        <td>Дата запуска</td>
+        <td>Продолжительность</td>
+        <td>Инвойс</td>
+    </tr>
+    @foreach (var service in Model.ServiceNavigation)
+    {
+        <tr>
+            <td>@service.CreateTimeStamp</td>
+            <td>@service.ServiceType.Name</td>
+            <td>@service.StartTimeStamp</td>
+            <td>@service.DayDuration</td>
+            <td><a href="~/Invoice/Get/@service.InvoiceId">@service.InvoiceId</a></td>
+        </tr>
+    }
+</table>
+
+
+<h3>История блокировок</h3>
+<table class="table">
+    <tr>
+        <td>Дата блокировки</td>
+        <td>Комментарий</td>
+        <td>Дата разблокировки</td>
+    </tr>
+    @foreach (var block in Model.BotBlocked)
+    {
+        <tr>
+            <td>@block.BlockedTimeStamp</td>
+            <td>@block.Text</td>
+            <td>@block.UnblockedTimeStamp</td>
+
+        </tr>
+    }
+</table>

@@ -17,7 +17,6 @@ namespace ManagementBots.Db
         public virtual DbSet<BotInfo> BotInfo { get; set; }
         public virtual DbSet<Configuration> Configuration { get; set; }
         public virtual DbSet<Dns> Dns { get; set; }
-        public virtual DbSet<DnsHistory> DnsHistory { get; set; }
         public virtual DbSet<Follower> Follower { get; set; }
         public virtual DbSet<HelpDesk> HelpDesk { get; set; }
         public virtual DbSet<HelpDeskAnswer> HelpDeskAnswer { get; set; }
@@ -143,7 +142,7 @@ namespace ManagementBots.Db
                     .HasForeignKey(d => d.FollowerId)
                     .HasConstraintName("FK_Bot_Follower");
 
-                entity.HasOne(d => d.ProxyServe)
+                entity.HasOne(d => d.ProxyServer)
                     .WithMany(p => p.Bot)
                     .HasForeignKey(d => d.ProxyServeId)
                     .HasConstraintName("FK_Bot_ProxyServer");
@@ -157,6 +156,11 @@ namespace ManagementBots.Db
                     .WithMany(p => p.Bot)
                     .HasForeignKey(d => d.WebAppId)
                     .HasConstraintName("FK_Bot_WebApp");
+
+                entity.HasOne(d => d.WebHookUrl)
+                    .WithMany(p => p.Bot)
+                    .HasForeignKey(d => d.WebHookUrlId)
+                    .HasConstraintName("FK_Bot_WebHookUrl");
             });
 
             modelBuilder.Entity<BotBlocked>(entity =>
@@ -254,20 +258,6 @@ namespace ManagementBots.Db
                 entity.Property(e => e.TimeStamp).HasColumnType("datetime");
             });
 
-            modelBuilder.Entity<DnsHistory>(entity =>
-            {
-                entity.Property(e => e.TimeStamp).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Bot)
-                    .WithMany(p => p.DnsHistory)
-                    .HasForeignKey(d => d.BotId)
-                    .HasConstraintName("FK_DnsHistory_Bot");
-
-                entity.HasOne(d => d.Dns)
-                    .WithMany(p => p.DnsHistory)
-                    .HasForeignKey(d => d.DnsId)
-                    .HasConstraintName("FK_DnsHistory_DNS");
-            });
 
             modelBuilder.Entity<Follower>(entity =>
             {

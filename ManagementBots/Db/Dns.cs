@@ -9,7 +9,6 @@ namespace ManagementBots.Db
     {
         public Dns()
         {
-            DnsHistory = new HashSet<DnsHistory>();
             WebHookUrl = new HashSet<WebHookUrl>();
         }
 
@@ -21,8 +20,6 @@ namespace ManagementBots.Db
         public bool Enable { get; set; }
         public bool IsFree { get; set; }
         public string SslPathOnMainServer { get; set; }
-
-        public ICollection<DnsHistory> DnsHistory { get; set; }
         public ICollection<WebHookUrl> WebHookUrl { get; set; }
 
         public string PublicKeyPathOnProxy()

@@ -21,5 +21,10 @@ namespace ManagementBots.Db
         public ReserveWebApp ReserveWebApp { get; set; }
         public ICollection<Bot> Bot { get; set; }
         public ICollection<WebAppHistory> WebAppHistory { get; set; }
+
+        public override string ToString()
+        {
+            return "http:\\" + ServerWebApp.Ip + ":" + Port;
+        }
     }
 }

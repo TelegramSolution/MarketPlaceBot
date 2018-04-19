@@ -69,42 +69,6 @@ namespace ManagementBots.Controllers
         }
 
 
-        [HttpGet]
-        public IActionResult History (int Id)
-        {
-            DbContext = new BotMngmntDbContext();
-
-            try
-            {
-                var Historys = DbContext.DnsHistory.Where(h => h.DnsId == Id).Include(h=>h.Bot).ToList();
-
-                List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
-
-                foreach(var history in Historys)
-                {
-                    Dictionary<string, string> row = new Dictionary<string, string>();
-
-                    row.Add("Id", history.Id.ToString());
-                    row.Add("TimeStamp", history.TimeStamp.ToString());
-                    row.Add("BotId", history.BotId.ToString());
-                    row.Add("BotName", history.Bot.BotName.ToString());
-
-                    result.Add(row);
-                }
-
-                return Json(result);
-            }
-
-            catch
-            {
-                return NotFound();
-            }
-
-            finally
-            {
-                DbContext.Dispose();
-            }
-        }
 
         [HttpGet]
         public IActionResult Delete (int Id)
