@@ -24,6 +24,7 @@ namespace MyTelegramBot.Bot.Core
 {
     public abstract class BotCore
     {
+        private const string BotBlockedMsg = "Бот заблокирован!";
 
         private TelegramBotClient TelegramClient { get; set; }
 
@@ -446,14 +447,17 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
+                if(BotInfo.Configuration.BotBlocked)
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, BotBlockedMsg, ParseMode.Html, DisableWeb, false);
+
 
                 if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
-                if (botMessage != null && EditMessageId != 0)
+                if (botMessage != null && EditMessageId != 0 && !BotInfo.Configuration.BotBlocked)
                     return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
 
-                if (botMessage != null && botMessage.TextMessage != null)
+                if (botMessage != null && botMessage.TextMessage != null && !BotInfo.Configuration.BotBlocked)
                     return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
@@ -519,6 +523,8 @@ namespace MyTelegramBot.Bot.Core
 
             try
             {
+                if (BotInfo.Configuration.BotBlocked)
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, BotBlockedMsg, ParseMode.Html);
 
                 if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
@@ -551,7 +557,8 @@ namespace MyTelegramBot.Bot.Core
 
             try
             {
-                
+                if (BotInfo.Configuration.BotBlocked)
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, BotBlockedMsg, ParseMode.Html);
 
                 if (this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(message.CallBackTitleText);
@@ -694,6 +701,9 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
+                if (BotInfo.Configuration.BotBlocked)
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, BotBlockedMsg, ParseMode.Html);
+
                 ForceReply forceReply = new ForceReply
                 {
                     Force = true,
@@ -747,11 +757,13 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
+                if(BotInfo.Configuration.BotBlocked)
+                     return await TelegramClient.SendTextMessageAsync(ChatId, botMessage.TextMessage, ParseMode.Html, false, DisableNotifi, 0, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
-                if (botMessage != null && botMessage.TextMessage != null)
+                if (botMessage != null && botMessage.TextMessage != null && !BotInfo.Configuration.BotBlocked)
                     return await TelegramClient.SendTextMessageAsync(ChatId, botMessage.TextMessage, ParseMode.Html, false, DisableNotifi, 0, botMessage.MessageReplyMarkup);
 
                 else
@@ -1034,10 +1046,13 @@ namespace MyTelegramBot.Bot.Core
         /// <returns></returns>
         protected virtual async Task<IActionResult> SendForceReplyMessage(string text)
         {
-            if (this.Update.CallbackQuery != null)
+            if (BotInfo.Configuration.BotBlocked)
+                 await TelegramClient.SendTextMessageAsync(this.ChatId, BotBlockedMsg, ParseMode.Html);
+
+            if (!BotInfo.Configuration.BotBlocked && this.Update.CallbackQuery != null)
                 await AnswerCallback();
 
-            if (await SendForceReply(text) != null)
+            if (!BotInfo.Configuration.BotBlocked && await SendForceReply(text) != null)
                 return OkResult;
 
             else
@@ -1048,7 +1063,7 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
-                if (TextMesage != null && ForceReplyMessage != null && TextMesage != "" && ForceReplyMessage != "")
+                if (TextMesage != null && ForceReplyMessage != null && TextMesage != "" && ForceReplyMessage != "" && !BotInfo.Configuration.BotBlocked)
                 {
                     await SendMessage(new BotMessage { TextMessage = TextMesage });
                     return await SendForceReplyMessage(ForceReplyMessage);
@@ -1120,7 +1135,11 @@ namespace MyTelegramBot.Bot.Core
         {
             try
             {
-                return await SendMessage(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId), message);
+                if(!BotInfo.Configuration.BotBlocked)
+                    return await SendMessage(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId), message);
+
+                else
+                    return await SendMessage(Convert.ToInt64(BotInfo.Configuration.PrivateGroupChatId), new BotMessage { TextMessage=BotBlockedMsg });
             }
 
             catch

@@ -1,0 +1,42 @@
+﻿@model IEnumerable<ManagementBots.Db.Bot>
+@{
+
+    Layout = "_Layout";
+}
+
+
+<h3>Список ботов</h3> | <a href="~/Bot/Create/">Создать</a>
+
+<table class="table">
+    <tr>
+        <td>Имя</td>
+        <td>Владелец</td>
+        <td>Дата добавления</td>
+        <td>Заблокирован</td>
+        <td>Удален</td>
+
+    </tr>
+    @foreach (var bot in Model)
+    {
+        <tr>
+            <td>@bot.BotName</td>
+            <td>@bot.Follower.FirstName</td>
+            <td>@bot.CreateTimeStamp</td>
+
+            @if (bot.Blocked == true)
+            {
+                <td>Заблокирован</td>
+
+            }
+
+            @if (bot.Deleted == true)
+            {
+                <td>Удален</td>
+
+            }
+
+            <td><a href="~/Bot/Get/@bot.Id">Открыть</a></td>
+
+        </tr>
+    }
+</table>

@@ -1,0 +1,149 @@
+﻿@model IEnumerable<ManagementBots.Db.Dns>
+@{
+    int count = 0;
+    Layout = "_Layout";
+}
+
+
+<h3>Добавить Домен</h3>
+
+
+<form class="form-inline">
+    <div class="form-group">
+
+        <label for="Name">Имя домена</label><br />
+        <input type="text" class="form-control" id="Name" placeholder="ya.ru">
+    </div>
+    <div class="form-group">
+        <label for="Ip">Ip адрес</label><br />
+        <input type="text" class="form-control" id="Ip" placeholder="8.8.8.8">
+    </div> 
+
+    <div class="form-group">
+        <label for="Enable">Активен</label><br />
+        <input type="checkbox" id="Enable" value="true">
+    </div>
+
+    <div class="form-group">
+        <br />
+        <button type="button" class="btn btn-success"
+                onclick="Save('0',
+                            $('#Name').val(),
+                            $('#Ip').val(),
+                            $('#Enable').prop('checked'))">
+         Добавить
+        </button>
+    </div>
+</form>
+<br />
+
+<h3>Список доменов</h3>
+
+
+<form class="form-inline">
+
+    <br />
+    @foreach (var s in Model)
+     {
+                count++;
+
+        <div class="form-group" id="@s.Id">
+            @Html.HiddenFor(m => s.Id, new { @id = "Id" + count })
+
+            <div class="form-group">
+                <label for="ServerName">Имя</label><br />
+                @Html.TextBoxFor(m => s.Name, new { @id = "Name" + count, @class = "form-control" })
+            </div> 
+
+            <div class="form-group">
+                <label for="Ip">Ip</label><br />
+                @Html.TextBoxFor(m => s.Ip, new { @id = "Ip" + count, @class = "form-control" })
+            </div>
+
+
+            <div class="form-group">
+                <label for="Enable">Активен</label><br />
+               @Html.CheckBoxFor(m => s.Enable, new { @id = "Enable" + count, @class = "form-control" })
+            </div>
+
+           
+                <button type="button" class="btn btn-success"
+                        onclick="Save($('#Id'+@count).val(),
+                            $('#Name'+@count).val(),
+                            $('#Ip'+@count).val(),
+                            $('#Enable'+@count).prop('checked')),
+                            $('#SslPath'+@count).val()">
+                    Сохранить
+                </button>
+
+                <button type="button" class="btn btn-danger"
+                        onclick="Delete($('#Id'+@count).val())">
+                    Удалить
+                </button>
+
+            </div>
+            <br />
+
+
+      }
+</form>
+
+
+
+<script type="text/javascript">
+
+    function Save(Id, Name, Ip, Enable) {
+
+            var dns = {
+                'Id': Id,
+                'Name': Name,
+                'Ip': Ip,
+                'Enable': Enable,
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/DNS/Post/',
+                data: JSON.stringify(dns),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json"
+            }).done(function (data) {
+
+                if (data == 'Добавлено')
+                    location.reload();
+
+                else
+                    alert(data);
+                  
+                
+
+            }).error(function (data) {
+                // если с ответом сервера чтото пошло не так...
+            })
+        }
+
+
+        function Delete(ID) {
+            $.get(
+                "/dns/delete/",
+                {
+                    Id: ID,
+                },
+                onAjaxSuccess
+            );
+
+            function onAjaxSuccess(data) {
+
+                // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+                if (data == 'Удалено')
+                    location.reload();
+
+                else
+                    alert(data);
+            }
+
+        }
+
+		
+</script>

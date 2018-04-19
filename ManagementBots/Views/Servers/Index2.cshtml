@@ -1,0 +1,188 @@
+﻿@model IEnumerable<ManagementBots.Db.ServerWebApp>
+@{
+    int count = 0;
+    Layout = "_Layout";
+}
+<style>
+    #notifies {
+        position: fixed;
+        width: auto;
+        height: auto;
+        top: 0;
+        right: 0;
+    }
+</style>
+
+
+<h3>Добавить сервер</h3>
+
+<div id="notifies"></div>	
+
+<form class="form-inline">
+    <div class="form-group">
+
+        <label for="ServerName">Имя сервера</label><br />
+        <input type="text" class="form-control" id="ServerName" placeholder="MainServer">
+    </div>
+    <div class="form-group">
+        <label for="Ip">Внутренний Ip</label><br />
+        <input type="text" class="form-control" id="Ip" placeholder="192.168.1.100">
+    </div> 
+
+    <div class="form-group">
+        <label for="WanIp">Внешний Ip</label><br />
+        <input type="text" class="form-control" id="WanIp" placeholder="8.8.8.8">
+    </div> 
+
+    <div class="form-group">
+        <label for="Text">Комментарий</label><br />
+        <input type="text" class="form-control" id="Text" placeholder="">
+    </div>
+
+    <div class="form-group">
+        <label for="Enable">Активен</label><br />
+        <input type="checkbox" id="Enable" value="true">
+    </div>
+
+    <div class="form-group">
+        <br />
+        <button type="button" class="btn btn-success"
+                onclick="Save('0', $('#ServerName').val(),
+                            $('#Ip').val(),
+                            $('#WanIp').val(),
+                            $('#Text').val(),
+                            $('#Enable').prop('checked'))">
+            Добавить
+        </button>
+    </div>
+</form>
+<br />
+
+<h3>Список серверов</h3>
+
+
+<form class="form-inline">
+
+    <br />
+    @foreach (var s in Model)
+     {
+                count++;
+
+        <div class="form-group" id="@s.Id">
+            @Html.HiddenFor(m => s.Id, new { @id = "Id" + count })
+
+            <div class="form-group">
+                <label for="ServerName">Имя сервера</label><br />
+                @Html.TextBoxFor(m => s.ServerName, new { @id = "ServerName" + count, @class = "form-control" })
+            </div> 
+
+            <div class="form-group">
+                <label for="Ip">Внутренний Ip</label><br />
+                @Html.TextBoxFor(m => s.Ip, new { @id = "Ip" + count, @class = "form-control" })
+            </div>
+
+
+            <div class="form-group">
+                <label for="Ip">Внешний Ip</label><br />
+                @Html.TextBoxFor(m => s.WanIp, new { @id = "WanIp" + count, @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="WanIp">Комментарий</label><br />
+                @Html.TextBoxFor(m => s.Text, new { @id = "Text" + count, @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="Enable">Активен</label><br />
+               @Html.CheckBoxFor(m => s.Enable, new { @id = "Enable" + count, @class = "form-control" })
+            </div>
+
+                <br />
+                <button type="button" class="btn btn-success"
+                        onclick="Save($('#Id'+@count).val(),
+                            $('#ServerName'+@count).val(),
+                            $('#Ip'+@count).val(),
+                            $('#WanIp'+@count).val(),
+                            $('#Text'+@count).val(),
+                            $('#Enable'+@count).prop('checked'))">
+                    Сохранить
+                </button>
+
+                <button type="button" class="btn btn-danger"
+                        onclick="Delete($('#Id'+@count).val())">
+                    Удалить
+                </button>
+
+                <button type="button" class="btn btn-info" onclick="location.href = '/Servers/WebApps?ServerId='+@s.Id;">
+                    Подробнее
+                </button>
+
+            </div>
+            <br />
+
+
+      }
+</form>
+
+
+
+<script type="text/javascript">
+
+        function Save(Id, ServerName, Ip, WanIp, Text, Enable) {
+
+            var server = {
+                'Id': Id,
+                'ServerName': ServerName,
+                'Ip': Ip,
+                'WanIp': WanIp,
+                'Text': Text,
+                'Enable': Enable
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/servers/Save/',
+                data: JSON.stringify(server),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json"
+            }).done(function (data) {
+
+                if (data == 'Добавлено')
+                    location.reload();
+
+                else
+                {
+                    alert(data);
+                  
+                }
+
+            }).error(function (data) {
+                // если с ответом сервера чтото пошло не так...
+            })
+        }
+
+
+        function Delete(ID) {
+            $.get(
+                "/servers/delete/",
+                {
+                    Id: ID,
+                },
+                onAjaxSuccess
+            );
+
+            function onAjaxSuccess(data) {
+
+                // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+                if (data == 'Удалено')
+                    location.reload();
+
+                else
+                    alert(data);
+            }
+
+        }
+
+		
+</script>

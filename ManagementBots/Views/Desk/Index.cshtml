@@ -1,0 +1,24 @@
+﻿@model IEnumerable<ManagementBots.Db.HelpDesk>
+@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Help Desk</h3> 
+
+<table class="table">
+    <tr>
+        <td>Описание</td>
+        <td>Пользователь</td>
+        <td>Время</td>
+        <td>Закрыто</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr><td>@item.Text</td>
+            <td>@item.Follower.FirstName @item.Follower.LastName</td>
+            <td>@item.Timestamp</td>
+            <td>@item.Closed</td>
+            <td><a href="~/Desk/Get/@item.Id">Открыть</a></td>
+        </tr>
+    }
+</table>

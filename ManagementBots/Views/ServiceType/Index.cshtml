@@ -1,0 +1,202 @@
+﻿@model IEnumerable<ManagementBots.Db.ServiceType>
+@{
+    int count = 0;
+    Layout = "_Layout";
+}
+
+
+<h3>Добавить тариф</h3>
+
+<div id="notifies"></div>	
+
+<form class="form-inline">
+    <div class="form-group">
+
+        <label for="Name">Название тарифа</label><br />
+        <input type="text" class="form-control" id="Name" placeholder="">
+    </div>
+    <div class="form-group">
+        <label for="Comment">Комментарий</label><br />
+        <input type="text" class="form-control" id="Comment" placeholder="">
+    </div> 
+
+    <div class="form-group">
+        <label for="Price">Цена за сутки</label><br />
+        <input type="text" class="form-control" id="Price" placeholder="15">
+    </div> 
+
+    <div class="form-group">
+        <label for="MinDuration">Мин. продолжительность</label><br />
+        <input type="text" class="form-control" id="MinDuration" placeholder="7">
+    </div>
+
+    <div class="form-group">
+        <label for="MaxDuration">Макс. продолжительность</label><br />
+        <input type="text" class="form-control" id="MaxDuration" placeholder="365">
+    </div>
+
+    <div class="form-group">
+        <label for="IsDemo">Демо</label><br />
+        <input type="checkbox" id="IsDemo" value="true">
+    </div>
+
+    <div class="form-group">
+        <label for="Enable">Активен</label><br />
+        <input type="checkbox" id="Enable" value="true">
+    </div>
+
+    <div class="form-group">
+        <br />
+        <button type="button" class="btn btn-success"
+                onclick="Save('0', $('#Name').val(),
+                            $('#Comment').val(),
+                            $('#Price').val(),
+                            $('#MinDuration').val(),
+                            $('#MaxDuration').val(),
+                            $('#IsDemo').prop('checked'),
+                            $('#Enable').prop('checked'))">
+            Добавить
+        </button>
+    </div>
+</form>
+<br />
+
+<h3>Список тарифных планов</h3>
+
+
+<form class="form-inline">
+
+    <br />
+    @foreach (var s in Model)
+     {
+                count++;
+
+        <div class="form-group" id="@s.Id">
+            @Html.HiddenFor(m => s.Id, new { @id = "Id" + count })
+
+            <div class="form-group">
+                <label for="ServerName">Название тарифа</label><br />
+                @Html.TextBoxFor(m => s.Name, new { @id = "Name" + count, @class = "form-control" })
+            </div> 
+
+            <div class="form-group">
+                <label for="Ip">Комментарий</label><br />
+                @Html.TextBoxFor(m => s.Comment, new { @id = "Comment" + count, @class = "form-control" })
+            </div>
+
+
+            <div class="form-group">
+                <label for="Ip">Цена за сутки</label><br />
+                @Html.TextBoxFor(m => s.Price, new { @id = "Price" + count, @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="WanIp">Мин. продолжительность</label><br />
+                @Html.TextBoxFor(m => s.MinDuration, new { @id = "MinDuration" + count, @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="WanIp">Макс. продолжительность</label><br />
+                @Html.TextBoxFor(m => s.MaxDuration, new { @id = "MaxDuration" + count, @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="Enable">Демо</label><br />
+                @Html.CheckBoxFor(m => s.IsDemo, new { @id = "IsDemo" + count, @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="Enable">Активен</label><br />
+               @Html.CheckBoxFor(m => s.Enable, new { @id = "Enable" + count, @class = "form-control" })
+            </div>
+
+                <br />
+                <button type="button" class="btn btn-success"
+                        onclick="Save($('#Id'+@count).val(),
+                            $('#Name'+@count).val(),
+                            $('#Comment'+@count).val(),
+                            $('#Price'+@count).val(),
+                            $('#MinDuration'+@count).val(),
+                            $('#MaxDuration'+@count).val(),
+                            $('#IsDemo'+@count).prop('checked'))
+                            $('#Enable'+@count).prop('checked'))">
+                    Сохранить
+                </button>
+
+                <button type="button" class="btn btn-danger"
+                        onclick="Delete($('#Id'+@count).val())">
+                    Удалить
+                </button>
+
+
+            </div>
+            <br />
+
+
+      }
+</form>
+
+
+
+<script type="text/javascript">
+
+    function Save(Id, Name, Comment, Price, MinDuration, MaxDuration, IsDemo,Enable) {
+
+        var serviceType = {
+                'Id': Id,
+                'Name': Name,
+                'Comment': Comment,
+                'Price': Price,
+                'MinDuration': MinDuration,
+                'MaxDuration': MaxDuration,
+                'IsDemo': IsDemo,
+                'Enable': Enable
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/servicetype/Save/',
+                data: JSON.stringify(serviceType),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json"
+            }).done(function (data) {
+
+                if (data == 'Добавлено')
+                    location.reload();
+
+                else
+                {
+                    alert(data);
+                  
+                }
+
+            }).error(function (data) {
+                // если с ответом сервера чтото пошло не так...
+            })
+        }
+
+
+        function Delete(ID) {
+            $.get(
+                "/servicetype/delete/",
+                {
+                    Id: ID,
+                },
+                onAjaxSuccess
+            );
+
+            function onAjaxSuccess(data) {
+
+                // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+                if (data == 'Удалено')
+                    location.reload();
+
+                else
+                    alert(data);
+            }
+
+        }
+
+		
+</script>

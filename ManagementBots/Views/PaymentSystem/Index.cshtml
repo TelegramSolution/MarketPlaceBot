@@ -1,0 +1,142 @@
+﻿@model IEnumerable<ManagementBots.Db.PaymentSystemConfig>
+@{
+    int count = 0;
+    Layout = "_Layout";
+}
+
+
+<h3>Настройка Qiwi</h3>
+
+
+<form class="form-inline">
+    <div class="form-group">
+
+        <label for="Name">Номер телефона</label><br />
+        <input type="text" class="form-control" id="Login" placeholder="79008122323">
+    </div>
+    <div class="form-group">
+        <label for="Ip">Токен</label><br />
+        <input type="text" class="form-control" id="Pass" placeholder="">
+    </div> 
+
+
+    <div class="form-group">
+        <br />
+        <button type="button" class="btn btn-success"
+                onclick="Save('0',
+                            $('#Login').val(),
+                            $('#Pass').val())">
+         Добавить
+        </button>
+    </div>
+</form>
+<br />
+
+<h3>Список кошельков</h3>
+
+
+<form class="form-inline">
+
+    <br />
+    @foreach (var s in Model)
+     {
+                count++;
+
+        <div class="form-group" id="@s.Id">
+            @Html.HiddenFor(m => s.Id, new { @id = "Id" + count })
+
+            <div class="form-group">
+                <label for="ServerName">Номер телефона</label><br />
+                @Html.TextBoxFor(m => s.Login, new { @id = "Login" + count, @class = "form-control" })
+            </div> 
+
+            <div class="form-group">
+                <label for="Ip">Токен</label><br />
+                @Html.TextBoxFor(m => s.Pass, new { @id = "Pass" + count, @class = "form-control" })
+            </div>
+            <br />
+                <button type="button" class="btn btn-success"
+                        onclick="Save($('#Id'+@count).val(),
+                            $('#Login'+@count).val(),
+                            $('#Pass'+@count).val())">
+                    Сохранить
+                </button>
+
+
+            <button type="button" class="btn btn-warning"
+                    onclick="Test($('#Id'+@count).val())">
+                Тест
+
+            </button>
+                <button type="button" class="btn btn-danger"
+                        onclick="Delete($('#Id'+@count).val())">
+                    Удалить
+                </button>
+
+
+            </div>
+            <br />
+
+
+      }
+</form>
+
+
+
+<script type="text/javascript">
+
+    function Save(Id, Login, Pass) {
+
+            var dns = {
+                'Id': Id,
+                'Login': Login,
+                'Pass': Pass,
+                'PaymentSystemId':"1"
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/PaymentSystem/Save/',
+                data: JSON.stringify(dns),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json"
+            }).done(function (data) {
+
+                if (data == 'Добавлено')
+                    location.reload();
+
+                else
+                    alert(data);
+
+
+
+            }).error(function (data) {
+                // если с ответом сервера чтото пошло не так...
+            })
+        }
+
+
+        function Delete(ID) {
+            $.get(
+                "/PaymentSystem/delete/",
+                {
+                    Id: ID,
+                },
+                onAjaxSuccess
+            );
+
+            function onAjaxSuccess(data) {
+
+                // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+                if (data == 'Удалено')
+                    location.reload();
+
+                else
+                    alert(data);
+            }
+
+        }
+
+
+</script>

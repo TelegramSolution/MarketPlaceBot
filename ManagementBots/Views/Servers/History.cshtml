@@ -1,0 +1,23 @@
+﻿@model IEnumerable<ManagementBots.Db.WebAppHistory>
+@{
+
+    Layout = "_Layout";
+}
+
+
+<h3>WebHook Url История</h3>
+
+<table class="table">
+    <tr>
+        <td>Бот</td>
+        <td>Дата</td>
+
+    </tr>
+    @foreach (var app in Model)
+    {
+        <tr>
+            <td>@app.Bot.BotName</td>
+            <td>@app.TimeStamp</td>
+        </tr>
+    }
+</table>

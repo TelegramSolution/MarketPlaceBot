@@ -1,0 +1,103 @@
+﻿@model ManagementBots.Db.HelpDesk
+@{
+    Layout = "_Layout";
+}
+<!DOCTYPE html>
+<h3>Desk № @Model.Number</h3> 
+
+@Html.Label("", "Время")
+@Html.DisplayFor(m => m.Timestamp, "Время")<br />
+
+@Html.Label("", "Комментарий к заявке")
+@Html.DisplayFor(m => m.Text, "")<br />
+
+@Html.Label("", "Пользователь")
+@Html.DisplayFor(m => m.Follower.FirstName, "")<br />
+
+@Html.Label("", "Количество вложений")
+@Html.DisplayFor(m => m.HelpDeskAttachment.Count, "Количество вложений")<br />
+
+<br />
+<label for="Ip">Добавить комментарий</label><br />
+<input type="text" class="form-control" id="Answer" placeholder="">
+    <br />
+    <button type="button" class="btn btn-success"
+            onclick="AddAnswer(@Model.Id,
+                            $('#Answer').val())">
+        Добавить
+    </button>
+
+<button type="button" class="btn btn-warning"
+        onclick="DeskClose(@Model.Id)">
+    Закрыть заявку
+</button>
+
+    <h2>Комментарии тех поддержки</h2>
+    <table class="table">
+        <tr>
+            <td>Комментарий</td>
+            <td>Пользователь</td>
+            <td>Время</td>
+
+        </tr>
+        @foreach (var answer in Model.HelpDeskAnswer)
+        {
+            <tr>
+                <td>@answer.Text</td>
+                <td>@answer.Follower.FirstName @answer.Follower.LastName</td>
+                <td>@answer.Timestamp</td>
+            </tr>
+        }
+    </table>
+
+<script type="text/javascript">
+
+    function AddAnswer(DeskId, Text) {
+        $.get(
+            "/Desk/AddAnswer/",
+            {
+                DeskId: DeskId,
+                Text: Text
+
+            },
+            onAjaxSuccess
+
+        );
+
+        function onAjaxSuccess(data) {
+
+            // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+            if (data == 'Добавлено')
+                location.reload();
+
+            else
+                alert(data);
+        }
+
+    }
+
+    function DeskClose(DeskId) {
+        $.get(
+            "/Desk/DeskClose/",
+            {
+                DeskId: DeskId,
+
+            },
+            onAjaxSuccess
+
+        );
+
+        function onAjaxSuccess(data) {
+
+            // Здесь мы получаем данные, отправленные сервером и выводим их на экран.
+
+            if (data == 'Сохранено')
+                location.reload();
+
+            else
+                alert(data);
+        }
+
+    }
+</script>

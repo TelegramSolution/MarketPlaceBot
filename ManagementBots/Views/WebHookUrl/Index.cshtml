@@ -1,0 +1,42 @@
+﻿@model IEnumerable<ManagementBots.Db.WebHookUrl>
+@{
+
+    Layout = "_Layout";
+}
+
+
+<h3>WebHook Url</h3>
+
+<table class="table">
+    <tr>
+        <td>Имя</td>
+        <td>Свободен</td>
+        <td>Зарезервирован до (ожидает оплаты)</td>
+        <td>История</td>
+
+    </tr>
+    @foreach (var url in Model)
+    {
+        <tr>
+            <td>@url.ToString()</td>
+
+            @if (url.IsFree == true)
+            {
+                <td>Свободен</td>
+            }
+
+            @if (url.ReserveWebHookUrl != null)
+            {
+                <td>@url.ReserveWebHookUrl.TimeStampEnd</td>
+
+            }
+
+            @if (url.ReserveWebHookUrl == null)
+           {
+                <td></td>
+           }
+
+            <td><a href="/WebHookUrl/History/@url.Id">История</a></td>
+        </tr>
+    }
+</table>

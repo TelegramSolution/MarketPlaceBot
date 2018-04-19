@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using Telegram.Bot;
 
 namespace MyTelegramBot.Bot
 {
@@ -55,45 +56,6 @@ namespace MyTelegramBot.Bot
             {
                 return null;
             }
-        }
-
-        public static double OrderTotalPrice (List<OrderProduct> list)
-        {
-            double total = 0.0;
-
-            using (MarketBotDbContext db = new MarketBotDbContext())
-            {
-                foreach (OrderProduct p in list)
-                {
-                    p.Product = db.Product.Where(x => x.Id == p.ProductId).Include(x => x.ProductPrice).FirstOrDefault();
-                    total += db.ProductPrice.Where(pp => pp.Id == p.PriceId).FirstOrDefault().Value * p.Count;
-                }
-            }
-
-            return total;
-        }
-
-        public static int WriteToFile(string data, string filename)
-        {
-
-            using (StreamWriter sw = new StreamWriter(filename))
-            {
-                try
-                {
-                    sw.Write(data);
-                    sw.Flush();
-                    sw.Close();
-                    return 1;
-                }
-
-                catch
-                {
-                    sw.Dispose();
-                    return -1;
-                }
-            }
-
-
         }
 
         public static Stream ReadFile(string filename)
@@ -218,6 +180,23 @@ namespace MyTelegramBot.Bot
             }
 
             catch (Exception e)
+            {
+                return null;
+            }
+        }
+
+        public async static Task<Telegram.Bot.Types.Message> SendTextMsgToOwner(string Text)
+        {
+            try
+            {
+                var BotInfo = GetBotInfo();
+
+                TelegramBotClient telegramBotClient = new TelegramBotClient(BotInfo.Token);
+
+                return await telegramBotClient.SendTextMessageAsync(BotInfo.OwnerChatId, Text, Telegram.Bot.Types.Enums.ParseMode.Html);
+            }
+
+            catch
             {
                 return null;
             }
