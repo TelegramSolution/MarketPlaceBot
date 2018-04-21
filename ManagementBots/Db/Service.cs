@@ -11,7 +11,6 @@ namespace ManagementBots.Db
         }
 
         public int Id { get; set; }
-        public int BotId { get; set; }
         public int? ServiceTypeId { get; set; }
         public int? InvoiceId { get; set; }
         public DateTime? CreateTimeStamp { get; set; }
@@ -20,9 +19,9 @@ namespace ManagementBots.Db
         public bool? Visable { get; set; }
         public bool? IsStart { get; set; }
 
-        public Bot BotNavigation { get; set; }
         public Invoice Invoice { get; set; }
         public ServiceType ServiceType { get; set; }
+        public ServiceBotHistory ServiceBotHistory { get; set; }
         public ICollection<Bot> Bot { get; set; }
     }
 }

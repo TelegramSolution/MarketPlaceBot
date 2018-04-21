@@ -1,0 +1,90 @@
+﻿@model ManagementBots.Db.Bot
+@{
+
+    Layout = "_Layout";
+}
+<p>
+@Html.LabelFor(m => m.Token, "Токен")
+@Html.TextBoxFor(m => m.Token, new { @class = "form-control" })
+<br />
+</p>
+
+<p>
+    <label>Владелец</label><br />
+    @Html.DropDownListFor(Model => Model.FollowerId, ViewBag.Follower as SelectList, new { @class = "form-control" })
+    <br />
+</p>
+
+<p>
+@Html.LabelFor(m => m.Text, "Комментарий")
+@Html.TextBoxFor(m => m.Text, new { @class = "form-control" })
+<br />
+</p>
+
+
+<p>
+    <label>WebHook Url</label><br />
+    @Html.DropDownListFor(Model => Model.WebHookUrlId, ViewBag.WebHookUrl as SelectList, new { @class = "form-control" })
+<br />
+</p>
+
+<p>
+    <label>Веб приложение</label><br />
+    @Html.DropDownListFor(Model => Model.WebAppId, ViewBag.WebApp as SelectList, new { @class = "form-control" })
+    <br />
+</p>
+
+<p>
+    <label>Тариф</label><br />
+    @Html.DropDownListFor(Model => Model.Service.ServiceTypeId, ViewBag.ServiceType as SelectList, new { @class = "form-control" })
+
+    <br />
+</p>
+
+<p>
+    <label>Продолжительность</label>
+    @Html.TextBoxFor(m => m.Service.DayDuration, new { @class = "form-control" })
+</p>
+
+<button type="button" class="btn btn-danger"
+        onclick="Create()">
+    Сохранить
+</button>
+
+<script type="text/javascript">
+
+    function Create() {
+
+
+        var _bot = {
+            'Token': $("#Token").val(),
+            'FollowerId': $("#FollowerId").val(),
+            'Text': $("#Text").val(),
+            'WebHookUrlId': $("#WebHookUrlId").val(),
+            'WebAppId': $("#WebAppId").val(),
+            'Service': { ServiceTypeId: $("#Service_ServiceTypeId").val(), DayDuration: $("#Service_DayDuration").val() }
+
+        };
+
+        $.ajax({
+            type: "POST",
+            url: '/Bot/Create/',
+            data: JSON.stringify(_bot),
+            contentType: "application/json; charset=utf-8"
+        }).done(function (data) {
+
+
+            if (data == 'Добавлено')
+                location.reload();
+
+            else {
+                alert(data);
+
+            }
+
+        }).error(function (data) {
+            // если с ответом сервера чтото пошло не так...
+        })
+    }
+
+</script>

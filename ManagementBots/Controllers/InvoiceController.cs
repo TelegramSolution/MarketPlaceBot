@@ -23,8 +23,7 @@ namespace ManagementBots.Controllers
 
                 var service = DbContext.Service.Where(s => s.InvoiceId == Id)
                                 .Include(s => s.Invoice.PaymentSystem)
-                                .Include(s=>s.ServiceType)
-                                .Include(s => s.BotNavigation).LastOrDefault();
+                                .Include(s=>s.ServiceType).LastOrDefault();
 
 
                 return View(service);

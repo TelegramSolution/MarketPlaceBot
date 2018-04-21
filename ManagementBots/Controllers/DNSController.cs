@@ -124,7 +124,7 @@ namespace ManagementBots.Controllers
             {
                 ssh = new SshFunction(proxy.Ip, proxy.CertPath, proxy.UserName, proxy.PassPhrase);
 
-                ssh.ConnectToServer();
+                ssh.SftpConnectToServer();
 
                 ssh.SCPFile(OpenFile(dns.PublicKeyPathOnMainServer()), dns.PublicKeyPathOnProxy());
 
