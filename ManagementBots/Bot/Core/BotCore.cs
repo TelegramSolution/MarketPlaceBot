@@ -414,10 +414,10 @@ namespace ManagementBots.Bot.Core
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && EditMessageId != 0)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html,true, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb,false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
                     return null;

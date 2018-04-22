@@ -53,25 +53,6 @@ namespace ManagementBots.Db
         public async Task<string> Install (HostInfo hostInfo)
         {
 
-            //var values = new Dictionary<string, string>
-            //{
-            //   { "BotName", hostInfo.BotName },
-            //   { "IsDemo", hostInfo.IsDemo.ToString() },
-            //   { "Token",hostInfo.Token },
-            //   { "UrlWebHook", hostInfo.UrlWebHook }
-            //};
-
-
-            //HttpClient client = new HttpClient();
-
-            //var content = new FormUrlEncodedContent(values);
-
-            //var response = await client.PostAsync(this.ToString()+"//HostingVersion//Install//", content);
-
-            //string result= await response.Content.ReadAsStringAsync();
-
-            //return result;
-
             var body = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(hostInfo));
             var request = (HttpWebRequest)WebRequest.Create(this.ToString() + "//HostingVersion//Install//");
 
@@ -79,7 +60,7 @@ namespace ManagementBots.Db
             request.ContentType = "application/json";
             request.ContentLength = body.Length;
 
-            using (Stream stream = request.GetRequestStream())
+            using (Stream stream =await request.GetRequestStreamAsync())
             {
                 stream.Write(body, 0, body.Length);
                 stream.Close();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace ManagementBots.Db
 {
@@ -24,10 +25,10 @@ namespace ManagementBots.Db
         public int? ProxyServeId { get; set; }
         public int? WebHookUrlId { get; set; }
         public int? ServiceId { get; set; }
-        public bool? Visable { get; set; }
-        public bool? Deleted { get; set; }
-        public bool? Blocked { get; set; }
-        public bool? Launched { get; set; }
+        public bool Visable { get; set; }
+        public bool Deleted { get; set; }
+        public bool Blocked { get; set; }
+        public bool Launched { get; set; }
 
         public Follower Follower { get; set; }
         public ProxyServer ProxyServer { get; set; }
@@ -41,5 +42,32 @@ namespace ManagementBots.Db
         public ICollection<ServiceBotHistory> ServiceBotHistory { get; set; }
         public ICollection<WebAppHistory> WebAppHistory { get; set; }
         public ICollection<WebHookUrlHistory> WebHookUrlHistory { get; set; }
+
+        /// <summary>
+        /// С помощью бота клиента отправить клиенту сообщение
+        /// </summary>
+        public bool SendMessageToOwner(string text)
+        {
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(WebApp.ToString() + "//HostingVersion//SendTextMsgToOwner?Text=" + text);
+
+                request.Method = "GET";
+
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                    return true;
+
+                else
+                    return false;
+            }
+
+            catch
+            {
+                return false;
+            }
+
+        }
     }
 }

@@ -57,6 +57,12 @@ namespace ManagementBots.Controllers
                     Result = await BotCore.Response();
                 }
 
+                if (Result == null && ModuleName != null && ModuleName == ConnectBot.ModuleName || Result == null && ModuleName == null)
+                {
+                    BotCore = new ConnectBot(update);
+                    Result = await BotCore.Response();
+                }
+
             }
 
             //делаем так что бы наше приложние всегда отвечало телеграму ОК. 

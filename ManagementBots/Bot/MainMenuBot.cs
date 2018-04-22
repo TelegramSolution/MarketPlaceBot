@@ -13,7 +13,6 @@ namespace ManagementBots.Bot
 
         public const string ToMainMenuCmd = "MainMenu";
 
-       
 
         
         public MainMenuBot(Update _update) : base(_update)

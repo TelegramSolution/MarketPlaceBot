@@ -27,13 +27,23 @@ namespace ManagementBots.Messages
 
         private InlineKeyboardCallbackButton NewConnectBotBtn { get; set; }
 
-        private InlineKeyboardUrlButton VideoDemoBtn { get; set; }
+        private InlineKeyboardButton VideoDemoBtn { get; set; }
+
+        private InlineKeyboardCallbackButton ViewAllBotBtn { get; set; }
+
+        private InlineKeyboardCallbackButton HelpBtn { get; set; }
 
         public override BotMessage BuildMsg()
         {
-            MyBotnsBtn = base.BuildInlineBtn("Мои боты", base.BuildCallData("MyBots", "Main"));
+            MyBotnsBtn = base.BuildInlineBtn("Мои боты", base.BuildCallData("MyBots", "Main"),base.MobileEmodji);
 
-            NewConnectBotBtn = base.BuildInlineBtn("Подключить бота", base.BuildCallData("NewConnectBot", "Main"));
+            NewConnectBotBtn = base.BuildInlineBtn("Подключить бота", base.BuildCallData(ConnectBot.RequestBotTokenCmd, ConnectBot.ModuleName),base.SenderEmodji);
+
+            VideoDemoBtn = InlineKeyboardUrlButton.WithUrl("Видеодемонстарция", "https://www.youtube.com/");
+
+            ViewAllBotBtn = base.BuildInlineBtn("Подключенные боты", base.BuildCallData("AllBots", "Main"),base.NoteBookEmodji);
+
+            HelpBtn = base.BuildInlineBtn("Служба поддержки", base.BuildCallData("Help", "Main"));
 
 
 
@@ -48,15 +58,22 @@ namespace ManagementBots.Messages
             base.MessageReplyMarkup = new InlineKeyboardMarkup(
                 new[]{
                 new[]
-                        {
-                            MyBotnsBtn,
-                        },
-                    new[]
-                    {
-                        NewConnectBotBtn
-                    }
-
-                 });
+                {
+                    MyBotnsBtn,
+                },
+                new[]
+                {
+                    NewConnectBotBtn
+                },
+                new[]
+                {
+                    VideoDemoBtn
+                },
+                new[]
+                {
+                    HelpBtn
+                }
+                });
 
 
         }
