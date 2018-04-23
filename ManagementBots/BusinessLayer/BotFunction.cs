@@ -13,6 +13,8 @@ namespace ManagementBots.BusinessLayer
     {
         private BotMngmntDbContext DbContext { get; set; }
 
+        private const int ReservDurationMinute = 30;
+
         public BotConnectFunction()
         {
             DbContext = new BotMngmntDbContext();
@@ -66,6 +68,35 @@ namespace ManagementBots.BusinessLayer
             else
                 return InsertBot(BotInfo.Username, BotToken, FollowerId);
             
+        }
+
+        public Invoice PaidVersion (int BotId, int ServiceTypeId, int DayDuration)
+        {
+            var Bot = DbContext.Bot.Where(b => b.Id == BotId).Include(b => b.ReserveWebApp).Include(b => b.ReserveWebHookUrl).FirstOrDefault();
+
+            var WebApp = SearchFreeWebApp();
+
+            var WebHookUrl = SearchWebHookUrl();
+
+            var ServiceType = DbContext.ServiceType.Find(ServiceTypeId);
+
+            if(Bot.ReserveWebApp==null)
+                ReservedWebApp(WebApp.Id, Bot.Id, ReservDurationMinute); // резевирем вебпрриложение
+
+            if(Bot.ReserveWebHookUrl==null)
+                ReservedWebHookUrl(WebHookUrl.Id, Bot.Id, ReservDurationMinute); // резервируем юрл
+
+            var Invoice = CreateInvoice(Convert.ToDouble(ServiceType.Price * DayDuration)); //создаем счет на оплату
+
+            //создаем услугу и прикрепляем к ней счет который требуется оплатить
+            Service service = new Service { ServiceTypeId = ServiceTypeId, CreateTimeStamp = DateTime.Now, DayDuration = DayDuration, IsStart = false, Visable = false, InvoiceId = Invoice.Id };
+            service=InsertService(service);
+
+            Bot.ServiceId = service.Id;
+
+            DbContext.SaveChanges();
+
+            return Invoice;
         }
 
         public async Task<Db.Bot> SelectServiceType(int BotId, int ServiceTypeId)
@@ -136,6 +167,7 @@ namespace ManagementBots.BusinessLayer
                 Bot.WebHookUrlId = WebHookUrl.Id;
                 Bot.WebAppId = WebApp.Id;
                 Bot.Launched = true;
+                Bot.Visable = true;
 
                 DbContext.SaveChanges();
 
@@ -191,7 +223,7 @@ namespace ManagementBots.BusinessLayer
 
         private WebApp SearchFreeWebApp()
         {
-            var Webapp = DbContext.WebApp.Where(w => w.IsFree).Include(w => w.ServerWebApp).FirstOrDefault();
+            var Webapp = DbContext.WebApp.Where(w => w.IsFree && w.ReserveWebApp==null).Include(w => w.ServerWebApp).Include(w=>w.ReserveWebApp).FirstOrDefault();
 
 
             if (Webapp != null)
@@ -204,7 +236,7 @@ namespace ManagementBots.BusinessLayer
 
         private WebHookUrl SearchWebHookUrl()
         {
-            var Url = DbContext.WebHookUrl.Where(w => w.IsFree).Include(u => u.Dns).Include(u=>u.Port).FirstOrDefault();
+            var Url = DbContext.WebHookUrl.Where(u=> u.IsFree && u.ReserveWebHookUrl==null).Include(u => u.Dns).Include(u=>u.ReserveWebHookUrl).Include(u=>u.Port).FirstOrDefault();
 
             if (Url != null)
                 return Url;
@@ -216,6 +248,62 @@ namespace ManagementBots.BusinessLayer
         private bool UsedDemo(int? FollowerId)
         {
             return false;
+        }
+
+        private ReserveWebHookUrl ReservedWebHookUrl (int WebHookUrlId , int BotId, int ReservMinuteDuration)
+        {
+            ReserveWebHookUrl reserve = new ReserveWebHookUrl {
+                BotId = BotId,
+                WebHookUrlId = WebHookUrlId,
+                TimeStampEnd = DateTime.Now.AddMinutes(ReservDurationMinute) ,
+                TimeStampStart=DateTime.Now
+            };
+
+            DbContext.ReserveWebHookUrl.Add(reserve);
+            DbContext.SaveChanges();
+            return reserve;
+        }
+
+        private ReserveWebApp ReservedWebApp(int WebAppId, int BotId, int ReservMinuteDuration)
+        {
+            ReserveWebApp reserve = new ReserveWebApp
+            {
+                BotId = BotId,
+                WebAppId = WebAppId,
+                TimeStampStart = DateTime.Now,
+                TimeStampEnd = DateTime.Now.AddMinutes(ReservMinuteDuration)
+            };
+
+            DbContext.ReserveWebApp.Add(reserve);
+            DbContext.SaveChanges();
+            return reserve;
+        }
+
+        /// <summary>
+        /// Формируем счет на оплату для платежной системы QIWI
+        /// </summary>
+        /// <param name="Summ"></param>
+        /// <param name="PaymentSystemId"></param>
+        /// <returns></returns>
+        private Invoice CreateInvoice(double Summ, int PaymentSystemId=1)
+        {
+
+           var list= DbContext.PaymentSystemConfig.Where(p => p.PaymentSystemId == PaymentSystemId).ToList();
+
+            Random random = new Random();
+            var configPaymentMethod=list[random.Next(list.Count)];
+
+            Invoice invoice = new Invoice
+            {
+                AccountNumber = configPaymentMethod.Login,
+                CreateTimeStamp = DateTime.Now,
+                PaymentSystemId = 1,
+                Paid = false,
+                Summ = Summ
+            };
+
+            DbContext.Invoice.Add(invoice);
+            return invoice;
         }
 
         public void Dispose()

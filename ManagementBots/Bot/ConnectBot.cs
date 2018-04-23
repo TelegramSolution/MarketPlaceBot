@@ -19,6 +19,12 @@ namespace ManagementBots.Bot
 
         public const string EnterBotTokenForce = "Введите токен";
 
+        public const string EnterDurationCmd = "EnterDuration";
+
+        public const string CheckPayCmd = "CheckPay";
+
+        public const string BackToDurationEnterCmd = "BackToDurationEnter";
+
         private BotConnectFunction BotConnectFunction { get; set; }
 
 
@@ -45,6 +51,12 @@ namespace ManagementBots.Bot
 
                 case SelectServiceTypeCmd:
                     return await SelectServiceType();
+
+                case EnterDurationCmd:
+                    return await SaveDurationDay(Argumetns[0], Argumetns[1], Argumetns[2]);
+
+                case BackToDurationEnterCmd:
+                    return await SendEnterDurationService(Argumetns[0], Argumetns[1]);
 
                 default:
                     return null;
@@ -104,21 +116,32 @@ namespace ManagementBots.Bot
             return OkResult;
         }
 
+        /// <summary>
+        /// пользователь выбрал тарифный план
+        /// </summary>
+        /// <returns></returns>
         private async Task<IActionResult> SelectServiceType()
         {
             try
             {
-                BotConnectFunction = new BotConnectFunction();
+                BotMngmntDbContext dbContext = new BotMngmntDbContext();
 
-                SendAction(Telegram.Bot.Types.Enums.ChatAction.Typing);
+                var ServiceType = dbContext.ServiceType.Find(Argumetns[1]);
 
-                var bot = await BotConnectFunction.SelectServiceType(Argumetns[0], Argumetns[1]);
-
-                if (bot.Service.ServiceType.IsDemo)
+                if (ServiceType.IsDemo) // это тариф пробной версии. Запускаем сразу
                 {
+                    BotConnectFunction = new BotConnectFunction();
+
+                    SendAction(Telegram.Bot.Types.Enums.ChatAction.Typing);
+
+                    var bot = await BotConnectFunction.SelectServiceType(Argumetns[0], Argumetns[1]);
                     await SendMessage(new BotMessage { TextMessage = "Услуга активирована" });
                     bot.SendMessageToOwner("Нажмите сюда /admin");
                 }
+
+                else /// тафиф платной версии. высылаем сообщение с выбором периода времени аренды
+                   return await SendEnterDurationService(Argumetns[0], Argumetns[1],base.MessageId);
+
 
                 return OkResult;
             }
@@ -131,7 +154,40 @@ namespace ManagementBots.Bot
 
             finally
             {
-                BotConnectFunction.Dispose();
+                if(BotConnectFunction!=null)
+                    BotConnectFunction.Dispose();
+            }
+        }
+
+        private async Task<IActionResult> SendEnterDurationService(int BotId, int serviceTypeId, int MessageId=0)
+        {
+            BotMessage = new EnterDurationServiceMessage(serviceTypeId, BotId);
+
+            await SendMessage(BotMessage.BuildMsg(), MessageId);
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SaveDurationDay(int BotId,int serviceTypeId, int DayDuration)
+        {
+            try
+            {
+                BotConnectFunction = new BotConnectFunction();
+
+                var Invoice= BotConnectFunction.PaidVersion(BotId, serviceTypeId, DayDuration);
+
+                BotMessage = new InvoiceViewMessage(Invoice, BotId, serviceTypeId);
+
+                await EditMessage(BotMessage.BuildMsg());
+
+                return OkResult;
+
+            }
+
+            catch (Exception e)
+            {
+                await SendMessage(new BotMessage { TextMessage = e.Message });
+                return OkResult;
             }
         }
     }
