@@ -6,6 +6,7 @@ using ManagementBots.Bot.Core;
 using ManagementBots.Messages;
 using ManagementBots.Db;
 using ManagementBots.BusinessLayer;
+using ManagementBots.MyExeption;
 
 namespace ManagementBots.Bot
 {
@@ -58,6 +59,9 @@ namespace ManagementBots.Bot
                 case BackToDurationEnterCmd:
                     return await SendEnterDurationService(Argumetns[0], Argumetns[1]);
 
+                case CheckPayCmd:
+                    return await CheckPay(Argumetns[0], Argumetns[1]);
+
                 default:
                     return null;
 
@@ -88,16 +92,20 @@ namespace ManagementBots.Bot
                     return OkResult;
             }
 
+
             catch (Exception e)
             {
-                await SendMessage(new BotMessage { TextMessage = e.Message });
+                if (e.Message.Contains("token"))
+                    await SendMessage(new BotMessage { TextMessage= "Ошибка! Не верный токен" });
+
                 return await SendTextMessageAndForceReply("Создайте бота с помощью @Botfather и пришлите Токен доступа", EnterBotTokenForce);
 
             }
 
             finally
             {
-                BotConnectFunction.Dispose();
+                if(BotConnectFunction!=null)
+                    BotConnectFunction.Dispose();
             }
         }
 
@@ -135,6 +143,11 @@ namespace ManagementBots.Bot
                     SendAction(Telegram.Bot.Types.Enums.ChatAction.Typing);
 
                     var bot = await BotConnectFunction.SelectServiceType(Argumetns[0], Argumetns[1]);
+
+                    BotMessage = new ServiceInfoMessage(bot, bot.Service);
+
+                    await EditMessage(BotMessage.BuildMsg());
+
                     await SendMessage(new BotMessage { TextMessage = "Услуга активирована" });
                     bot.SendMessageToOwner("Нажмите сюда /admin");
                 }
@@ -174,7 +187,7 @@ namespace ManagementBots.Bot
             {
                 BotConnectFunction = new BotConnectFunction();
 
-                var Invoice= BotConnectFunction.PaidVersion(BotId, serviceTypeId, DayDuration);
+                var Invoice= BotConnectFunction.SelectPaidVersion(BotId, serviceTypeId, DayDuration);
 
                 BotMessage = new InvoiceViewMessage(Invoice, BotId, serviceTypeId);
 
@@ -188,6 +201,40 @@ namespace ManagementBots.Bot
             {
                 await SendMessage(new BotMessage { TextMessage = e.Message });
                 return OkResult;
+            }
+        }
+
+        private async Task<IActionResult>CheckPay(int BotId, int InvoiceId)
+        {
+            try
+            {
+                BotConnectFunction = new BotConnectFunction();
+                base.SendAction(Telegram.Bot.Types.Enums.ChatAction.Typing);
+                var bot= await BotConnectFunction.InstallPaidVersion(BotId, InvoiceId);
+
+                BotMessage = new ServiceInfoMessage(bot, bot.Service);
+
+                await base.EditMessage(BotMessage.BuildMsg());
+
+                return OkResult;
+            }
+
+            catch (BotInstallExeption.BotIsLaunchedExeption e)
+            {
+                await base.AnswerCallback(e.Message, true);
+
+                return OkResult;
+            }
+
+            catch(Exception e)
+            {
+                await base.AnswerCallback(e.Message, true);
+                return OkResult;
+            }
+
+            finally
+            {
+                BotConnectFunction.Dispose();
             }
         }
     }

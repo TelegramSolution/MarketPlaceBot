@@ -644,8 +644,8 @@ namespace ManagementBots.Bot.Core
 
             catch
             {
-                //if (text != null)
-                //    await Telegram.SendTextMessageAsync(this.ChatId, text);
+                if (text != null && text!="")
+                    await TelegramClient.SendTextMessageAsync(this.ChatId, text);
 
                 return true;
             }

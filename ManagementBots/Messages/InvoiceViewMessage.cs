@@ -35,7 +35,6 @@ namespace ManagementBots.Messages
 
             CheckPayBtn = BuildInlineBtn("Я оплатил", BuildCallData(ConnectBot.CheckPayCmd, ConnectBot.ModuleName, BotId, Invoice.Id), base.CreditCardEmodji);
 
-
             base.TextMessage = "Счет № " + Invoice.Id.ToString() + NewLine() +
                               Bold("Счет получателя:") + Invoice.AccountNumber + NewLine() +
                               Bold("Сумма:") + Invoice.Summ + NewLine() +

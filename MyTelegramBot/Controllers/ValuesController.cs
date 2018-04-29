@@ -38,7 +38,7 @@ namespace MyTelegramBot.Controllers
         {
             OkResult = this.Ok();
 
-            if (Result == null && update.CallbackQuery == null && update.InlineQuery==null)
+            if (update.CallbackQuery == null && update.InlineQuery==null)
             {
                 BotCore = new ProductAddBot(update);
                 Result = await BotCore.Response();

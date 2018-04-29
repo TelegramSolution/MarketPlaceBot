@@ -49,6 +49,10 @@ namespace MyTelegramBot.Bot
 
         public const string CmdProductPage = "ProductPage";
 
+        public const string ProductQuestionCmd = "ProductQuestion";
+
+        public const string EnterProductQuestion = "Введите вопрос:";
+
         /// <summary>
         /// перейти на вторую стр. с кнопками
         /// </summary>
@@ -117,6 +121,9 @@ namespace MyTelegramBot.Bot
 
                 case CmdBackToMainPageButtons:
                     return await SendMainPageButtons(ProductId);
+
+                case ProductQuestionCmd:
+                  return await SendProductQuestion(Argumetns[0]);
             }
 
 
@@ -127,6 +134,15 @@ namespace MyTelegramBot.Bot
 
             else
                 return null;
+        }
+
+        private async Task<IActionResult> SendProductQuestion(int ProductId)
+        {
+            var prod= BusinessLayer.ProductFunction.GetProductById(ProductId);
+
+            await SendForceReplyMessage(EnterProductQuestion + prod.Name);
+
+            return OkResult;
         }
 
         private async Task<IActionResult> SendMainPageButtons(int ProductId)

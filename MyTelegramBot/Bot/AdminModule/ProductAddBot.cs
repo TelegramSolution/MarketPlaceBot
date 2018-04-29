@@ -245,7 +245,9 @@ namespace MyTelegramBot.Bot.AdminModule
             {
                 Product = ProductFunction.UpdateText(Product.Id, ReplyToMessageText);
                 ProductFunction.Dispose();
-                return await SendTextMessageAndForceReply("Еденица измерения:" + units, EnterUnitForceReply + Product.Name);
+                await SendTextMessageAndForceReply("Еденица измерения:" + units, EnterUnitForceReply + Product.Name);
+               
+                return OkResult;
             }
 
             if (Product != null && ReplyToMessageText.Length > 100)

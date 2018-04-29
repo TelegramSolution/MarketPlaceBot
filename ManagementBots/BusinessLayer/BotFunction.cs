@@ -6,6 +6,7 @@ using ManagementBots.Db;
 using Telegram.Bot.Types;
 using Microsoft.EntityFrameworkCore;
 using ManagementBots.Models;
+using ManagementBots.MyExeption;
 
 namespace ManagementBots.BusinessLayer
 {
@@ -33,6 +34,7 @@ namespace ManagementBots.BusinessLayer
                     Token = Token,
                     Deleted = false,
                     Visable = Visable,
+                    CreateTimeStamp=DateTime.Now
                     
                 };
 
@@ -70,7 +72,7 @@ namespace ManagementBots.BusinessLayer
             
         }
 
-        public Invoice PaidVersion (int BotId, int ServiceTypeId, int DayDuration)
+        public Invoice SelectPaidVersion (int BotId, int ServiceTypeId, int DayDuration)
         {
             var Bot = DbContext.Bot.Where(b => b.Id == BotId).Include(b => b.ReserveWebApp).Include(b => b.ReserveWebHookUrl).FirstOrDefault();
 
@@ -98,6 +100,132 @@ namespace ManagementBots.BusinessLayer
 
             return Invoice;
         }
+
+        /// <summary>
+        /// проверка оплаты и установка 
+        /// </summary>
+        /// <param name="BotId"></param>
+        /// <param name="InvoiceId"></param>
+        /// <returns></returns>
+        public async Task<Db.Bot> InstallPaidVersion(int BotId, int InvoiceId)
+        {
+             var Bot = DbContext.Bot.Where(b => b.Id == BotId).Include(b => b.ReserveWebApp.WebApp.ServerWebApp)
+                                                              .Include(b => b.ReserveWebHookUrl.WebHookUrl.Port)
+                                                              .Include(b=>b.Follower)
+                                                              .Include(b=>b.Service.ServiceType)
+                                                              .Include(b=>b.ReserveWebHookUrl.WebHookUrl.Dns).FirstOrDefault();
+
+            var Invoice = DbContext.Invoice.Find(InvoiceId);
+
+            var ProxyServer = DbContext.ProxyServer.Where(p => p.Enable).FirstOrDefault();
+
+            if(!Invoice.Paid)
+                await CheckPay(Invoice);
+
+            if (Invoice.Paid && !Bot.Launched)
+            {
+                //Веб приложени свободно токен действителен. Устанавливаем бота
+                string result = await Bot.ReserveWebApp.WebApp.Install(
+                                new HostInfo
+                                {
+                                    Token = Bot.Token,
+                                    BotName = Bot.BotName,
+                                    IsDemo = Bot.Service.ServiceType.IsDemo,
+                                    UrlWebHook = Bot.ReserveWebHookUrl.ToString(),
+                                    OwnerChatId = Convert.ToInt32(Bot.Follower.ChatId),
+                                    DbName = Bot.BotName + GeneralFunction.UnixTimeNow().ToString()
+                                }
+                 );
+
+
+                var Response = Newtonsoft.Json.JsonConvert.DeserializeObject<BotResponse>(result);
+
+                //Установка бота на веб приложение прошла успешно.Создаем файл для прокси сервера и заливаем на сервер,Перезапускаем службу прокси сервера (nginx)
+                return await InstallBot(Bot, ProxyServer, Response);
+            }
+
+            if (Invoice.Paid && Bot.Launched)
+                throw new BotInstallExeption.BotIsLaunchedExeption();
+
+            else
+                throw new Exception("Неизвестная ошибка");
+
+            }
+
+        private async Task<Db.Bot> InstallBot(Db.Bot Bot, ProxyServer ProxyServer, BotResponse Response)
+        {
+            if (Response.Ok && ProxyServer.CreateConfigFile(Bot.ReserveWebHookUrl.WebHookUrl.Dns.Name,
+                                                            Bot.ReserveWebApp.WebApp.ToString(),
+                                                            Convert.ToInt32(Bot.ReserveWebHookUrl.WebHookUrl.Port.PortNumber)))
+            {
+                //Если все хорошо вызываем метод SetWebhook
+                await TelegramFunction.SetWebHook(Bot.Token, 
+                                                  Bot.ReserveWebHookUrl.WebHookUrl.Dns.PublicKeyPathOnMainServer(), 
+                                                  Bot.ReserveWebHookUrl.WebHookUrl.ToString());
+
+                InsertServiceBotHistory(Bot, Bot.Service);
+                InsertWebAppHistory(Bot, Bot.ReserveWebApp.WebApp);
+                InsertWebHookHistory(Bot, Bot.ReserveWebHookUrl.WebHookUrl);
+
+                DbContext.Remove<ReserveWebApp>(Bot.ReserveWebApp);
+                DbContext.Remove<ReserveWebHookUrl>(Bot.ReserveWebHookUrl);
+
+                Bot.Service.IsStart = true;
+                Bot.Service.StartTimeStamp = DateTime.Now;
+                Bot.WebAppId = Bot.ReserveWebApp.WebAppId;
+                Bot.WebHookUrlId = Bot.ReserveWebHookUrl.WebHookUrlId;
+                Bot.Launched = true;
+                Bot.Visable = true;
+                Bot.ProxyServeId = ProxyServer.Id;
+
+                DbContext.Update<Db.Bot>(Bot);
+
+                DbContext.SaveChanges();
+
+                Bot.SendMessageToOwner("Добро пожаловать. Нажмите сюда /admin");
+
+                return Bot;
+            }
+
+            else // Ошибка во время установки бота на вебприложение
+                throw new Exception(Response.Result);
+        }
+
+        private async Task<bool> CheckPay(Invoice invoice)
+        {
+            var QiwiConf = DbContext.PaymentSystemConfig.Where(q => q.Login == invoice.AccountNumber).FirstOrDefault();
+
+            if (QiwiConf == null)
+                throw new Exception("Ошибка при проверки платежа. Обратитесть в службу поддержки /help");
+
+            string comment = "AY7zmHkYx03qPFeHQmcr7axgBRI1";
+           var PaymentInfo=await Services.Qiwi.QiwiFunction.SearchPayment(comment, QiwiConf.Pass, invoice.AccountNumber);
+
+
+
+            if (PaymentInfo != null && PaymentInfo.sum.amount>=invoice.Summ && !invoice.Paid)
+            {
+                Payment payment = new Payment {
+                    CreateTimeStamp = DateTime.Now,
+                    InvoiceId = invoice.Id,
+                    PaymentTimeStamp = Convert.ToDateTime(PaymentInfo.date),
+                    SenderAccountNumber = PaymentInfo.account,
+                    Summ = PaymentInfo.sum.amount,
+                    
+                    TxId = PaymentInfo.trmTxnId.ToString() };
+
+                DbContext.Payment.Add(payment);
+
+                invoice.Paid = true;
+
+                return true;
+            }
+
+
+            else
+                throw new Exception("Платеж не найден");
+        }
+
 
         public async Task<Db.Bot> SelectServiceType(int BotId, int ServiceTypeId)
         {
@@ -136,7 +264,8 @@ namespace ManagementBots.BusinessLayer
                                 BotName = Bot.BotName,
                                 IsDemo = ServiceType.IsDemo,
                                 UrlWebHook = WebHookUrl.ToString(),
-                                OwnerChatId = Convert.ToInt32(Bot.Follower.ChatId)
+                                OwnerChatId = Convert.ToInt32(Bot.Follower.ChatId),
+                                DbName=Bot.BotName+GeneralFunction.UnixTimeNow().ToString()
                             }
              );
 
@@ -154,7 +283,9 @@ namespace ManagementBots.BusinessLayer
                 service = InsertService(service);
 
                 InsertServiceBotHistory(Bot, service);
+
                 InsertWebAppHistory(Bot, WebApp);
+
                 InsertWebHookHistory(Bot, WebHookUrl);
 
                 WebApp.IsFree = false;
@@ -198,6 +329,8 @@ namespace ManagementBots.BusinessLayer
 
             DbContext.WebHookUrlHistory.Add(webHookUrlHistory);
 
+            DbContext.SaveChanges();
+
         }
 
         private void InsertWebAppHistory(Db.Bot bot, WebApp webApp)
@@ -210,6 +343,8 @@ namespace ManagementBots.BusinessLayer
             };
 
             DbContext.WebAppHistory.Add(webAppHistory);
+
+            DbContext.SaveChanges();
         }
 
         private Service InsertService(Service service)

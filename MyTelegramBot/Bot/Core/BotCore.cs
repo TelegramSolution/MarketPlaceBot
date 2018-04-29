@@ -710,7 +710,7 @@ namespace MyTelegramBot.Bot.Core
                     Selective = true
                 };
 
-                return await TelegramClient.SendTextMessageAsync(ChatId, text, ParseMode.Html, false, false, 0, forceReply);
+                return await TelegramClient.SendTextMessageAsync(ChatId, text, ParseMode.Html, false, false, 0, replyMarkup:forceReply);
 
             }
 
@@ -1065,8 +1065,10 @@ namespace MyTelegramBot.Bot.Core
             {
                 if (TextMesage != null && ForceReplyMessage != null && TextMesage != "" && ForceReplyMessage != "" && !BotInfo.Configuration.BotBlocked)
                 {
-                    await SendMessage(new BotMessage { TextMessage = TextMesage });
-                    return await SendForceReplyMessage(ForceReplyMessage);
+
+                    await TelegramClient.SendTextMessageAsync(this.ChatId, ForceReplyMessage);
+
+                    return await SendForceReplyMessage(ForceReplyMessage); 
 
                 }
 

@@ -31,14 +31,14 @@ namespace MyTelegramBot.Controllers
         [HttpPost]
         public IActionResult Install([FromBody] Model.HostInfo hostInfo)
         {
-            string dbname = hostInfo.BotName + "Db";
+           // string dbname = hostInfo.BotName + "Db";
 
             HostInfo = new Model.HostInfo();
 
             try
             {
 
-                if (CreateDb(dbname))
+                if (CreateDb(hostInfo.DbName))
                 {
                     string read = ReadFile("HostInfo.json");
 
@@ -51,11 +51,11 @@ namespace MyTelegramBot.Controllers
                     HostInfo.IsFree = false;
                     HostInfo.Token = hostInfo.Token;
                     HostInfo.UrlWebHook = hostInfo.UrlWebHook;
-                    HostInfo.DbName = dbname;
+                    HostInfo.DbName = hostInfo.DbName;
                     HostInfo.OwnerChatId = hostInfo.OwnerChatId;
                     
                     if(hostInfo.DbConnectionString==null)
-                        HostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", dbname);
+                        HostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", HostInfo.DbName);
 
                     WriteFile("connection.json", HostInfo.DbConnectionString);
 

@@ -183,7 +183,8 @@ namespace ManagementBots.Controllers
                                         BotName =_bot.BotName,
                                         IsDemo =ServiceType.IsDemo,
                                         UrlWebHook =WebHookUrl.ToString(),
-                                        OwnerChatId =Convert.ToInt32(Follower.ChatId)
+                                        OwnerChatId =Convert.ToInt32(Follower.ChatId),
+                                        DbName=_bot.BotName+ GeneralFunction.UnixTimeNow().ToString()
                         });
 
                     var Response = Newtonsoft.Json.JsonConvert.DeserializeObject<BotResponse>(result);

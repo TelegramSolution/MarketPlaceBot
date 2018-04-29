@@ -7,11 +7,13 @@
   <ItemGroup>
     <Compile Remove="Bot\Core\BotInline.cs" />
     <Compile Remove="Bot\Core\InlineFind.cs" />
+    <Compile Remove="MyExeption\BotIsLaunchedExeption.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.0" />
+    <PackageReference Include="QiwiApiSharp" Version="1.0.0.14" />
     <PackageReference Include="SSH.NET" Version="2016.1.0" />
     <PackageReference Include="Telegram.Bot" Version="13.4.0" />
   </ItemGroup>

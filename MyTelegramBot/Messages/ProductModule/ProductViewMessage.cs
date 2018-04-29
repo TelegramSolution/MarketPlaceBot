@@ -52,6 +52,8 @@ namespace MyTelegramBot.Messages
         /// </summary>
         private InlineKeyboardCallbackButton BackToMainPageBtn { get; set; }
 
+        private InlineKeyboardCallbackButton QuestionBtn { get; set; }
+
         private int CategoryId { get; set; }
 
         private int ProductId { get; set; }
@@ -169,16 +171,17 @@ namespace MyTelegramBot.Messages
 
             ReturnToCatalogListBtn = BuildInlineBtn("\u2934\ufe0f", BuildCallData("ReturnToCatalogList", CategoryBot.ModuleName));
 
-            ViewBasketBtn = base.BuildInlineBtn(base.BasketEmodji, base.BuildCallData(Bot.BasketBot.ViewBasketCmd, BasketBot.ModuleName));
+            ViewBasketBtn = base.BuildInlineBtn(base.BasketEmodji, base.BuildCallData(BasketBot.ViewBasketCmd, BasketBot.ModuleName));
 
+            QuestionBtn= base.BuildInlineBtn(base.QuestionMarkEmodji, base.BuildCallData(ProductBot.ProductQuestionCmd, ProductBot.ModuleName,Product.Id));
 
-            Page2Btn= BuildInlineBtn(base.Next2Emodji, BuildCallData(ProductBot.CmdPage2Buttons, ProductBot.ModuleName, Product.Id));
+            Page2Btn = BuildInlineBtn(base.Next2Emodji, BuildCallData(ProductBot.CmdPage2Buttons, ProductBot.ModuleName, Product.Id));
 
 
             if (Product.Stock.Count > 0 && Product.Stock.LastOrDefault().Balance > 0) // если есть в наличии то Добавляем кнопки +/-
             {
-                AddToBasketBtn = BuildInlineBtn(base.Plus, base.BuildCallData(Bot.ProductBot.AddToBasketCmd, ProductBot.ModuleName, Product.Id));
-                RemoveFromBasketBtn = BuildInlineBtn(base.Minus, base.BuildCallData(Bot.ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, Product.Id));
+                AddToBasketBtn = BuildInlineBtn(base.Plus, base.BuildCallData(ProductBot.AddToBasketCmd, ProductBot.ModuleName, Product.Id));
+                RemoveFromBasketBtn = BuildInlineBtn(base.Minus, base.BuildCallData(ProductBot.RemoveFromBasketCmd, ProductBot.ModuleName, Product.Id));
             }
 
 
@@ -198,7 +201,7 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
-                            PhotoCatalogBtn, SearchProductBtn,ViewBasketBtn,Page2Btn
+                            PhotoCatalogBtn, SearchProductBtn,QuestionBtn,ViewBasketBtn,Page2Btn
                         },
                 
 
@@ -218,7 +221,7 @@ namespace MyTelegramBot.Messages
                         },
                 new[]
                         {
-                            PhotoCatalogBtn, SearchProductBtn,ViewBasketBtn,Page2Btn
+                            PhotoCatalogBtn, SearchProductBtn,QuestionBtn,ViewBasketBtn,Page2Btn
                         },
 
 
