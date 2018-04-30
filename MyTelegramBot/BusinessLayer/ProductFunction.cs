@@ -832,7 +832,10 @@ namespace MyTelegramBot.BusinessLayer
                 return -1;
             }
         }
-        private AttachmentFs InsertAttachmentFs(byte[] PhotoByte, int AttachmentTypeId= ConstantVariable.MediaTypeVariable.Photo,string Caption="", string Name = "Photo.jpg")
+        private AttachmentFs InsertAttachmentFs(byte[] PhotoByte, 
+                                                int AttachmentTypeId=ConstantVariable.MediaTypeVariable.Photo,
+                                                string Caption="", 
+                                                string Name = "Photo.jpg")
         {
             try
             {
@@ -855,7 +858,6 @@ namespace MyTelegramBot.BusinessLayer
                 return null;
             }
         }
-
 
         public static List<Model.AdditionalPhoto> GetAdditionalPhoto(int ProductId, int BotId)
         {
@@ -890,6 +892,114 @@ namespace MyTelegramBot.BusinessLayer
                 }
 
                 return Result;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static ProductQuestion InsertProductQuestion(int ProductId, string Text, int FollowerId)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+
+                ProductQuestion question = new ProductQuestion { FollowerId = FollowerId, ProductId = ProductId, Text = Text, TimeStamp = DateTime.Now };
+
+                db.ProductQuestion.Add(question);
+
+                db.SaveChanges();
+
+                question.Product = db.Product.Find(ProductId);
+                question.Follower = db.Follower.Find(FollowerId);
+
+                return question;
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+
+            }
+        }
+
+        public static ProductQuestion InsertAnswer(int QuestionId, int FollowerId, string Text)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            var Question = db.ProductQuestion.Where(q => q.Id == QuestionId)
+                                            .Include(q=>q.Product)
+                                            .Include(q => q.Follower)
+                                            .Include(q => q.Answer.Follower).FirstOrDefault();
+
+            if (Question.Answer != null) {
+
+                db.Dispose();
+                throw new Exception("Пользователь " + Question.Answer.Follower.ToString()+ " уже ответил на данный вопрос. /question" + QuestionId.ToString());
+
+            }
+
+            else
+            {
+                Answer answer = new Answer { FollowerId = FollowerId, Text = Text, TimeStamp = DateTime.Now };
+                db.Answer.Add(answer);
+                db.SaveChanges();
+                Question.AnswerId = answer.Id;
+                db.SaveChanges();
+                Question.Answer = answer;
+                Question.Answer.Follower = db.Follower.Find(FollowerId);
+                db.Dispose();
+                return Question;
+
+            }
+        }
+
+        public static Product GetProductByName(string Name)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+              return  db.Product.Where(p => p.Name == Name).FirstOrDefault();
+            }
+
+            catch
+            {
+                return null;
+
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
+        public static ProductQuestion GetProductQuestion(int Id)
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                var Question = db.ProductQuestion.Where(q => q.Id == Id)
+                                                 .Include(q => q.Product)
+                                                 .Include(q => q.Follower)
+                                                 .Include(q => q.Answer.Follower).FirstOrDefault();
+
+                return Question;
+                    
             }
 
             catch

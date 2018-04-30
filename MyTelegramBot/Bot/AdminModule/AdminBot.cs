@@ -102,6 +102,14 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string FollowerDetailsCmd = "/follower";
 
+        public const string GetQuestionCmd = "GetQuestion";
+
+        public const string AddAnswerCmd = "AddAnswer";
+
+        public const string EnterAnswerCmd = "Введите ответ:";
+
+        public const string GetQuestionCmd2 = "/question";
+
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
         {
@@ -131,7 +139,7 @@ namespace MyTelegramBot.Bot.AdminModule
         {
             if(IsOperator() || IsOwner())
             {
-                    switch (base.CommandName)
+                switch (base.CommandName)
                     {
                         //Панель администратора /admin
                         case "/admin":
@@ -158,27 +166,36 @@ namespace MyTelegramBot.Bot.AdminModule
                         case ViewOrdersListCmd:
                             return await SendOrderList();
 
-                    case ViewStockHistoryProdCmd:
-                        return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
+                        case ViewStockHistoryProdCmd:
+                            return await SendProductStockHistory(Argumetns[0],Argumetns[1], base.MessageId);
 
-                    case BlockFollowerCmd:
-                        return await BlockUser();
+                        case BlockFollowerCmd:
+                            return await BlockUser();
 
-                    case UnBlockFollowerCmd:
-                        return await UnBlockUser();
+                        case UnBlockFollowerCmd:
+                            return await UnBlockUser();
 
+                        case AdminPage2Cmd:
+                            return await SendPage2Btn();
 
-                    case AdminPage2Cmd:
-                        return await SendPage2Btn();
+                        case AddAnswerCmd:
+                              return await base.SendForceReplyMessage(EnterAnswerCmd+Argumetns[0]);
 
-                    default:
-                            break;
+                        case GetQuestionCmd:
+                            return await SendQuestion(Argumetns[0], base.MessageId);
+
+                        default:
+                                break;
                     }
 
                 if (base.CommandName.Contains(StockHistoryProudctCmd))
-                    await SendProductStockHistory(Convert.ToInt32(base.CommandName.Substring(StockHistoryProudctCmd.Length)));
+                   return await SendProductStockHistory(Convert.ToInt32(base.CommandName.Substring(StockHistoryProudctCmd.Length)));
 
+                if (base.OriginalMessage.Contains(EnterAnswerCmd))
+                   return await InsertAnswer();
 
+                if (base.CommandName.Contains(GetQuestionCmd2))
+                    return await SendQuestion();
             }
 
             if (IsOwner())
@@ -248,6 +265,68 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+        private async Task<IActionResult> InsertAnswer()
+        {
+            try
+            {
+                int QuestionId =Convert.ToInt32(OriginalMessage.Substring(EnterAnswerCmd.Length, OriginalMessage.Length - EnterAnswerCmd.Length));
+
+                var Question= ProductFunction.InsertAnswer(QuestionId, FollowerId, ReplyToMessageText);
+
+                BotMessage = new ProductQuestionAdminViewMessage(Question);
+
+                await SendMessage(BotMessage.BuildMsg());
+
+                await SendMessageAllBotEmployeess(BotMessage);
+
+                // отправляем ответ пользователю который задал вопрос
+                BotMessage = new ProductQuestionViewMessage(Question);
+                await SendMessage(Question.Follower.ChatId, BotMessage.BuildMsg());
+
+                return OkResult; 
+            }
+
+            catch (Exception e)
+            {
+                await SendMessage(new BotMessage { TextMessage = e.Message });
+
+                return OkResult;
+                
+            }
+
+
+        }
+
+
+        private async Task<IActionResult> SendQuestion()
+        {
+            try
+            {
+                int id = Convert.ToInt32(CommandName.Substring(GetQuestionCmd2.Length, CommandName.Length - GetQuestionCmd2.Length));
+
+                return await SendQuestion(id);
+            }
+
+            catch
+            {
+                return OkResult;
+            }
+        }
+
+        private async Task<IActionResult> SendQuestion(int id, int MessageId=0)
+        {
+           var question= ProductFunction.GetProductQuestion(id);
+
+            if (question != null)
+            {
+                BotMessage = new ProductQuestionAdminViewMessage(question);
+                await SendMessage(BotMessage.BuildMsg(), MessageId);
+
+            }
+
+            return OkResult;
         }
 
         private async Task<IActionResult> SendFollowerDetails()
@@ -585,7 +664,9 @@ namespace MyTelegramBot.Bot.AdminModule
                     {
                         MarketBotDbContext db = new MarketBotDbContext();
 
-                        db.Configuration.FirstOrDefault().PrivateGroupChatId = base.GroupChatId.ToString();
+                        BotInfo.Configuration.PrivateGroupChatId = base.GroupChatId.ToString();
+
+                        db.Update<Configuration>(BotInfo.Configuration);
 
                         db.SaveChanges();
                         await SendMessage(base.GroupChatId, new BotMessage { TextMessage = "Успех!" });

@@ -126,7 +126,8 @@ namespace MyTelegramBot.Bot
                   return await SendProductQuestion(Argumetns[0]);
             }
 
-
+            if (base.OriginalMessage.Contains(EnterProductQuestion))
+                return await InsertQuestion(OriginalMessage.Substring(EnterProductQuestion.Length,OriginalMessage.Length-EnterProductQuestion.Length), ReplyToMessageText);
 
             //команда /item
             if (base.CommandName.Contains(ProductCmd))
@@ -136,11 +137,42 @@ namespace MyTelegramBot.Bot
                 return null;
         }
 
+
+        private async Task<IActionResult> InsertQuestion(string ProductName, string Text)
+        {
+          var product=  BusinessLayer.ProductFunction.GetProductByName(ProductName);
+
+           var Question = BusinessLayer.ProductFunction.InsertProductQuestion(product.Id, Text, FollowerId);
+
+            if (Question != null)
+            {
+                await SendMessage(new BotMessage { TextMessage = "Ваш вопрос отправлен операторам. Вернуться к товару /item"+product.Id });
+
+                BotMessage = new Messages.Admin.ProductQuestionAdminViewMessage(Question);
+
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+            }
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Пользователь нажал на кнопку задать вопрос. Появилась форма для ввода сообщения
+        /// </summary>
+        /// <param name="ProductId"></param>
+        /// <returns></returns>
         private async Task<IActionResult> SendProductQuestion(int ProductId)
         {
-            var prod= BusinessLayer.ProductFunction.GetProductById(ProductId);
+            if (!BusinessLayer.FollowerFunction.GetFollower(base.FollowerId).Blocked)
+            {
 
-            await SendForceReplyMessage(EnterProductQuestion + prod.Name);
+                var prod = BusinessLayer.ProductFunction.GetProductById(ProductId);
+
+                await SendForceReplyMessage(EnterProductQuestion + prod.Name);
+            }
+
+            else
+                await AnswerCallback("Пользователь заблокирован!", true);
 
             return OkResult;
         }

@@ -24,5 +24,7 @@ namespace MyTelegramBot
         public Follower Follower { get; set; }
 
         public ICollection<Orders> Orders { get; set; }
+
+        public Orders Order { get; set; }
     }
 }

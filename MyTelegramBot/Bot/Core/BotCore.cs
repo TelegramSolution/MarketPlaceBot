@@ -753,18 +753,18 @@ namespace MyTelegramBot.Bot.Core
             }
         }
 
-        protected async Task<Message> SendMessage(long ChatId, BotMessage botMessage, bool DisableNotifi = false)
+        protected async Task<Message> SendMessage(long ChatId, BotMessage botMessage, bool DisableNotifi = false, bool DisableWeb=true)
         {
             try
             {
                 if(BotInfo.Configuration.BotBlocked)
-                     return await TelegramClient.SendTextMessageAsync(ChatId, botMessage.TextMessage, ParseMode.Html, false, DisableNotifi, 0, botMessage.MessageReplyMarkup);
+                     return await TelegramClient.SendTextMessageAsync(ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, DisableNotifi, 0, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && this.Update.CallbackQuery != null && this.CallBackQueryId != null)
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && botMessage.TextMessage != null && !BotInfo.Configuration.BotBlocked)
-                    return await TelegramClient.SendTextMessageAsync(ChatId, botMessage.TextMessage, ParseMode.Html, false, DisableNotifi, 0, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, DisableNotifi, 0, botMessage.MessageReplyMarkup);
 
                 else
                     return null;
