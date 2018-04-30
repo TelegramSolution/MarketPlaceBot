@@ -30,21 +30,25 @@ namespace MyTelegramBot.Messages.Admin
 
         private InlineKeyboardCallbackButton ProductExportBtn { get; set; }
 
+        private InlineKeyboardCallbackButton ProductQuestionExportBtn { get; set; }
+
         public override BotMessage BuildMsg()
         {
             base.TextMessage = "Экспорт данных в формате .xlsx";
 
-            OrderExportBtn = BuildInlineBtn("Заказы", BuildCallData(ReportsBot.OrderExportCallBack, ReportsBot.ModuleName));
+            OrderExportBtn = BuildInlineBtn("Заказы", BuildCallData(ReportsBot.OrderExportCallBack, ReportsBot.ModuleName),base.OpenedBookEmodji);
 
-            FollowerExportBtn = BuildInlineBtn("Пользователи", BuildCallData(ReportsBot.FollowerExportCallBack, ReportsBot.ModuleName));
+            FollowerExportBtn = BuildInlineBtn("Пользователи", BuildCallData(ReportsBot.FollowerExportCallBack, ReportsBot.ModuleName), base.OpenedBookEmodji);
 
-            FeedBackExportBtn = BuildInlineBtn("Отзывы", BuildCallData(ReportsBot.FeedBackExportCallBack, ReportsBot.ModuleName));
+            FeedBackExportBtn = BuildInlineBtn("Отзывы", BuildCallData(ReportsBot.FeedBackExportCallBack, ReportsBot.ModuleName), base.OpenedBookEmodji);
 
-            StockHistoryExportBtn = BuildInlineBtn("Остатки", BuildCallData(ReportsBot.StockHistoryExportCallBack, ReportsBot.ModuleName));
+            StockHistoryExportBtn = BuildInlineBtn("Остатки", BuildCallData(ReportsBot.StockHistoryExportCallBack, ReportsBot.ModuleName), base.OpenedBookEmodji);
 
-            HelpDeskExportBtn= BuildInlineBtn("Заявки", BuildCallData(ReportsBot.HelpDeskExportCallBack, ReportsBot.ModuleName));
+            HelpDeskExportBtn= BuildInlineBtn("Заявки", BuildCallData(ReportsBot.HelpDeskExportCallBack, ReportsBot.ModuleName), base.OpenedBookEmodji);
 
-            ProductExportBtn= BuildInlineBtn("Товары", BuildCallData(ReportsBot.ProductExportCallBack, ReportsBot.ModuleName));
+            ProductExportBtn= BuildInlineBtn("Товары", BuildCallData(ReportsBot.ProductExportCallBack, ReportsBot.ModuleName), base.OpenedBookEmodji);
+
+            ProductQuestionExportBtn = BuildInlineBtn("Вопросы по товарам", BuildCallData(ReportsBot.ProductQuestionCallBack, ReportsBot.ModuleName), base.OpenedBookEmodji);
 
             BackBtn = BackToAdminPanelBtn();
 
@@ -61,6 +65,10 @@ namespace MyTelegramBot.Messages.Admin
                 new[]
                         {
                             FeedBackExportBtn,StockHistoryExportBtn
+                        },
+                new[]
+                        {
+                            ProductQuestionExportBtn
                         },
                 new[]
                         {

@@ -1013,6 +1013,26 @@ namespace MyTelegramBot.BusinessLayer
             }
         }
 
+        public static List<ProductQuestion> GetProductQuestionList()
+        {
+            MarketBotDbContext db = new MarketBotDbContext();
+
+            try
+            {
+                return db.ProductQuestion.Include(q => q.Answer.Follower).Include(q => q.Follower).Include(q => q.Product.Category).ToList();
+            }
+
+            catch
+            {
+                return null;
+            }
+
+            finally
+            {
+                db.Dispose();
+            }
+        }
+
         public void Dispose()
         {
             db.Dispose();
