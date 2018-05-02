@@ -110,6 +110,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string GetQuestionCmd2 = "/question";
 
+        public const string DocCmd = "/doc";
+
         private int Parametr { get; set; }
         public AdminBot(Update _update) : base(_update)
         {
@@ -184,6 +186,9 @@ namespace MyTelegramBot.Bot.AdminModule
                         case GetQuestionCmd:
                             return await SendQuestion(Argumetns[0], base.MessageId);
 
+                        case DocCmd:
+                            return await SendDocMessage();
+
                         default:
                                 break;
                     }
@@ -196,6 +201,7 @@ namespace MyTelegramBot.Bot.AdminModule
 
                 if (base.CommandName.Contains(GetQuestionCmd2))
                     return await SendQuestion();
+
             }
 
             if (IsOwner())
@@ -265,6 +271,15 @@ namespace MyTelegramBot.Bot.AdminModule
                 else
                     return null;
             }
+        }
+
+        private async Task<IActionResult> SendDocMessage()
+        {
+            BotMessage =new DocumentationMessage();
+
+            await SendMessage(BotMessage.BuildMsg());
+
+            return OkResult;
         }
 
         private async Task<IActionResult> InsertAnswer()

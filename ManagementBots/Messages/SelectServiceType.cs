@@ -36,10 +36,13 @@ namespace ManagementBots.Messages
 
             BackBtn = base.BuildInlineBtn("Назад", base.BuildCallData("BackToMainMenu", MainMenuBot.ModuleName), base.Previuos2Emodji);
 
-            ServiceTypeBtns = new InlineKeyboardCallbackButton[ServiceTypeList.Count+1][];
+            ServiceTypeBtns = new InlineKeyboardCallbackButton[ServiceTypeList.Count+2][];
 
             ServiceTypeBtns[ServiceTypeBtns.Length-1] = new InlineKeyboardCallbackButton[1];
             ServiceTypeBtns[ServiceTypeBtns.Length-1][0] = BackBtn;
+
+            ServiceTypeBtns[ServiceTypeBtns.Length - 2] = new InlineKeyboardCallbackButton[1];
+            ServiceTypeBtns[ServiceTypeBtns.Length - 2][0] = BuildInlineBtn("Серверная версия. 3000 рублей",BuildCallData(ConnectBot.EnterpriseVersionCmd,ConnectBot.ModuleName));
 
             int count = 0;
 

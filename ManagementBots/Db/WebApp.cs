@@ -78,7 +78,7 @@ namespace ManagementBots.Db
 
 
             else
-                throw new Exception(response.StatusDescription);
+                throw new Exception("Не удалось подключиться к серверу прииложений! " +response.StatusDescription);
         }
 
         public Models.HostInfo Unistall()

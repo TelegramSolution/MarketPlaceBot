@@ -1066,7 +1066,7 @@ namespace MyTelegramBot.Bot.Core
                 if (TextMesage != null && ForceReplyMessage != null && TextMesage != "" && ForceReplyMessage != "" && !BotInfo.Configuration.BotBlocked)
                 {
 
-                    await TelegramClient.SendTextMessageAsync(this.ChatId, ForceReplyMessage);
+                    await TelegramClient.SendTextMessageAsync(this.ChatId, TextMesage, ParseMode.Html);
 
                     return await SendForceReplyMessage(ForceReplyMessage); 
 

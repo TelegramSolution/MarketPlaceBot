@@ -19,6 +19,8 @@ namespace ManagementBots.Db
         public bool? Visable { get; set; }
         public bool? IsStart { get; set; }
 
+        public DateTime? EndTimeStamp { get; set; }
+
         public Invoice Invoice { get; set; }
         public ServiceType ServiceType { get; set; }
         public ServiceBotHistory ServiceBotHistory { get; set; }

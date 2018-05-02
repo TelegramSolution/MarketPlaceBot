@@ -74,7 +74,7 @@ namespace ManagementBots.BusinessLayer
 
         public Invoice SelectPaidVersion (int BotId, int ServiceTypeId, int DayDuration)
         {
-            var Bot = DbContext.Bot.Where(b => b.Id == BotId).Include(b => b.ReserveWebApp).Include(b => b.ReserveWebHookUrl).FirstOrDefault();
+            var Bot = DbContext.Bot.Where(b => b.Id == BotId).Include(b => b.ReserveWebApp).Include(b=>b.WebHookUrl).Include(b=>b.WebApp).Include(b => b.ReserveWebHookUrl).FirstOrDefault();
 
             var WebApp = SearchFreeWebApp();
 
@@ -82,10 +82,10 @@ namespace ManagementBots.BusinessLayer
 
             var ServiceType = DbContext.ServiceType.Find(ServiceTypeId);
 
-            if(Bot.ReserveWebApp==null)
+            if(Bot.ReserveWebApp==null && Bot.WebApp==null)
                 ReservedWebApp(WebApp.Id, Bot.Id, ReservDurationMinute); // резевирем вебпрриложение
 
-            if(Bot.ReserveWebHookUrl==null)
+            if(Bot.ReserveWebHookUrl==null && Bot.WebHookUrl==null)
                 ReservedWebHookUrl(WebHookUrl.Id, Bot.Id, ReservDurationMinute); // резервируем юрл
 
             var Invoice = CreateInvoice(Convert.ToDouble(ServiceType.Price * DayDuration)); //создаем счет на оплату
@@ -93,8 +93,6 @@ namespace ManagementBots.BusinessLayer
             //создаем услугу и прикрепляем к ней счет который требуется оплатить
             Service service = new Service { ServiceTypeId = ServiceTypeId, CreateTimeStamp = DateTime.Now, DayDuration = DayDuration, IsStart = false, Visable = false, InvoiceId = Invoice.Id };
             service=InsertService(service);
-
-            Bot.ServiceId = service.Id;
 
             DbContext.SaveChanges();
 
@@ -107,7 +105,7 @@ namespace ManagementBots.BusinessLayer
         /// <param name="BotId"></param>
         /// <param name="InvoiceId"></param>
         /// <returns></returns>
-        public async Task<Db.Bot> InstallPaidVersion(int BotId, int InvoiceId)
+        public async Task<Db.Bot> CheckPay(int BotId, int InvoiceId)
         {
              var Bot = DbContext.Bot.Where(b => b.Id == BotId).Include(b => b.ReserveWebApp.WebApp.ServerWebApp)
                                                               .Include(b => b.ReserveWebHookUrl.WebHookUrl.Port)
@@ -120,7 +118,29 @@ namespace ManagementBots.BusinessLayer
             var ProxyServer = DbContext.ProxyServer.Where(p => p.Enable).FirstOrDefault();
 
             if(!Invoice.Paid)
-                await CheckPay(Invoice);
+                await CheckPayInvoice(Invoice);
+
+            if (Invoice.Paid && Bot.Launched) // продление услуги
+            {
+                var Service = DbContext.Service.Where(s => s.InvoiceId ==Invoice.Id).Include(s=>s.ServiceType).FirstOrDefault();
+
+                if (Service.IsStart==true)
+                    throw new Exception("Услуга уже запущена");
+
+                Service.StartTimeStamp = DateTime.Now;
+                Service.EndTimeStamp = DateTime.Now.Add(new TimeSpan(Convert.ToInt32(Service.DayDuration), 0, 0, 0));
+                Service.IsStart = true;
+                Service.Visable = true;
+
+                Bot.ServiceId = Service.Id;
+
+                DbContext.SaveChanges();
+
+                Bot.Service = Service;
+
+                return Bot;
+
+            }
 
             if (Invoice.Paid && !Bot.Launched)
             {
@@ -130,8 +150,8 @@ namespace ManagementBots.BusinessLayer
                                 {
                                     Token = Bot.Token,
                                     BotName = Bot.BotName,
-                                    IsDemo = Bot.Service.ServiceType.IsDemo,
-                                    UrlWebHook = Bot.ReserveWebHookUrl.ToString(),
+                                    IsDemo = false,
+                                    UrlWebHook = Bot.ReserveWebHookUrl.WebHookUrl.ToString(),
                                     OwnerChatId = Convert.ToInt32(Bot.Follower.ChatId),
                                     DbName = Bot.BotName + GeneralFunction.UnixTimeNow().ToString()
                                 }
@@ -141,18 +161,22 @@ namespace ManagementBots.BusinessLayer
                 var Response = Newtonsoft.Json.JsonConvert.DeserializeObject<BotResponse>(result);
 
                 //Установка бота на веб приложение прошла успешно.Создаем файл для прокси сервера и заливаем на сервер,Перезапускаем службу прокси сервера (nginx)
-                return await InstallBot(Bot, ProxyServer, Response);
+                return await InstallBot(Bot, 
+                                        DbContext.Service.Where(s=>s.InvoiceId==Invoice.Id).Include(s=>s.ServiceType).FirstOrDefault() ,
+                                        ProxyServer, 
+                                        Response);
             }
 
-            if (Invoice.Paid && Bot.Launched)
-                throw new BotInstallExeption.BotIsLaunchedExeption();
+
 
             else
                 throw new Exception("Неизвестная ошибка");
 
             }
 
-        private async Task<Db.Bot> InstallBot(Db.Bot Bot, ProxyServer ProxyServer, BotResponse Response)
+        
+
+        private async Task<Db.Bot> InstallBot(Db.Bot Bot,Service service ,ProxyServer ProxyServer, BotResponse Response)
         {
             if (Response.Ok && ProxyServer.CreateConfigFile(Bot.ReserveWebHookUrl.WebHookUrl.Dns.Name,
                                                             Bot.ReserveWebApp.WebApp.ToString(),
@@ -163,20 +187,22 @@ namespace ManagementBots.BusinessLayer
                                                   Bot.ReserveWebHookUrl.WebHookUrl.Dns.PublicKeyPathOnMainServer(), 
                                                   Bot.ReserveWebHookUrl.WebHookUrl.ToString());
 
-                InsertServiceBotHistory(Bot, Bot.Service);
+                InsertServiceBotHistory(Bot, service);
                 InsertWebAppHistory(Bot, Bot.ReserveWebApp.WebApp);
                 InsertWebHookHistory(Bot, Bot.ReserveWebHookUrl.WebHookUrl);
 
                 DbContext.Remove<ReserveWebApp>(Bot.ReserveWebApp);
                 DbContext.Remove<ReserveWebHookUrl>(Bot.ReserveWebHookUrl);
 
-                Bot.Service.IsStart = true;
-                Bot.Service.StartTimeStamp = DateTime.Now;
+                service.IsStart = true;
+                service.StartTimeStamp = DateTime.Now;
+                service.EndTimeStamp = DateTime.Now.Add(new TimeSpan(Convert.ToInt32(service.DayDuration), 0, 0, 0));
                 Bot.WebAppId = Bot.ReserveWebApp.WebAppId;
                 Bot.WebHookUrlId = Bot.ReserveWebHookUrl.WebHookUrlId;
                 Bot.Launched = true;
                 Bot.Visable = true;
                 Bot.ProxyServeId = ProxyServer.Id;
+                Bot.ServiceId = service.Id;
 
                 DbContext.Update<Db.Bot>(Bot);
 
@@ -184,6 +210,7 @@ namespace ManagementBots.BusinessLayer
 
                 Bot.SendMessageToOwner("Добро пожаловать. Нажмите сюда /admin");
 
+                Bot.Service = service;
                 return Bot;
             }
 
@@ -191,12 +218,12 @@ namespace ManagementBots.BusinessLayer
                 throw new Exception(Response.Result);
         }
 
-        private async Task<bool> CheckPay(Invoice invoice)
+        private async Task<bool> CheckPayInvoice(Invoice invoice)
         {
             var QiwiConf = DbContext.PaymentSystemConfig.Where(q => q.Login == invoice.AccountNumber).FirstOrDefault();
 
             if (QiwiConf == null)
-                throw new Exception("Ошибка при проверки платежа. Обратитесть в службу поддержки /help");
+                throw new Exception("Ошибка при проверки платежа. Обратитесть в службу поддержки @tgsolution");
 
             string comment = "AY7zmHkYx03qPFeHQmcr7axgBRI1";
            var PaymentInfo=await Services.Qiwi.QiwiFunction.SearchPayment(comment, QiwiConf.Pass, invoice.AccountNumber);
@@ -279,7 +306,15 @@ namespace ManagementBots.BusinessLayer
                 await TelegramFunction.SetWebHook(Bot.Token, WebHookUrl.Dns.PublicKeyPathOnMainServer(), WebHookUrl.ToString());
 
                 // Добавляем услугу в бд
-                Service service = new Service { ServiceTypeId = ServiceType.Id, CreateTimeStamp = DateTime.Now, DayDuration = ServiceType.MaxDuration, IsStart = true, Visable = true, StartTimeStamp = DateTime.Now };
+                Service service = new Service {
+                    ServiceTypeId = ServiceType.Id,
+                    CreateTimeStamp = DateTime.Now,
+                    DayDuration = ServiceType.MaxDuration,
+                    IsStart = true,
+                    Visable = true,
+                    StartTimeStamp = DateTime.Now,
+                    EndTimeStamp=DateTime.Now.Add(new TimeSpan(Convert.ToInt32(ServiceType.MaxDuration), 0,0,0))
+                };
                 service = InsertService(service);
 
                 InsertServiceBotHistory(Bot, service);
@@ -358,31 +393,45 @@ namespace ManagementBots.BusinessLayer
 
         private WebApp SearchFreeWebApp()
         {
-            var Webapp = DbContext.WebApp.Where(w => w.IsFree && w.ReserveWebApp==null).Include(w => w.ServerWebApp).Include(w=>w.ReserveWebApp).FirstOrDefault();
-
+            var Webapp = DbContext.WebApp.Where(w => w.IsFree && w.ReserveWebApp==null || w.IsFree && w.ReserveWebApp!=null && w.ReserveWebApp.TimeStampEnd<DateTime.Now)
+                .Include(w => w.ServerWebApp)
+                .Include(w=>w.ReserveWebApp).FirstOrDefault();
 
             if (Webapp != null)
                 return Webapp;
 
             else
-                throw new Exception("Нет свободных вычислительных ресурсов. Обратитесь в службу поддержки /help");
+                throw new Exception("Нет свободных вычислительных ресурсов. Обратитесь в службу поддержки @tgsolution");
 
         }
 
         private WebHookUrl SearchWebHookUrl()
         {
-            var Url = DbContext.WebHookUrl.Where(u=> u.IsFree && u.ReserveWebHookUrl==null).Include(u => u.Dns).Include(u=>u.ReserveWebHookUrl).Include(u=>u.Port).FirstOrDefault();
+            var Url = DbContext.WebHookUrl.Where(u=> u.IsFree && u.ReserveWebHookUrl==null || u.IsFree && u.ReserveWebHookUrl!=null && u.ReserveWebHookUrl.TimeStampEnd<DateTime.Now)
+                .Include(u => u.Dns)
+                .Include(u=>u.ReserveWebHookUrl)
+                .Include(u=>u.Port).FirstOrDefault();
 
             if (Url != null)
                 return Url;
 
             else
-                throw new Exception("Нет свободных доменных имен. Обратитесь в службу поддержки /help");
+                throw new Exception("Нет свободных доменных имен. Обратитесь в службу поддержки @tgsolution");
         }
 
         private bool UsedDemo(int? FollowerId)
         {
-            return false;
+           var list= DbContext.ServiceType.FromSql("select ServiceType.* " +
+                "from Follower inner join Bot ON Follower.Id=Bot.FollowerId " +
+                "inner join ServiceBotHistory ON Bot.Id=ServiceBotHistory.BotId " +
+                "inner join Service On Service.Id=ServiceBotHistory.ServiceId " +
+                "inner join ServiceType On ServiceType.Id=Service.ServiceTypeId WHERE ServiceType.IsDemo=1 AND Follower.Id=@p0", FollowerId).ToList();
+
+            if (list.Count > 0)
+                return true;
+
+            else
+                return false;
         }
 
         private ReserveWebHookUrl ReservedWebHookUrl (int WebHookUrlId , int BotId, int ReservMinuteDuration)

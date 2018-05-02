@@ -26,6 +26,16 @@ namespace ManagementBots.Bot
 
         public const string BackToDurationEnterCmd = "BackToDurationEnter";
 
+        public const string EnterpriseVersionCmd = "EnterpriseVersion";
+
+        public const string AboutCmd = "About";
+
+        public const string GetBotCmd = "GetBot";
+
+        public const string MyBotsCmd = "MyBot";
+
+        public const string PaidVersionCmd = "PaidVersion";
+
         private BotConnectFunction BotConnectFunction { get; set; }
 
 
@@ -48,7 +58,10 @@ namespace ManagementBots.Bot
             switch (base.CommandName)
             {
                 case RequestBotTokenCmd:
-                    return await SendTextMessageAndForceReply("Создайте бота с помощью @Botfather и пришлите Токен доступа", EnterBotTokenForce);
+                    return await SendTextMessageAndForceReply("Создайте бота с помощью @Botfather и пришлите Токен доступа" 
+                                                              + Core.BotMessage.NewLine()+ 
+                                                              Core.BotMessage.HrefUrl("https://drive.google.com/open?id=1f3wx3gaQSgaT50f_1dE9HsGJTUWIRcpG", 
+                                                              "Как создать бота с помощью BotFather?"), EnterBotTokenForce);
 
                 case SelectServiceTypeCmd:
                     return await SelectServiceType();
@@ -59,8 +72,23 @@ namespace ManagementBots.Bot
                 case BackToDurationEnterCmd:
                     return await SendEnterDurationService(Argumetns[0], Argumetns[1]);
 
+                case PaidVersionCmd:
+                    return await SendEnterDurationService(Argumetns[0], Argumetns[1], base.MessageId);
+
                 case CheckPayCmd:
                     return await CheckPay(Argumetns[0], Argumetns[1]);
+
+                case EnterpriseVersionCmd:
+                    return await SendEnterpriseInfo();
+
+                case AboutCmd:
+                    return await SendAboutInfo();
+
+                case MyBotsCmd:
+                    return await SendMyBots();
+
+                case GetBotCmd:
+                    return await SendBotInfo();
 
                 default:
                     return null;
@@ -70,6 +98,49 @@ namespace ManagementBots.Bot
 
 
         }
+
+        private async Task<IActionResult> SendBotInfo()
+        {
+            BotMessage = new BotInfoMessage(Argumetns[0]);
+
+            await EditMessage(BotMessage.BuildMsg());
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendMyBots()
+        {
+            BotMessage = new MyBotsMessage(FollowerId);
+
+            BotMessage.BuildMsg();
+
+            if (BotMessage != null)
+                await EditMessage(BotMessage);
+
+            else
+                await AnswerCallback("У вас еще нет подключенных ботов", true);
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendAboutInfo()
+        {
+            BotMessage = new AboutMessage();
+
+            await EditMessage(BotMessage.BuildMsg());
+
+            return OkResult;
+        }
+
+        private async Task<IActionResult> SendEnterpriseInfo()
+        {
+            BotMessage =new EnterpriseVersionMessage();
+
+            await EditMessage(BotMessage.BuildMsg());
+
+            return OkResult;
+        }
+
         /// <summary>
         /// Добавляем бота в бд
         /// </summary>
@@ -125,7 +196,7 @@ namespace ManagementBots.Bot
         }
 
         /// <summary>
-        /// пользователь выбрал тарифный план
+        /// пользователь выбрал тарифный план. 
         /// </summary>
         /// <returns></returns>
         private async Task<IActionResult> SelectServiceType()
@@ -148,8 +219,10 @@ namespace ManagementBots.Bot
 
                     await EditMessage(BotMessage.BuildMsg());
 
-                    await SendMessage(new BotMessage { TextMessage = "Услуга активирована" });
+                    await SendMessage(new BotMessage { TextMessage = "Услуга активирована. Отпрвьте вашему боту команду /admin" });
                     bot.SendMessageToOwner("Нажмите сюда /admin");
+
+                    await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId),new BotMessage { TextMessage="Подключен новый бот @"+bot.BotName + " | Демоверсия" });
                 }
 
                 else /// тафиф платной версии. высылаем сообщение с выбором периода времени аренды
@@ -162,6 +235,7 @@ namespace ManagementBots.Bot
             catch (Exception e)
             {
                 await SendMessage(new BotMessage { TextMessage = e.Message });
+                await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), new BotMessage { TextMessage = e.Message });
                 return OkResult;
             }
 
@@ -210,9 +284,9 @@ namespace ManagementBots.Bot
             {
                 BotConnectFunction = new BotConnectFunction();
                 base.SendAction(Telegram.Bot.Types.Enums.ChatAction.Typing);
-                var bot= await BotConnectFunction.InstallPaidVersion(BotId, InvoiceId);
+                var bot= await BotConnectFunction.CheckPay(BotId, InvoiceId);
 
-                BotMessage = new ServiceInfoMessage(bot, bot.Service);
+                BotMessage = new BotInfoMessage(bot);
 
                 await base.EditMessage(BotMessage.BuildMsg());
 
@@ -222,13 +296,14 @@ namespace ManagementBots.Bot
             catch (BotInstallExeption.BotIsLaunchedExeption e)
             {
                 await base.AnswerCallback(e.Message, true);
-
+                await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), new BotMessage { TextMessage = e.Message });
                 return OkResult;
             }
 
             catch(Exception e)
             {
                 await base.AnswerCallback(e.Message, true);
+                await SendMessage(Convert.ToInt32(BotInfo.OwnerChatId), new BotMessage { TextMessage = e.Message });
                 return OkResult;
             }
 
