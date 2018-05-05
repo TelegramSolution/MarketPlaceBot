@@ -27,39 +27,45 @@ namespace MyTelegramBot.Controllers
 
         public IActionResult Index()
         {
-
-            db = new MarketBotDbContext();
-
-            string name = Bot.GeneralFunction.GetBotName();
-
-            if (name != null)
+            try
             {
-                botInfo = db.BotInfo.Where(b => b.Name == name).Include(b => b.Configuration).FirstOrDefault();
-                company = db.Company.FirstOrDefault();
-                
-                if(botInfo!=null && botInfo.Configuration!=null)
-                    ViewBag.Currency = new SelectList(db.Currency.ToList(), "Id", "Name", botInfo.Configuration.CurrencyId);
+                db = new MarketBotDbContext();
 
-            }
+                string name = Bot.GeneralFunction.GetBotName();
 
-            if (botInfo == null)
-            {
-                botInfo = new BotInfo
+                if (name != null)
                 {
-                    Name = "",
-                    Token = "",
-                    ServerVersion=false,
-                    HomeVersion=false
-                };
+                    botInfo = db.BotInfo.Where(b => b.Name == name).Include(b => b.Configuration).FirstOrDefault();
+                    company = db.Company.FirstOrDefault();
 
-                company = new Company();
+                    if (botInfo != null && botInfo.Configuration != null)
+                        ViewBag.Currency = new SelectList(db.Currency.ToList(), "Id", "Name", botInfo.Configuration.CurrencyId);
+
+                }
+
+                if (botInfo == null)
+                {
+                    botInfo = new BotInfo
+                    {
+                        Name = "",
+                        Token = "",
+                        ServerVersion = false,
+                        HomeVersion = false
+                    };
+
+                    company = new Company();
+                }
+
+                Tuple<BotInfo, Company> tuple = new Tuple<BotInfo, Company>(botInfo, company);
+
+                db.Dispose();
+                return View(tuple);
             }
 
-            Tuple<BotInfo, Company> tuple = new Tuple<BotInfo, Company>(botInfo, company);
-
-            db.Dispose();
-            return View(tuple);
-            
+            catch (Exception e)
+            {
+                return Json(e.Message);
+            }
 
         }
 

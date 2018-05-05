@@ -85,10 +85,10 @@ namespace ManagementBots.Messages
                             ProlongBtn
                         },
 
-                        new[]
-                        {
-                            InvoiceViewBtn
-                        },
+                        //new[]
+                        //{
+                        //    InvoiceViewBtn
+                        //},
                         new[]
                         {
                             BackBtn

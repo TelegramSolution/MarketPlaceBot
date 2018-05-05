@@ -225,8 +225,8 @@ namespace ManagementBots.BusinessLayer
             if (QiwiConf == null)
                 throw new Exception("Ошибка при проверки платежа. Обратитесть в службу поддержки @tgsolution");
 
-            string comment = "AY7zmHkYx03qPFeHQmcr7axgBRI1";
-           var PaymentInfo=await Services.Qiwi.QiwiFunction.SearchPayment(comment, QiwiConf.Pass, invoice.AccountNumber);
+            //string comment = "AY7zmHkYx03qPFeHQmcr7axgBRI1";
+           var PaymentInfo=await Services.Qiwi.QiwiFunction.SearchPayment(invoice.Id.ToString(), QiwiConf.Pass, invoice.AccountNumber);
 
 
 

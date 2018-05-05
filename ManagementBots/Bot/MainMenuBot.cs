@@ -27,7 +27,7 @@ namespace ManagementBots.Bot
 
         public async override Task<IActionResult> Response()
         {
-            if (base.CommandName == "/start")
+            if (base.CommandName == "/start" || base.CommandName==ToMainMenuCmd)
                 return await SendMainMenu();
 
             else

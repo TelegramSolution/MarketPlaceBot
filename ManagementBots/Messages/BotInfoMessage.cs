@@ -63,7 +63,7 @@ namespace ManagementBots.Messages
                    Bold("Бот:") + "@" + Bot.BotName;
 
 
-            if (Bot.Service.InvoiceId > 0)
+            if (!Bot.Service.ServiceType.IsDemo)
             {
                 ProlongBtn = BuildInlineBtn("Продлить", BuildCallData(ConnectBot.PaidVersionCmd, ConnectBot.ModuleName, Bot.Id, Convert.ToInt32(Bot.Service.ServiceTypeId)), base.CreditCardEmodji);
 
@@ -75,7 +75,7 @@ namespace ManagementBots.Messages
 
             base.MessageReplyMarkup = SetKeyboard();
 
-            return base.BuildMsg();
+            return this;
         }
 
         private InlineKeyboardMarkup SetKeyboard()
@@ -88,10 +88,6 @@ namespace ManagementBots.Messages
                             ProlongBtn
                         },
 
-                        new[]
-                        {
-                            InvoiceViewBtn
-                        },
                         new[]
                         {
                             BackBtn

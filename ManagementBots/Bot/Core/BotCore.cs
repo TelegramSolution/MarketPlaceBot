@@ -498,7 +498,8 @@ namespace ManagementBots.Bot.Core
 
             catch
             {
-                return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, botMessage.MessageReplyMarkup);
+                return null;
+               // return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, botMessage.MessageReplyMarkup);
             }
 
         }
