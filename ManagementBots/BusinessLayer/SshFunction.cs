@@ -23,7 +23,9 @@ namespace ManagementBots.BusinessLayer
 
         private PrivateKeyFile PrivateKeyFile { get; set; }
 
-        private SftpClient client { get; set; }
+        private SftpClient SftpClient { get; set; }
+
+        private SshClient SshClient { get; set; }
 
         public SshFunction(string Host,string CertPath, string UserName = "root", string PassPhrase="")
         {
@@ -36,11 +38,11 @@ namespace ManagementBots.BusinessLayer
         public bool SCPFile(Stream input,string PathDst)
         {
 
-            if (client.IsConnected)
+            if (SftpClient.IsConnected)
             {
-                client.UploadFile(input, PathDst, null);
+                SftpClient.UploadFile(input, PathDst, null);
 
-                bool result = client.Exists(PathDst);
+                bool result = SftpClient.Exists(PathDst);
 
                 return result;
             }
@@ -50,18 +52,56 @@ namespace ManagementBots.BusinessLayer
 
         }
 
-        public void ConnectToServer()
+        public string Command(string Command)
         {
-            client = new SftpClient(GetConnectionInfo());
+            if (SshClient != null && SshClient.IsConnected)
+            {
+               var result= SshClient.RunCommand(Command).Execute();
 
-            client.Connect();
+               return result;
+            }
+
+            else
+                throw new Exception("Не удалось подключиться к " + Host);
+        }
+
+        public void SftpConnectToServer()
+        {
+            SftpClient = new SftpClient(GetConnectionInfo());
+
+            SftpClient.Connect();
+        }
+
+        public void SshConnectToServer()
+        {
+            SshClient = new SshClient(GetConnectionInfo());
+
+            SshClient.Connect();
         }
 
         public void Disconnect()
         {
-            client.Disconnect();
+            try
+            {
+                if (SftpClient != null)
+                {
+                    SftpClient.Disconnect();
 
-            client.Dispose();
+                    SftpClient.Dispose();
+                }
+
+                if (SshClient != null)
+                {
+                    SshClient.Disconnect();
+
+                    SshClient.Dispose();
+                }
+            }
+
+            catch (Exception e)
+            {
+
+            }
         }
 
         private ConnectionInfo GetConnectionInfo()

@@ -29,5 +29,10 @@ namespace ManagementBots.Db
         public ICollection<HelpDeskAnswer> HelpDeskAnswer { get; set; }
         public ICollection<HelpDeskInWork> HelpDeskInWork { get; set; }
         public ICollection<Notification> Notification { get; set; }
+
+        public override string ToString()
+        {
+            return FirstName + " " + LastName + " тел. " + Telephone;
+        }
     }
 }

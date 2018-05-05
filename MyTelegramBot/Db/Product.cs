@@ -16,6 +16,7 @@ namespace MyTelegramBot
             OrderProduct = new HashSet<OrderProduct>();
             ProductPhoto = new HashSet<ProductPhoto>();
             ProductPrice = new HashSet<ProductPrice>();
+            ProductQuestion = new HashSet<ProductQuestion>();
             Stock = new HashSet<Stock>();
         }
 
@@ -45,6 +46,8 @@ namespace MyTelegramBot
         public ICollection<ProductPrice> ProductPrice { get; set; }
 
         public ICollection<Stock> Stock { get; set; }
+
+        public ICollection<ProductQuestion> ProductQuestion { get; set; }
 
         public override string ToString()
         {

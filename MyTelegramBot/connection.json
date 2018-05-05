@@ -1,1 +1,1 @@
-Server=localhost;Database=MyFirstTest234BotDb;Integrated Security = FALSE;Trusted_Connection = True;
+Server=localhost;Database=MarketBotDb33;Integrated Security = FALSE;Trusted_Connection = True;

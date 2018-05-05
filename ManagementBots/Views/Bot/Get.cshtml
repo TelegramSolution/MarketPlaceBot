@@ -97,14 +97,14 @@
         <td>Продолжительность</td>
         <td>Инвойс</td>
     </tr>
-    @foreach (var service in Model.ServiceNavigation)
+    @foreach (var service in Model.ServiceBotHistory)
     {
         <tr>
-            <td>@service.CreateTimeStamp</td>
-            <td>@service.ServiceType.Name</td>
-            <td>@service.StartTimeStamp</td>
-            <td>@service.DayDuration</td>
-            <td><a href="~/Invoice/Get/@service.InvoiceId">@service.InvoiceId</a></td>
+            <td>@service.Service.CreateTimeStamp</td>
+            <td>@service.Service.ServiceType.Name</td>
+            <td>@service.Service.StartTimeStamp</td>
+            <td>@service.Service.DayDuration</td>
+            <td><a href="~/Invoice/Get/@service.Service.InvoiceId">@service.Service.InvoiceId</a></td>
         </tr>
     }
 </table>

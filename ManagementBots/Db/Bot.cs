@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace ManagementBots.Db
 {
@@ -9,7 +10,7 @@ namespace ManagementBots.Db
         {
             BotBlocked = new HashSet<BotBlocked>();
             BotDeleted = new HashSet<BotDeleted>();
-            ServiceNavigation = new HashSet<Service>();
+            ServiceBotHistory = new HashSet<ServiceBotHistory>();
             WebAppHistory = new HashSet<WebAppHistory>();
             WebHookUrlHistory = new HashSet<WebHookUrlHistory>();
         }
@@ -38,8 +39,35 @@ namespace ManagementBots.Db
         public ReserveWebHookUrl ReserveWebHookUrl { get; set; }
         public ICollection<BotBlocked> BotBlocked { get; set; }
         public ICollection<BotDeleted> BotDeleted { get; set; }
-        public ICollection<Service> ServiceNavigation { get; set; }
+        public ICollection<ServiceBotHistory> ServiceBotHistory { get; set; }
         public ICollection<WebAppHistory> WebAppHistory { get; set; }
         public ICollection<WebHookUrlHistory> WebHookUrlHistory { get; set; }
+
+        /// <summary>
+        /// С помощью бота клиента отправить клиенту сообщение
+        /// </summary>
+        public bool SendMessageToOwner(string text)
+        {
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(WebApp.ToString() + "//HostingVersion//SendTextMsgToOwner?Text=" + text);
+
+                request.Method = "GET";
+
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                    return true;
+
+                else
+                    return false;
+            }
+
+            catch
+            {
+                return false;
+            }
+
+        }
     }
 }

@@ -21,6 +21,8 @@ namespace MyTelegramBot
             ReportsRequestLog = new HashSet<ReportsRequestLog>();
             TelegramMessage = new HashSet<TelegramMessage>();
             OrderStatus = new HashSet<OrderStatus>();
+            ProductQuestion = new HashSet<ProductQuestion>();
+            Answer = new HashSet<Answer>();
         }
 
         public int Id { get; set; }
@@ -52,5 +54,21 @@ namespace MyTelegramBot
         public ICollection<HelpDeskInWork> HelpDeskInWork { get; set; }
 
         public ICollection<OrderStatus> OrderStatus { get; set; }
+
+        public ICollection<Answer> Answer { get; set; }
+
+        public ICollection<ProductQuestion> ProductQuestion { get; set; }
+
+        public override string ToString()
+        {
+            if (FirstName != null && LastName == null)
+                return FirstName;
+
+            if (FirstName != null && LastName != null)
+                return FirstName + " " + LastName;
+
+            else
+                return "";
+        }
     }
 }

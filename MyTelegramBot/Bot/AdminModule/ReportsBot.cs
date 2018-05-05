@@ -49,6 +49,8 @@ namespace MyTelegramBot.Bot.AdminModule
 
         public const string ProductExportCallBack = "ProductExport";
 
+        public const string ProductQuestionCallBack = "ProductQuestion";
+
 
         /// <summary>
         /// один экспорт в  минут. Чаще нельзя
@@ -106,6 +108,9 @@ namespace MyTelegramBot.Bot.AdminModule
                     case ProductExportCallBack:
                         return await SendProductExport();
 
+                    case ProductQuestionCallBack:
+                        return await SendProductQuestionExport();
+
                     default:
                         return null;
                 }
@@ -152,6 +157,13 @@ namespace MyTelegramBot.Bot.AdminModule
         {
 
             return await SendExportFile(new StockHistoryExport(), "Остатки.xlsx", "История изменения остатков");
+
+        }
+
+        private async Task<IActionResult> SendProductQuestionExport()
+        {
+
+            return await SendExportFile(new ProductQuestionExport(), "Вопросы.xlsx", "Вопросы пользователей о товарах");
 
         }
 

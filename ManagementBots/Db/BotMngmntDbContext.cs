@@ -32,6 +32,7 @@ namespace ManagementBots.Db
         public virtual DbSet<ReserveWebHookUrl> ReserveWebHookUrl { get; set; }
         public virtual DbSet<ServerWebApp> ServerWebApp { get; set; }
         public virtual DbSet<Service> Service { get; set; }
+        public virtual DbSet<ServiceBotHistory> ServiceBotHistory { get; set; }
         public virtual DbSet<ServiceType> ServiceType { get; set; }
         public virtual DbSet<WebApp> WebApp { get; set; }
         public virtual DbSet<WebAppHistory> WebAppHistory { get; set; }
@@ -44,7 +45,7 @@ namespace ManagementBots.Db
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer(@"Server=DESKTOP-93GE9VD;Database=BotMngmntDb;Integrated Security = True; Trusted_Connection = True;");
+                optionsBuilder.UseSqlServer(@"Server=.\;Database=BotMngmntDb;Integrated Security = True; Trusted_Connection = True;");
             }
         }
 
@@ -258,7 +259,6 @@ namespace ManagementBots.Db
                 entity.Property(e => e.TimeStamp).HasColumnType("datetime");
             });
 
-
             modelBuilder.Entity<Follower>(entity =>
             {
                 entity.Property(e => e.DateAdd).HasColumnType("datetime");
@@ -360,8 +360,8 @@ namespace ManagementBots.Db
                     .IsUnicode(false);
 
                 entity.Property(e => e.Comment)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.CreateTimeStamp).HasColumnType("datetime");
 
@@ -391,13 +391,13 @@ namespace ManagementBots.Db
 
                 entity.Property(e => e.PaymentTimeStamp).HasColumnType("datetime");
 
-                entity.Property(e => e.TxId)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-
                 entity.Property(e => e.SenderAccountNumber)
-                .HasMaxLength(50)
-                .IsUnicode(false);
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TxId)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
 
                 entity.HasOne(d => d.Invoice)
                     .WithMany(p => p.Payment)
@@ -543,11 +543,7 @@ namespace ManagementBots.Db
 
                 entity.Property(e => e.StartTimeStamp).HasColumnType("datetime");
 
-                entity.HasOne(d => d.BotNavigation)
-                    .WithMany(p => p.ServiceNavigation)
-                    .HasForeignKey(d => d.BotId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ServiceList_Bot");
+                entity.Property(e => e.EndTimeStamp).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Invoice)
                     .WithMany(p => p.Service)
@@ -558,6 +554,24 @@ namespace ManagementBots.Db
                     .WithMany(p => p.Service)
                     .HasForeignKey(d => d.ServiceTypeId)
                     .HasConstraintName("FK_ServiceList_ServiceType");
+            });
+
+            modelBuilder.Entity<ServiceBotHistory>(entity =>
+            {
+                entity.HasKey(e => e.ServiceId);
+
+                entity.Property(e => e.ServiceId).ValueGeneratedNever();
+
+                entity.HasOne(d => d.Bot)
+                    .WithMany(p => p.ServiceBotHistory)
+                    .HasForeignKey(d => d.BotId)
+                    .HasConstraintName("FK_ServiceBotHistory_Bot");
+
+                entity.HasOne(d => d.Service)
+                    .WithOne(p => p.ServiceBotHistory)
+                    .HasForeignKey<ServiceBotHistory>(d => d.ServiceId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ServiceBotHistory_Service");
             });
 
             modelBuilder.Entity<ServiceType>(entity =>
@@ -618,8 +632,6 @@ namespace ManagementBots.Db
 
             modelBuilder.Entity<WebHookUrlHistory>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
                 entity.Property(e => e.Timestamp).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Bot)

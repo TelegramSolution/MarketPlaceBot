@@ -11,6 +11,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
+using System.Security.AccessControl;
 
 namespace MyTelegramBot.Controllers
 {
@@ -23,57 +24,90 @@ namespace MyTelegramBot.Controllers
 
         MarketBotDbContext DbContext { get; set; }
 
-        private string Result { get; set; }
+        SqlConnection sqlConnection { get; set; }
 
         private Model.HostInfo HostInfo { get; set; }
 
-        [HttpGet]
-        public IActionResult Install(string Token, string BotName, string UrlWebHook, bool IsDemo=false)
+        [HttpPost]
+        public IActionResult Install([FromBody] Model.HostInfo hostInfo)
         {
-            string dbname = BotName + "Db";
+           // string dbname = hostInfo.BotName + "Db";
 
             HostInfo = new Model.HostInfo();
 
-            if (CreateDb(dbname) && InsertNewBotToDb(Token,BotName, UrlWebHook, true))
+            try
             {
-                string read = ReadFile("HostInfo.json");
 
-                if (read != null)
-                    HostInfo = JsonConvert.DeserializeObject<Model.HostInfo>(read);
-
-                HostInfo.CreateTimeStamp = DateTime.Now;
-                HostInfo.BotName = BotName;
-                HostInfo.IsDemo = IsDemo;
-                HostInfo.IsFree = false;
-                HostInfo.Token = Token;
-                HostInfo.UrlWebHook = UrlWebHook;
-                HostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", dbname);
-                HostInfo.DbName = dbname;
-
-                WriteFile("connection.json", HostInfo.DbConnectionString);
-
-                WriteFile("HostInfo.json", JsonConvert.SerializeObject(HostInfo));
-
-                Dictionary<string, string> dictionary = new Dictionary<string, string>
+                if (CreateDb(hostInfo.DbName))
                 {
-                    { "name", BotName }
-                };
+                    string read = ReadFile("HostInfo.json");
 
-                WriteFile("name.json", JsonConvert.SerializeObject(dictionary));
+                    if (read != null)
+                        HostInfo = JsonConvert.DeserializeObject<Model.HostInfo>(read);
 
-                return Json(HostInfo);
+                    HostInfo.CreateTimeStamp = DateTime.Now;
+                    HostInfo.BotName = hostInfo.BotName;
+                    HostInfo.IsDemo = hostInfo.IsDemo;
+                    HostInfo.IsFree = false;
+                    HostInfo.Token = hostInfo.Token;
+                    HostInfo.UrlWebHook = hostInfo.UrlWebHook;
+                    HostInfo.DbName = hostInfo.DbName;
+                    HostInfo.OwnerChatId = hostInfo.OwnerChatId;
+                    
+                    if(hostInfo.DbConnectionString==null)
+                        HostInfo.DbConnectionString = String.Format("Server=localhost;Database={0};Integrated Security = FALSE;Trusted_Connection = True;", HostInfo.DbName);
 
+                    WriteFile("connection.json", HostInfo.DbConnectionString);
+
+                    WriteFile("HostInfo.json", JsonConvert.SerializeObject(HostInfo));
+
+                    InsertNewBotToDb(HostInfo, true);
+
+                    Dictionary<string, string> dictionary = new Dictionary<string, string>
+                    {
+                        { "name", HostInfo.BotName }
+                    };
+
+                    WriteFile("name.json", JsonConvert.SerializeObject(dictionary));
+
+                    dictionary.Clear();
+                    dictionary.Add("Ok", "true");
+                    dictionary.Add("Result", JsonConvert.SerializeObject(HostInfo));
+
+                    return Json(dictionary);
+
+                }
+
+                else
+                {
+                    Dictionary<string, string> dictionary = new Dictionary<string, string>
+                        {
+                            { "Ok", "false" },
+                            { "Result", "" }
+                        };
+
+                    return Json(dictionary);
+                }
             }
 
-            else
+            catch (Exception e)
             {
                 Dictionary<string, string> dictionary = new Dictionary<string, string>
-                {
-                    { "Ok", "false" },
-                    { "Result", Result }
-                };
+                        {
+                            { "Ok", "false" },
+                            { "Result", e.Message }
+                        };
 
                 return Json(dictionary);
+            }
+
+            finally
+            {
+                if (DbContext != null)
+                    DbContext.Dispose();
+
+                if (sqlConnection != null)
+                    sqlConnection.Dispose();
             }
         }
 
@@ -103,9 +137,15 @@ namespace MyTelegramBot.Controllers
                 return Ok();
             }
 
-            catch
+            catch (Exception e)
             {
-                return NotFound();
+                Dictionary<string, string> dictionary = new Dictionary<string, string>
+                        {
+                            { "Ok", "false" },
+                            { "Result", e.Message }
+                        };
+
+                return Json(dictionary);
             }
         }
 
@@ -158,21 +198,14 @@ namespace MyTelegramBot.Controllers
 
         private string ReadFile(string Path)
         {
-            try
-            {
-                StreamReader reader = new StreamReader(Path);
+            StreamReader reader = new StreamReader(Path);
 
-                string Result = reader.ReadToEnd();
+            string Result = reader.ReadToEnd();
 
-                reader.Dispose();
+            reader.Dispose();
 
-                return Result;
-            }
+            return Result;
 
-            catch
-            {
-                return null;
-            }
         }
 
         private bool WriteFile(string Path, string Text)
@@ -198,100 +231,68 @@ namespace MyTelegramBot.Controllers
 
         private bool CreateDb(string DbName)
         {
-            SqlConnection sqlConnection = null;
+            sqlConnection = new SqlConnection("Server=localhost;Database=master;Integrated Security = FALSE;Trusted_Connection = True;");
+            sqlConnection.Open();
 
-            try
-            {
+            string CreateSqlQuery = String.Format("CREATE DATABASE [{0}]  CONTAINMENT = NONE " +
+            " ON  PRIMARY (NAME =N'{0}', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )," +
+            "  FILEGROUP [BotDbFs] CONTAINS FILESTREAM  DEFAULT" +
+            " ( NAME = N'{0}_fs', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_fs' , MAXSIZE = UNLIMITED)  LOG ON " +
+            " ( NAME = N'{0}_log', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)", DbName);
 
-                sqlConnection = new SqlConnection("Server=localhost;Database=master;Integrated Security = FALSE;Trusted_Connection = True;");
-                sqlConnection.Open();
+            SqlCommand sqlCommand = new SqlCommand(CreateSqlQuery, sqlConnection);
+            sqlCommand.ExecuteNonQuery();
 
-                string CreateSqlQuery = String.Format("CREATE DATABASE [{0}]  CONTAINMENT = NONE " +
-                " ON  PRIMARY (NAME =N'{0}', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}.mdf' , SIZE = 4288KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )," +
-                "  FILEGROUP [BotDbFs] CONTAINS FILESTREAM  DEFAULT" +
-                " ( NAME = N'{0}_fs', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_fs' , MAXSIZE = UNLIMITED)  LOG ON " +
-                " ( NAME = N'{0}_log', FILENAME = N'" + @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\{0}_log.ldf' , SIZE = 1072KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)", DbName);
+            sqlCommand = new SqlCommand("USE " + DbName + " " + ReadFile(Directory.GetCurrentDirectory()+ "\\SQL\\alter.sql"), sqlConnection);
+            sqlCommand.ExecuteNonQuery();
 
-                SqlCommand sqlCommand = new SqlCommand(CreateSqlQuery, sqlConnection);
-                sqlCommand.ExecuteNonQuery();
+            sqlCommand = new SqlCommand("USE " + DbName + " " + ReadFile(Directory.GetCurrentDirectory()+"\\SQL\\insert.txt"), sqlConnection);
+            sqlCommand.ExecuteNonQuery();
 
-                sqlCommand = new SqlCommand("USE " + DbName + " " + ReadFile("SQL\\alter.sql"), sqlConnection);
-                sqlCommand.ExecuteNonQuery();
+            return true;
 
-                sqlCommand = new SqlCommand("USE " + DbName + " " + ReadFile("SQL\\insert.txt"), sqlConnection);
-                sqlCommand.ExecuteNonQuery();
-                
-                Result= "Успешно созада база данных " + DbName;
-
-                return true;
-
-
-            }
-
-            catch (Exception e)
-            {
-                Result = e.Message;
-                return false;
-            }
-
-            finally
-            {
-                sqlConnection.Close();
-            }
         }
 
-        private bool InsertNewBotToDb(string token, string name, string Url, bool IsServerVersion = false)
+        private bool InsertNewBotToDb(Model.HostInfo hostInfo ,bool IsServerVersion = false)
         {
-            try
+
+            DbContext = new MarketBotDbContext();
+
+            if (hostInfo!=null && hostInfo.Token != null && hostInfo.BotName != null && hostInfo.UrlWebHook != null && hostInfo.OwnerChatId>0)
             {
+                var spl = hostInfo.Token.Split(':');
+                int chat_id = Convert.ToInt32(spl[0]);
 
-                DbContext = new MarketBotDbContext();
-
-                if (token != null && name != null && Url != null)
+                BotInfo botInfo = new BotInfo
                 {
-                    var spl = token.Split(':');
-                    int chat_id = Convert.ToInt32(spl[0]);
+                    Token = hostInfo.Token,
+                    Name = hostInfo.BotName,
+                    WebHookUrl = hostInfo.UrlWebHook,
+                    Timestamp = DateTime.Now,
+                    HomeVersion = !IsServerVersion,
+                    ServerVersion = IsServerVersion,
+                    ChatId = chat_id,
+                    OwnerChatId= hostInfo.OwnerChatId
 
-                    BotInfo botInfo = new BotInfo
-                    {
-                        Token = token,
-                        Name = name,
-                        WebHookUrl = Url,
-                        Timestamp = DateTime.Now,
-                        HomeVersion = !IsServerVersion,
-                        ServerVersion = IsServerVersion,
-                        ChatId = chat_id
+                };
 
-                    };
+                DbContext.BotInfo.Add(botInfo);
+                DbContext.SaveChanges();
 
-                    DbContext.BotInfo.Add(botInfo);
-                    DbContext.SaveChanges();
+                var conf = new Configuration { BotInfoId = botInfo.Id, VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1, BotBlocked = false };
+                DbContext.Configuration.Add(conf);
+                DbContext.SaveChanges();
 
-                    var conf = new Configuration { BotInfoId = botInfo.Id, VerifyTelephone = false, OwnerPrivateNotify = false, Delivery = true, Pickup = false, ShipPrice = 0, FreeShipPrice = 0, CurrencyId = 1, BotBlocked = false };
-                    DbContext.Configuration.Add(conf);
-                    DbContext.SaveChanges();
+                Company company = new Company { Instagram = "https://www.instagram.com/", Vk = "https://www.vk.com/", Chanel = "https://t.me/", Chat = "https://t.me/" };
+                DbContext.Company.Add(company);
+                DbContext.SaveChanges();
 
-                    Company company = new Company { Instagram = "https://www.instagram.com/", Vk = "https://www.vk.com/", Chanel = "https://t.me/", Chat = "https://t.me/" };
-                    DbContext.Company.Add(company);
-                    DbContext.SaveChanges();
-
-                    return true;
-                }
-
-                else
-                    return false;
+                return true;
             }
 
-            catch (Exception e)
-            {
-                Result = e.Message;
+            else
                 return false;
-            }
 
-            finally
-            {
-                DbContext.Dispose();
-            }
         }
 
         /// <summary>
@@ -327,15 +328,16 @@ namespace MyTelegramBot.Controllers
 
         private bool DeleteDatabaseFile(string DbName)
         {
-            string path = @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\";
-
             try
             {
+                string path = @"C:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA\";
+
+
                 System.IO.File.Delete(String.Format(path + "{0}.mdf", DbName));
 
                 System.IO.File.Delete(String.Format(path + "{0}_log.ldf", DbName));
 
-                Directory.Delete(String.Format(path+ "{0}_fs",DbName), true);
+                Directory.Delete(String.Format(path + "{0}_fs", DbName), true);
 
                 return true;
             }
@@ -345,5 +347,7 @@ namespace MyTelegramBot.Controllers
                 return false;
             }
         }
+
+
     }
 }

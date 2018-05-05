@@ -49,6 +49,10 @@ namespace MyTelegramBot.Bot
 
         public const string CmdProductPage = "ProductPage";
 
+        public const string ProductQuestionCmd = "ProductQuestion";
+
+        public const string EnterProductQuestion = "Введите вопрос:";
+
         /// <summary>
         /// перейти на вторую стр. с кнопками
         /// </summary>
@@ -117,9 +121,13 @@ namespace MyTelegramBot.Bot
 
                 case CmdBackToMainPageButtons:
                     return await SendMainPageButtons(ProductId);
+
+                case ProductQuestionCmd:
+                  return await SendProductQuestion(Argumetns[0]);
             }
 
-
+            if (base.OriginalMessage.Contains(EnterProductQuestion))
+                return await InsertQuestion(OriginalMessage.Substring(EnterProductQuestion.Length,OriginalMessage.Length-EnterProductQuestion.Length), ReplyToMessageText);
 
             //команда /item
             if (base.CommandName.Contains(ProductCmd))
@@ -127,6 +135,46 @@ namespace MyTelegramBot.Bot
 
             else
                 return null;
+        }
+
+
+        private async Task<IActionResult> InsertQuestion(string ProductName, string Text)
+        {
+          var product=  BusinessLayer.ProductFunction.GetProductByName(ProductName);
+
+           var Question = BusinessLayer.ProductFunction.InsertProductQuestion(product.Id, Text, FollowerId);
+
+            if (Question != null)
+            {
+                await SendMessage(new BotMessage { TextMessage = "Ваш вопрос отправлен операторам. Вернуться к товару /item"+product.Id });
+
+                BotMessage = new Messages.Admin.ProductQuestionAdminViewMessage(Question);
+
+                await SendMessageAllBotEmployeess(BotMessage.BuildMsg());
+            }
+
+            return OkResult;
+        }
+
+        /// <summary>
+        /// Пользователь нажал на кнопку задать вопрос. Появилась форма для ввода сообщения
+        /// </summary>
+        /// <param name="ProductId"></param>
+        /// <returns></returns>
+        private async Task<IActionResult> SendProductQuestion(int ProductId)
+        {
+            if (!BusinessLayer.FollowerFunction.GetFollower(base.FollowerId).Blocked)
+            {
+
+                var prod = BusinessLayer.ProductFunction.GetProductById(ProductId);
+
+                await SendForceReplyMessage(EnterProductQuestion + prod.Name);
+            }
+
+            else
+                await AnswerCallback("Пользователь заблокирован!", true);
+
+            return OkResult;
         }
 
         private async Task<IActionResult> SendMainPageButtons(int ProductId)

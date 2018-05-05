@@ -11,6 +11,7 @@
     <Compile Remove="Controllers\OrderController.cs" />
     <Compile Remove="InlineResult\AdditionalProductPhotoSearchInline.cs" />
     <Compile Remove="Messages\MethodOfObtainingInfoMessage.cs" />
+    <Compile Remove="Messages\ProductModule\UnitSelectMessage.cs" />
     <Compile Remove="Model\CustomExceptionFilterAttribute.cs" />
   </ItemGroup>
 
@@ -65,6 +66,18 @@
 
   <ItemGroup>
     <None Update="Files\ProhibitedNames.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="SQL\alter.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="SQL\create.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="SQL\insert.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="SQL\insert.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="UserNameFaq.png">

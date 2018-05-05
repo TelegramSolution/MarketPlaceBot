@@ -12,6 +12,7 @@ namespace MyTelegramBot
             OrderProduct = new HashSet<OrderProduct>();
             OrdersInWork = new HashSet<OrdersInWork>();
             FeedBack = new HashSet<FeedBack>();
+            OrderStatus = new HashSet<OrderStatus>();
         }
 
         public int Id { get; set; }
@@ -48,6 +49,8 @@ namespace MyTelegramBot
         public ICollection<OrdersInWork> OrdersInWork { get; set; }
 
         public OrderStatus CurrentStatusNavigation { get; set; }
+
+        public ICollection<OrderStatus> OrderStatus { get; set; }
 
         /// <summary>
         /// Посчитать стоимость без учета стоимости доставки

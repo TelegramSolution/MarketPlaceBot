@@ -20,6 +20,11 @@ namespace MyTelegramBot.Bot.Core
     public class BotMessage
     {
         /// <summary>
+        /// ❔
+        /// </summary>
+        protected readonly string QuestionMarkEmodji = "\u2754";
+
+        /// <summary>
         /// ➖
         /// </summary>
         protected readonly string Minus = "\u2796";

@@ -414,10 +414,10 @@ namespace ManagementBots.Bot.Core
                     await AnswerCallback(botMessage.CallBackTitleText);
 
                 if (botMessage != null && EditMessageId != 0)
-                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html, true, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.EditMessageTextAsync(this.ChatId, EditMessageId, botMessage.TextMessage, ParseMode.Html,true, botMessage.MessageReplyMarkup);
 
                 if (botMessage != null && botMessage.TextMessage != null)
-                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb, false, ReplyToMessageId, botMessage.MessageReplyMarkup);
+                    return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, DisableWeb,false, ReplyToMessageId, botMessage.MessageReplyMarkup);
 
                 else
                     return null;
@@ -498,7 +498,8 @@ namespace ManagementBots.Bot.Core
 
             catch
             {
-                return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, botMessage.MessageReplyMarkup);
+                return null;
+               // return await TelegramClient.SendTextMessageAsync(this.ChatId, botMessage.TextMessage, ParseMode.Html, false, false, 0, botMessage.MessageReplyMarkup);
             }
 
         }
@@ -644,8 +645,8 @@ namespace ManagementBots.Bot.Core
 
             catch
             {
-                //if (text != null)
-                //    await Telegram.SendTextMessageAsync(this.ChatId, text);
+                if (text != null && text!="")
+                    await TelegramClient.SendTextMessageAsync(this.ChatId, text);
 
                 return true;
             }

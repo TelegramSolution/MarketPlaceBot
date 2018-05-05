@@ -90,7 +90,8 @@ namespace MyTelegramBot.Messages.Admin
             base.TextMessage = Bold("Панель администратора") + NewLine() +
                                "1) Добавить новый товар /addprod" + NewLine() +
                                "2) Создать новую категорию /newcategory" + NewLine() +
-                               "3) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on";
+                               "3) Бот рассылает уведомления в ЛС. Что бы выключить нажмите /off , что бы включить нажмите /on" +NewLine()+
+                               "4) Документация /doc ";
 
                 SetInlineKeyBoard();
                 return this;

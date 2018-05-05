@@ -35,5 +35,7 @@ namespace MyTelegramBot.Model
 
         public bool Blocked { get; set; }
 
+        public int OwnerChatId { get; set; }
+
     }
 }
